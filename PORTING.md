@@ -52,7 +52,7 @@ this tree byte for byte — so no ported file carries a hand edit the next merge
 | hooks.json format (nested `hooks`, `type: command`, PascalCase events, `${CLAUDE_PLUGIN_ROOT}`) | flat entries, camelCase events, `version: 1`, every command `bash "${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh" <event> <script>` | Cursor's format. The adapter turns Cursor's payload into the fields upstream's hooks read and their answers into Cursor's schema |
 | `SessionStart` → `check-task-tools.sh` | dropped | Cursor's todo list is always on |
 | `SessionStart` → `setup-nudge.sh`, `store-sync.sh start` | `sessionStart` locally **and** the first `preToolUse` of each conversation (`hooks/first-turn.sh`, once per conversation id), plus `rules/kru-setup-nudge.mdc` | cloud agents don't run `sessionStart`; the first tool call is the earliest a hook sees there, and the rule covers the reminder even before it |
-| `PreToolUse *` → `require-lead.sh` | `preToolUse` `*` → a Cursor-native rewrite: evidence of the load is the agent reading `skills/kru-lead/SKILL.md`, the user typing `/kru-lead` or any `/kru-<command>` (recorded at `beforeSubmitPrompt`), or a transcript naming the file; reads never gated; once per conversation; a subagent's call (`parent_tool_call_id`) exempt | upstream reads claude's jsonl transcript; Cursor's transcript is another format and may be absent (`transcript_path: null`). Reads pass because Cursor loads a skill by reading it — gating the first read would close the only door out |
+| `PreToolUse *` → `require-lead.sh` | `preToolUse` `*` → a Cursor-native rewrite: evidence of the load is the agent reading `skills/kru-lead/SKILL.md`, the user typing `/kru-lead` or any `/kru-<command>` (recorded at `beforeSubmitPrompt`); only the tools that build are gated (Write/Delete/edit tools, Task, MCP calls, shell that doesn't only read), so a read, a fetch or a question passes; once per conversation; a subagent's call (`parent_tool_call_id`) exempt | upstream reads claude's jsonl transcript; Cursor's transcript is another format, may be absent (`transcript_path: null`), and may hold the always-on rule that names `/kru-lead`, so it isn't read at all. Reads pass because Cursor loads a skill by reading it — gating the first read would close the only door out |
 | `PreToolUse Agent` → `check-handoff.sh` | `preToolUse` `Task` → upstream's gate unchanged; `updatedInput` → `updated_input`, built from Cursor's own `tool_input` with only the prompt replaced | Task is Cursor's subagent tool. Cursor's Task input shape is undocumented, so the adapter flattens an object-shaped `subagent_type` to the seat name and never rewrites keys it didn't read |
 | `PreToolUse Write\|Edit\|NotebookEdit\|Bash` → `brainstorm-guard.sh` | `preToolUse` `Shell\|Write\|Delete` → a Cursor-native rewrite: the lock is set by the user's `/kru-brainstorm` and lifted by *go* / *brief it* / `/kru-brief`, recorded at `beforeSubmitPrompt` (`hooks/prompt-state.sh`) | same transcript reason; `beforeSubmitPrompt` runs on cloud agents too |
 | `PostToolUse Agent` → `log-dispatch.sh` | `postToolUse` `Task`, upstream's hook unchanged | — |
@@ -93,7 +93,7 @@ guard allows — and the seven readonly seats don't depend on it.
 | file | why |
 |---|---|
 | `README.md`, `PORTING.md`, `MODELS.md`, `NOTICE` | the fork's own documents |
-| `hooks/cursor-hook.sh`, `first-turn.sh`, `prompt-state.sh`, `seat-guard.sh` | the Cursor seam |
+| `hooks/cursor-hook.sh`, `first-turn.sh`, `prompt-state.sh`, `seat-guard.sh`, `cursor-state.sh` | the Cursor seam. Per-conversation state lives under `${TMPDIR:-/tmp}/kru-cursor-<uid>/`, both levels `0700` and refused unless a real directory this user owns |
 | `hooks/require-lead.sh`, `hooks/brainstorm-guard.sh` and their tests | Cursor-native rewrites of upstream's transcript-reading gates; an upstream change to their *rules* (what counts as a go, which tools are reads) needs mirroring by hand. Both still call upstream's `hooks/readonly-bash.sh` |
 | `scripts/cursor/setup-1d.md` | `/kru-setup` §1d (grants, store repo, cloud environment), pulled in by a port rule |
 | `scripts/cursor/gates-report-path.md` | the review-report paragraph of `gates.md` |
@@ -125,7 +125,8 @@ guard allows — and the seven readonly seats don't depend on it.
 ## Privacy
 
 `scripts/privacy-scan.mjs` runs in `verify.sh` over the tree and over every commit (`git log -p
---all`, added lines and author/committer emails), plus gitleaks when installed (CI installs a pinned,
+--all --diff-merges=first-parent`, so a merge's conflict resolution counts; added lines and
+author/committer emails), plus gitleaks when installed (CI installs a pinned,
 checksum-verified copy). It fails on tokens and keys, emails outside the reserved example domains and
 an exact list of placeholder addresses the vendored docs use, paths off the author's machine, and
 client or private-repo names — those matched by hash, so the scanner doesn't publish them.

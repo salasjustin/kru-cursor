@@ -16,13 +16,13 @@ plugin_root="${1:-$CURSOR_PLUGIN_ROOT}"
 shift
 seats=" $* "
 input=$(cat) || exit 0
-dir="${TMPDIR:-/tmp}/kru-cursor-$(id -u)/subagents"
-safe() { case "$1" in ''|*/*|*..*) return 1 ;; esac; return 0; }
+. "$plugin_root/hooks/cursor-state.sh" 2>/dev/null || exit 0
+dir=$(kru_cursor_state subagents) || exit 0
+safe() { case "$1" in ''|*/*|*..*|.*) return 1 ;; esac; return 0; }
 
 case "$(printf '%s' "$input" | jq -r '.hook_event_name // empty' 2>/dev/null)" in
   subagentStart)
     type=$(printf '%s' "$input" | jq -r '.subagent_type // empty' 2>/dev/null)
-    mkdir -p "$dir" 2>/dev/null || exit 0
     for id in $(printf '%s' "$input" | jq -r '.tool_call_id // empty, .subagent_id // empty' 2>/dev/null); do
       safe "$id" && printf '%s\n' "$type" > "$dir/$id" 2>/dev/null
     done

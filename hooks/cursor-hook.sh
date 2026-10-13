@@ -59,8 +59,11 @@ norm=$(printf '%s' "$input" | jq -c --arg ev "$event" --arg pd "${CURSOR_PROJECT
   | if (.tool_input | type) == "object" and (.tool_input | has("subagent_type")) then
       .tool_input.subagent_type |= flat
     else . end
+  # a subagent event belongs to the lead'"'"'s conversation: its ledger is where
+  # nudge-audit and the auditor look
   | if $ev == "subagentStop" or $ev == "subagentStart" then
-      .subagent_type = (.subagent_type | flat)
+      .session_id = (.parent_conversation_id // .session_id)
+      | .subagent_type = (.subagent_type | flat)
       | .agent_type = .subagent_type
       | .last_assistant_message = (.summary // "")
       | .stop_hook_active = ((.loop_count // 0) > 0)
@@ -74,7 +77,11 @@ cwd=$(printf '%s' "$norm" | jq -r '.cwd // empty' 2>/dev/null)
 [ -n "$cwd" ] && [ -d "$cwd" ] && cd "$cwd" 2>/dev/null
 
 errf=$(mktemp 2>/dev/null) || allow
-trap 'rm -f "$errf"' EXIT
+inf=$(mktemp 2>/dev/null) || { rm -f "$errf"; allow; }
+trap 'rm -f "$errf" "$inf"' EXIT
+# the original payload rides in a file: a long brief passed as an argument
+# would hit the argv limit and silently lose the rewrite
+printf '%s' "$input" > "$inf"
 case "$script" in
   store-sync.sh) out=$(printf '%s' "$norm" | bash "$root/hooks/$script" "${1:-}" "$root" 2>"$errf") ;;
   *) out=$(printf '%s' "$norm" | bash "$root/hooks/$script" "$root" "$@" 2>"$errf") ;;
@@ -101,12 +108,23 @@ if [ "$code" = 2 ]; then
 fi
 [ "$code" = 0 ] || { [ -n "$err" ] && printf '%s\n' "$err" >&2; allow; }
 [ -n "$err" ] && printf '%s\n' "$err" >&2
-printf '%s' "$out" | jq -e 'type == "object"' >/dev/null 2>&1 || allow
+# one answer, the hook's last json object; anything else is an allow
+out=$(printf '%s' "$out" | jq -cs 'map(select(type == "object")) | last // empty' 2>/dev/null)
+[ -n "$out" ] || allow
 
 case "$event" in
   preToolUse|subagentStart)
-    printf '%s' "$out" | jq -c --argjson orig "$input" '
-      if has("permission") then .
+    # rebuilt from named fields only, so a hook can never hand cursor a key or
+    # a value outside the schema
+    printf '%s' "$out" | jq -c --slurpfile o "$inf" '
+      $o[0] as $orig
+      | if .permission == "deny" then
+        {permission: "deny", user_message: (.user_message // .agent_message // "kru: refused"),
+         agent_message: (.agent_message // .user_message // "kru: refused")}
+      elif .permission == "allow" then
+        {permission: "allow"}
+        + (if (.updated_input | type) == "object" then {updated_input} else {} end)
+        + (if (.additional_context // "") != "" then {additional_context} else {} end)
       elif .hookSpecificOutput.permissionDecision == "deny" then
         {permission: "deny", user_message: (.hookSpecificOutput.permissionDecisionReason // "kru: refused"),
          agent_message: (.hookSpecificOutput.permissionDecisionReason // "kru: refused")}

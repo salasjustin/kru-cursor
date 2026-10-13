@@ -17,11 +17,11 @@ input=$(cat) || exit 0
 conv=$(printf '%s' "$input" | jq -r '.session_id // empty' 2>/dev/null)
 [ -n "$conv" ] || exit 0
 [ -n "$(printf '%s' "$input" | jq -r '.parent_tool_call_id // empty' 2>/dev/null)" ] && exit 0
-case "$conv" in */*|*..*) exit 0 ;; esac
-state="${TMPDIR:-/tmp}/kru-cursor-$(id -u)/$conv"
-mkdir -p "$state" 2>/dev/null || exit 0
-[ -e "$state/started" ] && exit 0
-: > "$state/started"
+. "$plugin_root/hooks/cursor-state.sh" 2>/dev/null || exit 0
+state=$(kru_cursor_state "$conv") || exit 0
+# mkdir is the atomic test-and-set: parallel tool calls fire this hook
+# concurrently, and only the one that creates the mark runs the work
+mkdir "$state/started" 2>/dev/null || exit 0
 
 sync=$(printf '%s' "$input" | bash "$plugin_root/hooks/store-sync.sh" start "$plugin_root" 2>/dev/null)
 nudge=$(printf '%s' "$input" | bash "$plugin_root/hooks/setup-nudge.sh" "$plugin_root" 2>/dev/null)

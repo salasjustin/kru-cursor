@@ -94,6 +94,7 @@ const FORK_OWNED = new Set([
   "hooks/prompt-state.sh",
   "hooks/seat-guard.sh",
   "hooks/first-turn.sh",
+  "hooks/cursor-state.sh",
 ])
 const FORK_OWNED_DIRS = /^(scripts\/cursor\/|\.cursor-plugin\/|rules\/|commands\/|\.github\/)/
 
@@ -140,7 +141,6 @@ const RULES = [
   // --- the hooks (shell) -----------------------------------------------------
   // plugin hooks run with the install dir as cwd; hooks/cursor-hook.sh passes the
   // root as $1 and changes into the project before the hook runs
-  R(/\$\{([12]):-\$CURSOR_PLUGIN_ROOT\}/g, "${$1:-$CURSOR_PLUGIN_ROOT}", { sh: true }),
   R(/\(substituted in hooks\.json\)/g, "(passed by hooks/cursor-hook.sh)", { sh: true }),
   // the team's own repo has no sheet by design
   R(/-u CLAUDE_PLUGIN_ROOT\b/g, "-u CURSOR_PLUGIN_ROOT", { sh: true }),
@@ -376,7 +376,18 @@ function splitFrontmatter(src) {
 }
 const value = (e) => (e ? [e.lines[0].replace(/^[^:]+:\s*/, ""), ...e.lines.slice(1).map((l) => l.trim())].join(" ").trim() : null)
 const get = (fm, key) => fm.entries.find((e) => e.key === key)
-const unquote = (s) => (s && /^(["']).*\1$/.test(s) ? s.slice(1, -1) : s)
+// a quoted yaml scalar decoded to its string, so re-encoding it is a fixed point
+const unquote = (s) => {
+  if (!s) return s
+  if (/^".*"$/.test(s)) {
+    try {
+      return JSON.parse(s)
+    } catch {
+      return s.slice(1, -1)
+    }
+  }
+  return /^'.*'$/.test(s) ? s.slice(1, -1).replace(/''/g, "'") : s
+}
 // a value yaml reads back as the same string: plain when it can be, else
 // double-quoted (json's escaping is valid yaml)
 const scalar = (v) => (/:\s|\s#|^[\s'"&*!|>%@`{}[\],?#-]|\s$|^$/.test(v) ? JSON.stringify(v) : v)
@@ -624,8 +635,13 @@ function portHooks(noEdit) {
       ],
       subagentStart: [h("subagentStart", "seat-guard.sh", { timeout: 10 }, noEdit)],
       postToolUse: [h("postToolUse", "log-dispatch.sh", { matcher: "Task", timeout: 10 })],
-      subagentStop: [h("subagentStop", "log-return.sh", { timeout: 10, loop_limit: 1 })],
-      stop: [h("stop", "nudge-audit.sh", { timeout: 10, loop_limit: 1 }), h("stop", "store-sync.sh", { timeout: 30 }, ["stop"])],
+      // a hook past its loop_limit is skipped outright. log-return asks once
+      // (loop_count 0) and logs the second miss (loop_count 1), so it must still
+      // run at 1; nudge-audit bounds itself by the dispatch count it already
+      // nudged for, and cursor leaves the span of a stop's loop_count open, so
+      // a cap there could silence a later turn's audit
+      subagentStop: [h("subagentStop", "log-return.sh", { timeout: 10, loop_limit: 2 })],
+      stop: [h("stop", "nudge-audit.sh", { timeout: 10, loop_limit: null }), h("stop", "store-sync.sh", { timeout: 30 }, ["stop"])],
     },
   }
   write(join(ROOT, "hooks", "hooks.json"), JSON.stringify(hooks, null, 2) + "\n")
@@ -701,7 +717,7 @@ function portCommands() {
   if (exists(dir))
     for (const f of readdirSync(dir)) {
       if (wanted.has(f)) continue
-      problems.push(`commands/${f}: no skill claims it (stale) — removed`)
+      // a stale command is a change a real run makes, and a --check failure
       remove(join(dir, f))
     }
   return wanted.size

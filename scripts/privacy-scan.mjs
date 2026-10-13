@@ -88,8 +88,10 @@ const PLACEHOLDER_EMAILS = new Set(
     "neil@x.com x@y.zz your@email.com").split(" "),
 )
 
-// a secret-shaped value that announces itself as a placeholder
-const PLACEHOLDER_SECRET = /your[_-]?|xxx|example|abc123|<[^>]*>|\$\{|\.\.\.|dummy|placeholder|redacted|test_|fake/i
+// a secret-shaped value that announces itself as a placeholder — judged on the
+// matched value alone, never the line around it, so a real key beside a
+// `${VAR}` or an `example` on the same line still fails
+const PLACEHOLDER_SECRET = /your[_-]?|xxx|example|abc123|<[^>]*>|\$\{|\.\.\.|dummy|placeholder|test_|fake/i
 
 // per-path exceptions, for the tree and history alike
 const PATH_OK = [
@@ -111,7 +113,7 @@ const HISTORY_REVIEWED = [
 
 function allowed(id, path, line, value) {
   if (id === "email" && EMAIL_OK(value)) return true
-  if (["openai/anthropic-key", "stripe-live-key", "bearer-token", "github-token"].includes(id) && PLACEHOLDER_SECRET.test(line)) return true
+  if (["openai/anthropic-key", "stripe-live-key", "bearer-token", "github-token"].includes(id) && PLACEHOLDER_SECRET.test(value)) return true
   return PATH_OK.some((p) => (p.id === "*" || p.id === id) && p.path.test(path) && (!p.line || p.line.test(line)))
 }
 
@@ -148,13 +150,17 @@ if (!HISTORY) {
   }
   // every added line of every patch: all content enters history as an addition
   // (the root commit adds everything), so a removal shows nothing new
-  const log = git("log", "-p", "--all", "--no-color", "--format=COMMIT %H")
-  let commit = "", file = ""
+  // merges show their first-parent diff, so content added while resolving a
+  // `git merge upstream/main` conflict is scanned too
+  const log = git("log", "-p", "--all", "--no-color", "--diff-merges=first-parent", "--format=COMMIT %H")
+  let commit = "", file = "", inHunk = false
   for (const line of log.split("\n")) {
-    if (line.startsWith("COMMIT ")) { commit = line.slice(7); continue }
-    if (line.startsWith("diff --git ")) { file = line.replace(/^diff --git a\/(.*) b\/.*$/, "$1"); continue }
-    if (/^(\+\+\+|---) /.test(line)) continue
-    if (!line.startsWith("+")) continue
+    if (line.startsWith("COMMIT ")) { commit = line.slice(7); inHunk = false; continue }
+    if (line.startsWith("diff --git ")) { file = line.replace(/^diff --git a\/(.*) b\/.*$/, "$1"); inHunk = false; continue }
+    // a file header's +++/--- lines come before the first hunk; inside one, an
+    // added line that itself starts with "++" is content
+    if (line.startsWith("@@")) { inHunk = true; continue }
+    if (!inHunk || !line.startsWith("+")) continue
     scanLine(file, line.slice(1), hits, { commit })
   }
 }
@@ -165,15 +171,17 @@ const gl = spawnSync("gitleaks", ["version"], { encoding: "utf8" })
 if (gl.status === 0) {
   const dir = mkdtempSync(join(tmpdir(), "kru-gitleaks-"))
   const report = join(dir, "report.json")
-  const args = [HISTORY ? "git" : "dir", "--no-banner", "--redact", "--exit-code", "0", "--report-format", "json", "--report-path", report, "."]
+  // unredacted: the report lives in a temp dir deleted below, and a redacted
+  // secret can't be told from a placeholder
+  const args = [HISTORY ? "git" : "dir", "--no-banner", "--exit-code", "0", "--report-format", "json", "--report-path", report, "."]
   const r = spawnSync("gitleaks", args, { cwd: ROOT, encoding: "utf8", maxBuffer: 1 << 28 })
   let found
   try { found = JSON.parse(readFileSync(report, "utf8")) } catch (err) {
     console.log(`FAIL: gitleaks ran but left no readable report (exit ${r.status}): ${String(err.message).split("\n")[0]}`)
     process.exit(1)
   } finally { rmSync(dir, { recursive: true, force: true }) }
-  // gitleaks redacts the secret, so a placeholder is judged on the matched line
-  const real = found.filter((f) => !PLACEHOLDER_SECRET.test(f.Match ?? "") && !PLACEHOLDER_SECRET.test(f.Secret ?? ""))
+  // a placeholder is judged on the secret gitleaks extracted, never the line
+  const real = found.filter((f) => !PLACEHOLDER_SECRET.test(f.Secret ?? ""))
   gitleaks = `${gl.stdout.trim()}: ${found.length} finding(s), ${found.length - real.length} placeholder(s)`
   for (const f of real) hits.push({ commit: f.Commit, id: `gitleaks:${f.RuleID}`, path: f.File, value: "REDACTED", line: `line ${f.StartLine}` })
 }

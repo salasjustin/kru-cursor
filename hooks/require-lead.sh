@@ -11,13 +11,15 @@
 #   - the agent reading skills/kru-lead/SKILL.md (how cursor loads a skill the
 #     agent picks), marked on the spot;
 #   - the user typing /kru-lead, or any /kru-<command> as the latest word
-#     (hooks/prompt-state.sh records both at beforeSubmitPrompt);
-#   - the transcript naming the skill file, when there is one to read.
+#     (hooks/prompt-state.sh records both at beforeSubmitPrompt).
+# the transcript is not read: an always-on rule naming /kru-lead may sit in it
+# whether or not the skill was ever loaded.
 #
 # it gates the first tool call that could build — a write, a delete, a
-# dispatch, an mcp call, a shell command that doesn't only read. reads pass:
-# Read/Grep/Glob and read-only shell are inspections, and cursor loads a skill
-# by reading it, so gating the first read would close the only door out.
+# dispatch, an mcp call, a shell command that doesn't only read — named one by
+# one, so a tool this list doesn't know (a fetch, a lint read, a question to the
+# user, the todo list) passes. reads pass too: cursor loads a skill by reading
+# it, so gating the first read would close the only door out.
 #
 # once per conversation: the mark is written whether or not the block lands, so
 # a conversation that declines is nagged no further. a subagent's call
@@ -34,35 +36,33 @@ input=$(cat) || exit 0
 
 conv=$(printf '%s' "$input" | jq -r '.session_id // empty' 2>/dev/null)
 [ -n "$conv" ] || exit 0
-case "$conv" in */*|*..*) exit 0 ;; esac
 [ -n "$(printf '%s' "$input" | jq -r '.parent_tool_call_id // empty' 2>/dev/null)" ] && exit 0
-state="${TMPDIR:-/tmp}/kru-cursor-$(id -u)/$conv"
-mkdir -p "$state" 2>/dev/null || exit 0
+. "$plugin_root/hooks/cursor-state.sh" 2>/dev/null || exit 0
+state=$(kru_cursor_state "$conv") || exit 0
 
 tool=$(printf '%s' "$input" | jq -r '.cursor_tool_name // .tool_name // empty' 2>/dev/null)
 case "$tool" in
-  Read|Grep|Glob|LS|List|SemanticSearch|CodebaseSearch|WebFetch|WebSearch)
-    # the load itself
+  Shell|Bash)
+    cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null)
+    . "$plugin_root/hooks/readonly-bash.sh" 2>/dev/null || exit 0
+    if kru_readonly_bash "$cmd"; then
+      printf '%s' "$cmd" | grep -qE 'skills/kru-lead/SKILL\.md' && : > "$state/lead.loaded"
+      exit 0
+    fi ;;
+  Write|Edit|MultiEdit|StrReplace|ApplyPatch|NotebookEdit|Delete|Task|Agent|MCP*|mcp*) ;;
+  *)
+    # a read, or a tool this gate doesn't build with; reading the skill loads it
     printf '%s' "$input" | jq -r '.tool_input | [.. | strings] | .[]' 2>/dev/null |
       grep -qE '(^|/)skills/kru-lead/SKILL\.md$' && : > "$state/lead.loaded"
     exit 0 ;;
-  Shell|Bash)
-    cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null)
-    printf '%s' "$cmd" | grep -qE 'skills/kru-lead/SKILL\.md' && . "$plugin_root/hooks/readonly-bash.sh" 2>/dev/null &&
-      kru_readonly_bash "$cmd" && { : > "$state/lead.loaded"; exit 0; }
-    . "$plugin_root/hooks/readonly-bash.sh" 2>/dev/null && kru_readonly_bash "$cmd" && exit 0 ;;
 esac
 
 [ -e "$state/lead.loaded" ] && exit 0
 # a /kru-<command> run is that command's contract, not the lead's — the ones
 # that dispatch load the lead themselves — while it is still the latest word
 [ -s "$state/command" ] && exit 0
-transcript=$(printf '%s' "$input" | jq -r '.transcript_path // empty' 2>/dev/null)
-if [ -r "$transcript" ] && grep -qE 'skills/kru-lead/SKILL\.md|(^|[^a-z-])/kru-lead\b' "$transcript" 2>/dev/null; then
-  : > "$state/lead.loaded"; exit 0
-fi
 
-[ -e "$state/lead-gated" ] && exit 0
-: > "$state/lead-gated"
+# atomic, so parallel tool calls produce one refusal, not one each
+mkdir "$state/lead-gated" 2>/dev/null || exit 0
 printf 'kru: this conversation has not loaded the lead contract. Load the kru-lead skill (read %s/skills/kru-lead/SKILL.md), then take the action again — nothing else about the request has changed. This fires once per conversation, from the kru-cursor plugin, and reads are exempt. To run without it: touch %s\n' "$plugin_root" "$(kru_path lead-gate/off)" >&2
 exit 2

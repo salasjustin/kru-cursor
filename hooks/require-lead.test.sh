@@ -43,7 +43,11 @@ say g '/kru-issue the flaky test'; run require-lead.sh g Write '{"path":"x"}'; c
 say h '/kru-issue the flaky test'; say h 'now build it'; run require-lead.sh h Write '{"path":"x"}'; check deny "an ordinary turn after the command is gated again"
 run require-lead.sh i Write '{"path":"x"}' '{"parent_tool_call_id":"tc1"}'; check allow "a subagent's call"
 printf 'x skills/kru-lead/SKILL.md x\n' > "$sandbox/transcript.txt"
-run require-lead.sh j Write '{"path":"x"}' "$(jq -nc --arg t "$sandbox/transcript.txt" '{transcript_path:$t}')"; check allow "a transcript naming the skill"
+run require-lead.sh j Write '{"path":"x"}' "$(jq -nc --arg t "$sandbox/transcript.txt" '{transcript_path:$t}')"; check deny "a transcript naming the skill is not evidence (a rule names it too)"
+for t in Fetch ReadLints askQuestion updateTodos ListMcpResources createPlan; do
+  run require-lead.sh "t-$t" "$t" '{"x":"y"}'; check allow "a tool the gate doesn't build with: $t"
+done
+run require-lead.sh m "MCP:deploy" '{"x":"y"}'; check deny "an mcp call builds"
 KRU_NO_LEAD_GATE=1 run require-lead.sh k Write '{"path":"x"}'; check allow "KRU_NO_LEAD_GATE"
 mkdir -p "$HOME/.kru/lead-gate" && : > "$HOME/.kru/lead-gate/off"
 run require-lead.sh l Write '{"path":"x"}'; check allow "the lead-gate/off file"

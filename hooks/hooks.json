@@ -57,14 +57,14 @@
       {
         "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" subagentStop log-return.sh",
         "timeout": 10,
-        "loop_limit": 1
+        "loop_limit": 2
       }
     ],
     "stop": [
       {
         "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" stop nudge-audit.sh",
         "timeout": 10,
-        "loop_limit": 1
+        "loop_limit": null
       },
       {
         "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" stop store-sync.sh stop",

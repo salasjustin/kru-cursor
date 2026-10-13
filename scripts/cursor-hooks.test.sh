@@ -57,6 +57,12 @@ fire() {
     local m cmd
     m=$(jq -r '.matcher // ""' <<<"$entry")
     if [ -n "$m" ] && [ "$m" != "*" ] && [ -n "$key" ] && ! [[ "$key" =~ $m ]]; then continue; fi
+    # cursor skips a stop/subagentStop hook once loop_count reaches its
+    # loop_limit (default 5; null = no limit)
+    case "$event" in stop|subagentStop)
+      jq -e --argjson p "$payload" '(if has("loop_limit") then .loop_limit else 5 end) as $l
+        | $l != null and ($p.loop_count // 0) >= $l' <<<"$entry" >/dev/null 2>&1 && continue ;;
+    esac
     cmd=$(jq -r '.command' <<<"$entry")
     cmd=${cmd//'${CURSOR_PLUGIN_ROOT}'/$plugin}
     out=$(cd "$cwd" && printf '%s' "$payload" | CURSOR_PLUGIN_ROOT="$plugin" CURSOR_PROJECT_DIR="$work" bash -c "$cmd" 2>/dev/null)
@@ -69,7 +75,7 @@ fire() {
         fi ;;
       *) jq -e 'type == "object"' <<<"$out" >/dev/null 2>&1 || bad="$bad [$cmd → exit $code: $out]" ;;
     esac
-    merged=$(jq -c --argjson o "${out:-null}" '. + [$o]' <<<"$merged" 2>/dev/null || printf '%s' "$merged")
+    merged=$(printf '%s\n%s\n' "$merged" "${out:-null}" | jq -cs '.[0] + [.[1]]' 2>/dev/null || printf '%s' "$merged")
   done < <(jq -c --arg ev "$event" '.hooks[$ev][]?' "$hooks_json")
   if [ -n "$bad" ]; then fail=$((fail + 1)); printf 'FAIL: %s response is not cursor-valid:%s\n' "$event" "$bad"; fi
   resp=$(jq -c 'map(select(type == "object")) |
@@ -153,7 +159,8 @@ fire postToolUse "$(tool rl9 Task '{"subagent_type":"kru-dispatch-auditor","prom
 check "log-dispatch: the auditor's own dispatch is not logged" test ! -e "$HOME/.kru/audit/rl9.jsonl"
 
 # --- log-return (subagentStop) ------------------------------------------------------------
-stopsub() { jq -nc --arg c "$1" --arg s "$2" --argjson n "$3" '{conversation_id: $c, session_id: $c, subagent_type: "kru-node-developer", status: "completed", task: "t", description: "d", summary: $s, loop_count: $n, modified_files: [], agent_transcript_path: null}'; }
+# the subagent's own conversation id differs from the lead's; the ledger is the lead's
+stopsub() { jq -nc --arg c "$1" --arg s "$2" --argjson n "$3" '{conversation_id: ("sub-" + $c), session_id: ("sub-" + $c), parent_conversation_id: $c, subagent_type: "kru-node-developer", status: "completed", task: "t", description: "d", summary: $s, loop_count: $n, modified_files: [], agent_transcript_path: null}'; }
 fire subagentStop "$(stopsub rl8 'done' 0)"
 check "log-return: a missing Return pass line is asked for once" has '.followup_message | test("Return pass")'
 fire subagentStop "$(stopsub rl8 $'done\nReturn pass: re-read the diff, clean' 0)"
@@ -201,6 +208,18 @@ fire preToolUse "$(tool sa-plan Shell '{"command":"mkdir -p /tmp/x"}' '{"parent_
 check "seat-guard: planner keeps the shell" has '.permission == "allow"'
 fire preToolUse "$(tool sa-node Write '{"path":"src/a.ts"}' '{"parent_tool_call_id":"tc-node"}')"
 check "seat-guard: a builder writes" has '.permission == "allow"'
+
+# --- adapter hardening --------------------------------------------------------------------------------
+{ printf 'Build the `exportCommand` handler in src/cli.ts. '; head -c 160000 /dev/zero | tr '\0' 'a'; } > "$sandbox/big.txt"
+fire preToolUse "$(jq -nc --rawfile p "$sandbox/big.txt" --arg w "$work" '{conversation_id: "rl7", session_id: "rl7", tool_name: "Task", cwd: $w,
+  tool_input: {subagent_type: "kru-node-developer", prompt: $p, description: "big"}}')"
+check "a 160 KB brief keeps its rewrite (no argv limit)" has '.permission == "allow" and (.updated_input.prompt | test("inbox.md"))'
+# another user's planted dir: state is refused, the gate fails open
+mkdir -p "$TMPDIR/kru-cursor-$(id -u)" && ln -s "$sandbox/elsewhere" "$TMPDIR/kru-cursor-$(id -u)/evil1"
+fire beforeSubmitPrompt "$(prompt evil1 '/kru-brainstorm x')"
+check "a symlinked conversation dir is never written through" test ! -e "$sandbox/elsewhere"
+fire preToolUse "$(tool evil1 Write '{"path":"a"}')"
+check "…and the gates fail open there" has '.permission == "allow"'
 
 # --- fail open ------------------------------------------------------------------------------------
 resp=$(cd "$plugin" && printf 'not json' | bash "$plugin/hooks/cursor-hook.sh" preToolUse require-lead.sh)

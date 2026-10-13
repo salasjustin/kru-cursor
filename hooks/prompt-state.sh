@@ -16,12 +16,12 @@
 # so an attached skills/kru-<name>/SKILL.md or commands/kru-<name>.md counts
 # as typing it. never blocks: {"continue":true} on every path.
 command -v jq >/dev/null 2>&1 || exit 0
+plugin_root="${1:-$CURSOR_PLUGIN_ROOT}"
 input=$(cat) || exit 0
 conv=$(printf '%s' "$input" | jq -r '.session_id // empty' 2>/dev/null)
 [ -n "$conv" ] || exit 0
-case "$conv" in */*|*..*) exit 0 ;; esac
-state="${TMPDIR:-/tmp}/kru-cursor-$(id -u)/$conv"
-mkdir -p "$state" 2>/dev/null || exit 0
+. "$plugin_root/hooks/cursor-state.sh" 2>/dev/null || exit 0
+state=$(kru_cursor_state "$conv") || exit 0
 
 prompt=$(printf '%s' "$input" | jq -r '.prompt // ""' 2>/dev/null)
 # the command the turn opens with, typed or attached

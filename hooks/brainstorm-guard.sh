@@ -14,8 +14,9 @@ plugin_root="${1:-$CURSOR_PLUGIN_ROOT}"
 input=$(cat) || exit 0
 conv=$(printf '%s' "$input" | jq -r '.session_id // empty' 2>/dev/null)
 [ -n "$conv" ] || exit 0
-case "$conv" in */*|*..*) exit 0 ;; esac
-[ -e "${TMPDIR:-/tmp}/kru-cursor-$(id -u)/$conv/brainstorm.lock" ] || exit 0
+. "$plugin_root/hooks/cursor-state.sh" 2>/dev/null || exit 0
+state=$(kru_cursor_state "$conv") || exit 0
+[ -e "$state/brainstorm.lock" ] || exit 0
 
 tool=$(printf '%s' "$input" | jq -r '.cursor_tool_name // .tool_name // empty' 2>/dev/null)
 if [ "$tool" = "Shell" ] || [ "$tool" = "Bash" ]; then
