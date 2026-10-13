@@ -7,6 +7,8 @@ argument-hint: "[slug | substring]"
 
 Take the defect list to the user as a decision, not a listing. The artifact is `issues/` at the plan store root, one file per bug; `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *`issues/`* holds its lifecycle. Membership is the status: a file exists until the change that fixes its bug deletes it, so an empty dir is a true *no known defects*.
 
+Normal bugs live on the product repo's GitHub issues (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*), so `issues/` holds the security findings and any bug from a repo with no GitHub issues. When the repo has them, the open ones labelled `bug` (`gh issue list --label bug --state open --json number,title,body`) run through the same steps beside the files: reconciled, scored and proposed alike, a verified-fixed one named for the PM bot to close rather than closed by you, and a fix carrying `Fixes #n` in its commit so the merge closes it.
+
 **The gate is the verb.** Steps 1–3 compute a proposal; the only writes before §4 are bookkeeping, and bookkeeping is the team's — a verified-fixed file is deleted, a moved anchor re-anchored, a stub's found call sites written in, `effort` sized, all without asking. *Which* bugs get fixed is the user's call; they're the PM. This skill is user-invoked so the defect list can't be pulled into a task nobody pointed at it.
 
 ## 1. Reconcile — every file against the code

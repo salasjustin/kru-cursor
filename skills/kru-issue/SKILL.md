@@ -5,7 +5,7 @@ disable-model-invocation: true
 argument-hint: "<what's wrong>"
 ---
 
-Write the defect file from what the user just told you and get out. They hit something *wrong* and want it recorded before it evaporates. See `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *`issues/`* for the artifact's lifecycle — you don't need to read it to run this.
+Record the defect from what the PM just told you and get out — as a GitHub issue on the product repo, or, for a security finding, as a file in the store (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*). They hit something *wrong* and want it recorded before it evaporates. See `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *`issues/`* for the artifact's lifecycle — you don't need to read it to run this.
 
 **Zero-derail.** Record and go straight back to whatever was in flight. Inline; spawn nothing.
 
@@ -14,8 +14,9 @@ Write the defect file from what the user just told you and get out. They hit som
 ## Do
 
 1. **Read `$ARGUMENTS`** — what's wrong. If empty, ask one line ("What's wrong?") and stop.
-2. **Glance at `issues/`** (`ls`, nothing more). Same defect already has a file → append the user's new detail to it and stop. One directory listing isn't investigation; two files for one bug is drift.
-3. **Write the file `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" path issues/<kebab-slug>` names.** **No precondition**: create the dir if it isn't there.
+2. **Pick the destination from what you were told.** Security-shaped — anything an attacker could use: an auth bypass, data exposure, an injection, a leaked secret — or unsure → the store file (step 3 on). Otherwise a normal bug → a GitHub issue, when the product repo has one to file in (`gh repo view --json hasIssuesEnabled` answers true); else the store file, and the confirm line says why.
+   - **GitHub:** glance for the same bug (`gh issue list --state open --search "<two words from the symptom>"`, nothing more) — found → add the new detail as a comment (`gh issue comment <n>`) and stop. Else `gh issue create --label bug --title "<the symptom, one line>" --body "<the template below, minus the frontmatter, with severity and urgency as its first line>"`, adding `--project "Agent Board"` when the repo is on salasjustin's board (drop either flag if `gh` refuses it, and say so). Then step 5.
+3. **Glance at `issues/`** (`ls`, nothing more). Same defect already has a file → append the new detail to it and stop. One directory listing isn't investigation; two files for one bug is drift. Else **write the file `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" path issues/<kebab-slug>` names.** **No precondition**: create the dir if it isn't there.
 
    ```markdown
    ---
@@ -34,10 +35,10 @@ Write the defect file from what the user just told you and get out. They hit som
 
    Take `severity` from the user when they state it, else `medium` — and name which in the confirm line so they can correct it in one word. Never infer severity from how alarmed the message sounds. `urgency` (`TRACKER.md` anchors) is bare when they said how soon ("before launch", "whenever"), else `~3`.
 4. **What the user already supplied fills its field.** They named a `file:line`, or said how to reproduce it? Write it in and drop that field's marker — recording what you were told isn't investigation. This skill skips *finding*, not *keeping*. Cite `file:line` for anything they gave you: the write-up sits outside the repo, so an unanchored reference is unfollowable.
-5. **Confirm in one line** — "logged as <severity>, needed <urgency in words>; not looked into yet." No path. Pass through whatever `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" where` prints, which is usually nothing. Then straight back to whatever was in flight.
+5. **Confirm in one line** — "logged as <severity>, needed <urgency in words>; not looked into yet", with the issue number when it went to GitHub, and no path when it went to the store. Pass through whatever `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" where` prints, which is usually nothing. Then straight back to whatever was in flight.
 
 ## Don't
 
-- **Don't take a non-defect.** Something merely *wanted* — a feature, a refactor, a cleanup, duplication, misfiled config — is `/kru-todo`'s line, not a defect file. The store's three-way split holds: **wrong → `issues/`, wanted → `TODOS.md`, unformed → `notes/`**. Say in one line which you did.
-- Don't fix it, and don't offer a fix. Filling the file in is a normal `/kru-lead <task>`; fixing it deletes the file in that same change, along with the repro test that replaces it (`lead` Step 4.5).
+- **Don't take a non-defect.** Something merely *wanted* — a feature, a refactor, a cleanup, duplication, misfiled config — is `/kru-todo`'s line, not a defect file. The split holds: **wrong → a GitHub issue (security: `issues/`), wanted → `/kru-todo`, unformed → `notes/`**. Say in one line which you did.
+- Don't fix it, and don't offer a fix. Filling it in is a normal `/kru-lead <task>`; fixing it closes the issue (`Fixes #n` in the pull request) or deletes the file in that same change, along with the repro test that replaces it (`lead` Step 4.5).
 - Write through the resolver, never by hand (`TRACKER.md`, `${CURSOR_PLUGIN_ROOT}/references/store.md`).

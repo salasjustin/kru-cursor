@@ -422,3 +422,169 @@ EDITS.push(E(
   "questions (each `user:justin` line against the rule it contradicts), deferred — as a list numbered 1, 2, 3 Kai can answer, or carry to Justin, by item.",
   "t6",
 ))
+
+// --- t7: tracking split: security private, bugs/wants on GitHub, scratch in the store ---
+EDITS.push(E(
+  "TRACKER.md",
+  "— **not** committed to the working repo, and **not** on GitHub Issues. This file **is** the \"tracker doc\" the vendored planning skills ask for — **do NOT run `/setup-matt-pocock-skills`**. When a vendored skill says \"the issue tracker should have been provided to you,\" or offers a GitHub/Linear path, use the file layout here — it is the skills' own **local-markdown path**, made canonical for this team.",
+  "— **not** committed to the working repo. Bugs and product wants are tracked on the product repo's GitHub issues instead, and security findings stay private (*Where each thing is tracked*, below). This file **is** the \"tracker doc\" the vendored planning skills ask for — **do NOT run `/setup-matt-pocock-skills`**. When a vendored skill says \"the issue tracker should have been provided to you,\" or offers a GitHub/Linear path for a plan, a spec or tickets, use the file layout here — it is the skills' own **local-markdown path**, made canonical for this team.",
+  "t7: bugs and wants move to GitHub issues; plans stay in the store",
+))
+EDITS.push(E(
+  "TRACKER.md",
+  "Why user-level files, not in-repo and not Issues: the working repo stays clean — **no management files in it, ever**: no `management/` dir, no `issues/`, no plan docs, briefs, or todo lists, and **no pointer in its `AGENTS.md`**.",
+  "## Where each thing is tracked\n\n| what | where it goes | how |\n|---|---|---|\n| a **security or vulnerability** finding — anything an attacker could use: an auth bypass, data exposure, an injection, a leaked secret | the store's `issues/` (one file per finding), or a GitHub **private security advisory** on the product repo — **never a public issue** | `/kru-issue`, the lead's defect capture (Step 4.5) |\n| a **normal bug** or a **product want** | a **GitHub issue on the product repo** (`gh issue create`, labelled `bug` or `enhancement`), on the Agent Board (salasjustin's GitHub project #1), and closed by the pull request that fixes it (`Fixes #n`) | `/kru-issue`, `/kru-todo`, the lead's captures (Step 4.5) |\n| the team's **scratch todo** — a want the team turned up mid-task that nobody has asked for yet | the store's `TODOS.md` | the lead's todo capture (Step 4.5), `/kru-setup` |\n\nA repo with no GitHub remote, issues turned off, or no `gh` sign-in sends a bug to `issues/` and a want to `TODOS.md`, and the capture says so. Unsure whether a bug is security-shaped → treat it as one: a private file can be published later, a public issue can't be taken back.\n\nWhy user-level files for the rest, not in-repo: the working repo stays clean — **no management files in it, ever**: no `management/` dir, no `issues/`, no plan docs, briefs, or todo lists, and **no pointer in its `AGENTS.md`**.",
+  "t7: the three destinations in one table; the old not-Issues rationale goes",
+))
+EDITS.push(E(
+  "TRACKER.md",
+  "  TODOS.md                 # durable, cross-cutting — captured one-liners, untriaged",
+  "  TODOS.md                 # the team's scratch todos (and wants with no GitHub repo) — one-liners, untriaged",
+  "t7",
+))
+EDITS.push(E(
+  "TRACKER.md",
+  "  issues/                  # known defects — one file per bug, deleted when fixed",
+  "  issues/                  # security findings (and bugs with no GitHub repo) — one file each, deleted when fixed",
+  "t7",
+))
+EDITS.push(E(
+  "TRACKER.md",
+  "- **Todo capture** → a pitched or discovered want, out of scope for the current slice, appends **one line** to `TODOS.md`.",
+  "- **Todo capture** → a pitched want (the PM's) out of scope for the current slice becomes a GitHub issue on the product repo; a discovered one (the team's scratch) appends **one line** to `TODOS.md` (*Where each thing is tracked*).",
+  "t7",
+))
+EDITS.push(E(
+  "TRACKER.md",
+  "- **Defect capture** → a bug that isn't being fixed in this slice gets **its own file** under `issues/` (below), not a line in `TODOS.md`. Fixed it in the slice instead? **Delete** its file in the same change.",
+  "- **Defect capture** → a bug that isn't being fixed in this slice becomes a GitHub issue on the product repo; a security finding gets **its own file** under `issues/` (below) — never a public issue. Fixed it in the slice instead? The pull request closes the issue (`Fixes #n`), or the same change **deletes** its file.",
+  "t7",
+))
+EDITS.push(E(
+  "TRACKER.md",
+  "- **Todo closeout** → a slice that satisfies a parked want **deletes its line** from `TODOS.md`, same as a fix deletes its `issues/` file.",
+  "- **Todo closeout** → a slice that satisfies a parked want **deletes its line** from `TODOS.md` (or closes its GitHub issue with `Fixes #n`), same as a fix deletes its `issues/` file.",
+  "t7",
+))
+EDITS.push(E(
+  "TRACKER.md",
+  "**Three writers, one format.** Mid-task capture is the Step 4.5 sweep above (`pitched` when the user tossed it out, `discovered` when the team turned it up inside the effort in flight).",
+  "**Three writers, one format.** Mid-task capture is the Step 4.5 sweep above (`discovered` when the team turned it up inside the effort in flight; a want the PM tossed out goes to a GitHub issue, and lands here as `pitched` only when the repo has none to file in).",
+  "t7",
+))
+EDITS.push(E(
+  "TRACKER.md",
+  "The **`/kru-todo` skill** (`skills/kru-todo/`) is the user's direct front door for when there's no task running to sweep from: always `pitched`,",
+  "The **`/kru-todo` skill** (`skills/kru-todo/`) is the PM's direct front door for when there's no task running to sweep from: it files a GitHub issue, and writes here only when the repo has no GitHub issues — always `pitched`,",
+  "t7",
+))
+EDITS.push(E(
+  "TRACKER.md",
+  "**`issues/` — known defects, one file per bug.** A defect is something *wrong*: an incorrect result, false information shown to a user, or a failure of a condition the code claims to handle. Something merely *wanted* — a feature, a refactor, a cleanup, duplication, misfiled config — is a `TODOS.md` line, not an issue. The three-way split is the whole rule: **wrong → `issues/`, wanted → `TODOS.md`, unformed → `notes/`.**",
+  "**`issues/` — security findings, one file per finding.** A defect is something *wrong*: an incorrect result, false information shown to a user, or a failure of a condition the code claims to handle. A normal one goes to a GitHub issue on the product repo; this dir holds the security-shaped ones, which never go public, plus any bug from a repo with no GitHub issues to file in. Something merely *wanted* — a feature, a refactor, a cleanup, duplication, misfiled config — is a want, not a defect. The split is the whole rule: **wrong → a GitHub issue (security: `issues/`), wanted → a GitHub issue (the team's own scratch: `TODOS.md`), unformed → `notes/`.**",
+  "t7: issues/ is for security findings",
+))
+EDITS.push(E(
+  "references/store.md",
+  "- **Project** — one project's plan of record: `TODOS.md`, `issues/`, `notes/`, `plan/`\n  (`TRACKER.md` owns its layout).",
+  "- **Project** — one project's plan of record: `TODOS.md`, `issues/`, `notes/`, `plan/`\n  (`TRACKER.md` owns its layout).\n\nThe project root is the private half of tracking. Where each thing goes:\n\n| what | where it goes | how |\n|---|---|---|\n| a **security or vulnerability** finding — anything an attacker could use: an auth bypass, data exposure, an injection, a leaked secret | the store's `issues/` (one file per finding), or a GitHub **private security advisory** on the product repo — **never a public issue** | `/kru-issue`, the lead's defect capture (Step 4.5) |\n| a **normal bug** or a **product want** | a **GitHub issue on the product repo** (`gh issue create`, labelled `bug` or `enhancement`), on the Agent Board (salasjustin's GitHub project #1), and closed by the pull request that fixes it (`Fixes #n`) | `/kru-issue`, `/kru-todo`, the lead's captures (Step 4.5) |\n| the team's **scratch todo** — a want the team turned up mid-task that nobody has asked for yet | the store's `TODOS.md` | the lead's todo capture (Step 4.5), `/kru-setup` |\n\nA repo with no GitHub remote, issues turned off, or no `gh` sign-in sends a bug to `issues/` and a want to `TODOS.md`, and the capture says so. Unsure whether a bug is security-shaped → treat it as one: a private file can be published later, a public issue can't be taken back.",
+  "t7: the three destinations in one table",
+))
+EDITS.push(E(
+  "references/store.md",
+  "session bookkeeping (`audit/`, `lead-gate/`). It follows the **user**, across every engagement.",
+  "session bookkeeping (`audit/`, `lead-gate/`). It follows **Justin and the PM bots**, across every engagement.",
+  "t6 (the line the ticket named): the store follows Justin and the PM bots",
+))
+EDITS.push(E(
+  "skills/kru-issue/SKILL.md",
+  "Write the defect file from what the user just told you and get out.",
+  "Record the defect from what the PM just told you and get out — as a GitHub issue on the product repo, or, for a security finding, as a file in the store (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*).",
+  "t7: kru-issue files normal bugs on GitHub, security ones in the store",
+))
+EDITS.push(E(
+  "skills/kru-issue/SKILL.md",
+  "2. **Glance at `issues/`** (`ls`, nothing more). Same defect already has a file → append the user's new detail to it and stop. One directory listing isn't investigation; two files for one bug is drift.\n3. **Write the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path issues/<kebab-slug>` names.** **No precondition**: create the dir if it isn't there.",
+  "2. **Pick the destination from what you were told.** Security-shaped — anything an attacker could use: an auth bypass, data exposure, an injection, a leaked secret — or unsure → the store file (step 3 on). Otherwise a normal bug → a GitHub issue, when the product repo has one to file in (`gh repo view --json hasIssuesEnabled` answers true); else the store file, and the confirm line says why.\n   - **GitHub:** glance for the same bug (`gh issue list --state open --search \"<two words from the symptom>\"`, nothing more) — found → add the new detail as a comment (`gh issue comment <n>`) and stop. Else `gh issue create --label bug --title \"<the symptom, one line>\" --body \"<the template below, minus the frontmatter, with severity and urgency as its first line>\"`, adding `--project \"Agent Board\"` when the repo is on salasjustin's board (drop either flag if `gh` refuses it, and say so). Then step 5.\n3. **Glance at `issues/`** (`ls`, nothing more). Same defect already has a file → append the new detail to it and stop. One directory listing isn't investigation; two files for one bug is drift. Else **write the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path issues/<kebab-slug>` names.** **No precondition**: create the dir if it isn't there.",
+  "t7: normal bug -> gh issue create; security -> the store",
+))
+EDITS.push(E(
+  "skills/kru-issue/SKILL.md",
+  "5. **Confirm in one line** — \"logged as <severity>, needed <urgency in words>; not looked into yet.\" No path.",
+  "5. **Confirm in one line** — \"logged as <severity>, needed <urgency in words>; not looked into yet\", with the issue number when it went to GitHub, and no path when it went to the store.",
+  "t7",
+))
+EDITS.push(E(
+  "skills/kru-issue/SKILL.md",
+  "The store's three-way split holds: **wrong → `issues/`, wanted → `TODOS.md`, unformed → `notes/`**. Say in one line which you did.",
+  "The split holds: **wrong → a GitHub issue (security: `issues/`), wanted → `/kru-todo`, unformed → `notes/`**. Say in one line which you did.",
+  "t7",
+))
+EDITS.push(E(
+  "skills/kru-issue/SKILL.md",
+  "Filling the file in is a normal `/kru-lead <task>`; fixing it deletes the file in that same change, along with the repro test that replaces it (`lead` Step 4.5).",
+  "Filling it in is a normal `/kru-lead <task>`; fixing it closes the issue (`Fixes #n` in the pull request) or deletes the file in that same change, along with the repro test that replaces it (`lead` Step 4.5).",
+  "t7",
+))
+EDITS.push(E(
+  "skills/kru-todo/SKILL.md",
+  "Write the user's deferred want into the project's `TODOS.md` and get out.",
+  "File the PM's deferred want and get out: as a GitHub issue on the product repo, or as a `TODOS.md` line when the repo has no GitHub issues to file in (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*).",
+  "t7: product wants go to GitHub issues",
+))
+EDITS.push(E(
+  "skills/kru-todo/SKILL.md",
+  "2. **Append** to the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path todos` names. **No precondition**: create the dir and the file if they don't exist.",
+  "2. **File it.** The product repo has GitHub issues (`gh repo view --json hasIssuesEnabled` answers true) → `gh issue create --label enhancement --title \"<the thing, one line>\" --body \"<the line's three scores and any sub-bullets, as written below>\"`, adding `--project \"Agent Board\"` when the repo is on salasjustin's board (drop either flag if `gh` refuses it, and say so). Otherwise **append** to the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path todos` names. **No precondition**: create the dir and the file if they don't exist.",
+  "t7",
+))
+EDITS.push(E(
+  "skills/kru-todo/SKILL.md",
+  "4. **Confirm in one line** — echo the headline, how much it matters and how soon, in words (\"logged: <headline> — matters 3 of 5, needed within weeks\"). No path, no effort, no notation.",
+  "4. **Confirm in one line** — echo the headline, how much it matters and how soon, in words (\"logged: <headline> — matters 3 of 5, needed within weeks\"), with the issue number when it went to GitHub. No path, no effort, no notation.",
+  "t7",
+))
+EDITS.push(E(
+  "skills/kru-todo/SKILL.md",
+  "The store's three-way split holds: **wrong → `issues/`, wanted → `TODOS.md`, unformed → `notes/`**.",
+  "The split holds: **wrong → `/kru-issue`, wanted → a GitHub issue (or `TODOS.md` with none to file in), unformed → `notes/`**.",
+  "t7",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/reconcile.md",
+  "- **Todo capture** — any want the **user pitches** mid-task, or one the **team discovers inside the effort in flight** (filed with that `plan: <slug>`), that's out of scope for the current slice: append a one-line entry to `TODOS.md` at the store root and **keep going** — never derail the task to build it.",
+  "- **Todo capture** — any want the **PM pitches** mid-task goes to a GitHub issue on the product repo (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*); one the **team discovers inside the effort in flight** (filed with that `plan: <slug>`), out of scope for the current slice, is a one-line entry in `TODOS.md` at the store root. Either way **keep going** — never derail the task to build it.",
+  "t7: capture picks the destination by the table",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/reconcile.md",
+  "gets **its own file** at `issues/<kebab-slug>.md` in the store root — the team's defect list; a GitHub issue is filed with `gh` only when the user asks for one: `severity` frontmatter,",
+  "goes to a **GitHub issue on the product repo** (`gh issue create --label bug`, written up as below) — unless it is security-shaped, which gets **its own file** at `issues/<kebab-slug>.md` in the store root and never a public issue (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*). The write-up: `severity` frontmatter,",
+  "t7: normal bugs to GitHub, security to the store",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/reconcile.md",
+  "**a slice that fixes a bug closes its file.** `ls issues/` and read the listing against what you just landed — every file whose defect this slice fixed is **deleted in that same change**",
+  "**a slice that fixes a bug closes its record.** A GitHub issue closes through the pull request (`Fixes #n` in its description). For the store, `ls issues/` and read the listing against what you just landed — every file whose defect this slice fixed is **deleted in that same change**",
+  "t7",
+))
+EDITS.push(E(
+  "skills/kru-brief/SKILL.md",
+  "**Walk `issues/` too — this is the dir's only reader.**",
+  "**Walk the open bugs too: the repo's GitHub issues labelled `bug` (`gh issue list --label bug --state open`) and the store's `issues/`, the security ones — the brief is their only reader.** Each GitHub issue is read against the current code the same way; one the code has since fixed is named in the brief for the PM bot to close, not closed by you.",
+  "t7: brief walks the repo's open issues as well as the store's security files",
+))
+
+// --- t7: (cont.) the listing verbs read GitHub issues ------------------------
+EDITS.push(E(
+  "skills/kru-issues/SKILL.md",
+  "Membership is the status: a file exists until the change that fixes its bug deletes it, so an empty dir is a true *no known defects*.",
+  "Membership is the status: a file exists until the change that fixes its bug deletes it, so an empty dir is a true *no known defects*.\n\nNormal bugs live on the product repo's GitHub issues (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*), so `issues/` holds the security findings and any bug from a repo with no GitHub issues. When the repo has them, the open ones labelled `bug` (`gh issue list --label bug --state open --json number,title,body`) run through the same steps beside the files: reconciled, scored and proposed alike, a verified-fixed one named for the PM bot to close rather than closed by you, and a fix carrying `Fixes #n` in its commit so the merge closes it.",
+  "t7: the defect verb reads GitHub issues too",
+))
+EDITS.push(E(
+  "skills/kru-todos/SKILL.md",
+  "This is the one verb where a filed want meets the codebase:",
+  "Product wants live on the product repo's GitHub issues (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*); when the repo has them, the open ones labelled `enhancement` (`gh issue list --label enhancement --state open --json number,title,body`) run through the same steps beside the file's lines — a landed one closed by `Fixes #n` in its commit, a verified-done one named for the PM bot to close. This is the one verb where a filed want meets the codebase:",
+  "t7: the want verb reads GitHub issues too",
+))
