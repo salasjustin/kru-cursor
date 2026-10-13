@@ -64,6 +64,12 @@ test("a rejected model falls back to grok-imagine-image", async () => {
   assert.equal(logs.length, 1)
 })
 
+test("a 400 about something else does not switch models", async () => {
+  const f = mockFetch([[400, { error: "invalid aspect_ratio for model" }]])
+  await assert.rejects(generate({ apiKey: KEY, prompt: "p", fetchImpl: f }), /400/)
+  assert.equal(f.calls.length, 1)
+})
+
 test("an auth failure does not retry, and the error never carries the key", async () => {
   const f = mockFetch([[401, { error: "invalid api key" }]])
   await assert.rejects(generate({ apiKey: KEY, prompt: "p", fetchImpl: f }), (err) => {
