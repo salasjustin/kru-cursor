@@ -53,6 +53,8 @@ Plus 2 already fixed and cleared, 4 more known, 12 not looked at yet.
 
 Only the batch gets a line — numbered, each written as the symptom someone using the product would notice, with its severity and urgency in words (`todos` §4's words; a `~` urgency asked as a question, written bare once they answer). Everything else — cleared files, re-anchors, stub fills, the rest of the ranking, the unread count — is one counted clause. No slugs, `file:line`, effort or scoring notation. A tombstone or a decline is the user's to raise, not a line here. **Nothing past the bookkeeping is written before they answer.** No answer → say so in one line and return to whatever was in flight.
 
+Headless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), return the batch under *Questions for the PM*; `/kru-issues-loop` pays this gate in advance.
+
 ## 5. Fix what they picked
 
 On the user's answer, in this order:

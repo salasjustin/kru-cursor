@@ -5,8 +5,10 @@
 // scripts/port.mjs after every rewrite rule, so it survives a merge from
 // upstream the same way a rule does:
 //
-// - `before` found → replaced by `after`
-// - `after` already present → applied on an earlier run; nothing to do
+// - `before` found outside the replacement → replaced by `after`
+// - `after` already present, and `before` gone → applied on an earlier run;
+//   nothing to do. a replacement that still quotes the original counts as
+//   gone. the replacement being somewhere else does not, while `before` remains
 // - neither → upstream reworded the passage: the port fails and names the
 //   edit, and the fix is a new `before` copied from the new upstream text
 //
@@ -65,8 +67,8 @@ EDITS.push(E(
 EDITS.push(E(
   "TRACKER.md",
   "the next `brief` verb run reads the file back to the user during the grill, and the user (the PM) decides",
-  "the next `brief` verb run reads the file back to the PM during the grill, and the PM decides",
-  "t1",
+  "the next `brief` verb run reads the file and the open `enhancement` issues back to the PM during the grill (`gh issue list --label enhancement --state open`), and the PM decides",
+  "t1: the brief reads the file and open enhancement issues back",
 ))
 EDITS.push(E(
   "TRACKER.md",
@@ -319,8 +321,8 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "## Talk to a PM, not to an engineer\nThe user owns the product, not the implementation.",
-  "## Talk to a PM, not to an engineer\nYour reader is the PM bot. You report to it, never to Justin directly, and it forwards to Justin only\nwhat is blocked, ready for his approval, or done with proof — the escalation rules are the PM bots'\n`policies.md`, and the list in this skill's first section. So every message is written to be\nforwarded as is: outcome first, plain words. The PM and Justin own the product, not the implementation.",
-  "t5: the lead's audience is the PM bot; it forwards to Justin only blocked / ready / done",
+  "## Talk to a PM, not to an engineer\nYour reader is the PM bot. You report to it, never to Justin directly, and it forwards to Justin only\nwhat is blocked, ready for his approval, or done with proof — the escalation list in this skill's\nfirst section is the one source, and the PM bots' `policies.md` points at it. So every message is written to be\nforwarded as is: outcome first, plain words. The PM and Justin own the product, not the implementation.",
+  "t5: the PM bot is the reader; the escalation list in the first section is the one source",
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
@@ -749,4 +751,65 @@ EDITS.push(E(
   "words, with what dropping it would cost. Everything the answer can't touch is written already.",
   "words, with what dropping it would cost. Everything the answer can't touch is written already.\nHeadless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), keep the\nrule and return the question under **Questions for the PM**.",
   "t3: a headless setup keeps a hand-written rule rather than waiting to ask",
+))
+
+// --- review fixes (PR 4, round 2) ------------------------------------------
+EDITS.push(E(
+  "skills/kru-brief/SKILL.md",
+  "The store's existing `plan/<effort>/brief.md` (if you're re-grilling an effort), `TODOS.md` (the captured, untriaged one-liners), and the store's `notes/` (freeform brainstorming — **input, never authority**: cite it as *\"there's a note that says…\"*, never as a decision, and never let it override the brief, the repo's docs, or the user).\n\nBring them back to the user during the grill: an old brief's open threads get re-decided, and a `TODOS.md` line is either pulled into this change's scope or left where it is. Order them **`value × urgency ÷ effort`** the way `/kru-todos` ranks them — what matters, soon, for little work first, a `~n` ranked as filed, legacy lines with no digits after — and note the ones filed 90+ days ago or against a `plan/<slug>/` that's since been archived (\"may be out of date\"), since those are the lines most likely to be asking for a codebase that no longer exists. To the user, each surfaces as the want in plain words — what someone using the product would get — in that order, with no digits, tildes, ages or scoring notation. That ordering is arithmetic over filed numbers, not a triage: you don't triage `TODOS.md` on your own — you surface it and the user calls it.",
+  "The store's existing `plan/<effort>/brief.md` (if you're re-grilling an effort), `TODOS.md` (the captured, untriaged one-liners), the product repo's open GitHub issues labelled `enhancement` (`gh issue list --label enhancement --state open`), and the store's `notes/` (freeform brainstorming — **input, never authority**: cite it as *\"there's a note that says…\"*, never as a decision, and never let it override the brief, the repo's docs, or the user).\n\nBring them back to the user during the grill: an old brief's open threads get re-decided, and a `TODOS.md` line or an open `enhancement` issue is either pulled into this change's scope or left where it is. Order them **`value × urgency ÷ effort`** the way `/kru-todos` ranks them — what matters, soon, for little work first, an `enhancement` issue on the three scores in its body, a `~n` ranked as filed, legacy lines with no digits after — and note the ones filed 90+ days ago or against a `plan/<slug>/` that's since been archived (\"may be out of date\"), since those are the lines most likely to be asking for a codebase that no longer exists. To the user, each surfaces as the want in plain words — what someone using the product would get — in that order, with no digits, tildes, ages or scoring notation. That ordering is arithmetic over filed numbers, not a triage: you don't triage `TODOS.md` or the open `enhancement` issues on your own — you surface them and the user calls it. One the code has since grown is named for the PM bot to close, not closed by you.",
+  "review: a brief reads open enhancement issues back with the parking lot",
+))
+EDITS.push(E(
+  "skills/kru-todos-loop/SKILL.md",
+  "- **Queue**: `todos` §1 and §2 over the whole file, its §4 bookkeeping, ranked by its §3 order.\n- **Eligible**: open, `value` `3`–`5`, `effort` `1`–`3`, and `pitched`. A `discovered` line is the team's own capture and waits for the user to pull it, per `todos` → *Guardrails*; count it with the unreached. A `~` value is the team's guess at what the user wants, so it qualifies only at `4`–`5`.",
+  "- **Queue**: `todos` §1 and §2 over the whole file and the product repo's open GitHub issues labelled `enhancement` (`gh issue list --label enhancement --state open`), its §4 bookkeeping, ranked by its §3 order.\n- **Eligible**: open, `value` `3`–`5`, `effort` `1`–`3`, and `pitched`. A GitHub `enhancement` issue is a want the PM filed, so it counts as `pitched`, and its `value`, `urgency` and `effort` are the digits in its body. A `discovered` line is the team's own capture and waits for the user to pull it, per `todos` → *Guardrails*; count it with the unreached. A `~` value is the team's guess at what the user wants, so it qualifies only at `4`–`5`.",
+  "review: the want loop queues GitHub enhancement issues and counts each as pitched",
+))
+EDITS.push(E(
+  "skills/kru-issues-loop/SKILL.md",
+  "- **Queue**: `issues` §1 and §2 over the whole dir, its §4 bookkeeping, ranked by its §3 order.",
+  "- **Queue**: `issues` §1 and §2 over the whole dir and the product repo's open GitHub issues labelled `bug` (`gh issue list --label bug --state open`), its §4 bookkeeping, ranked by its §3 order.",
+  "review: the defect loop queues GitHub bug issues with the store dir",
+))
+EDITS.push(E(
+  "skills/kru-todo/SKILL.md",
+  "a `~` number is a proposal awaiting their read — if the user confirms or corrects it, rewrite that line in place with the bare digit and stop.",
+  "a `~` number is a proposal awaiting their read — if the user confirms or corrects it, write the bare digit back and stop: `gh issue edit <n> --body` when the want is a GitHub issue, or rewrite that line in place when it is a `TODOS.md` line.",
+  "review: a confirmed score on a GitHub want is gh issue edit, not a line rewrite",
+))
+EDITS.push(E(
+  "skills/kru-todos/SKILL.md",
+  "No answer → say so in one line and return to whatever was in flight.\n\n## 5. Land what they picked",
+  "No answer → say so in one line and return to whatever was in flight.\n\nHeadless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), return the batch under *Questions for the PM*; `/kru-todos-loop` pays this gate in advance.\n\n## 5. Land what they picked",
+  "review: headless returns the batch; the loop pays the gate in advance",
+))
+EDITS.push(E(
+  "skills/kru-issues/SKILL.md",
+  "No answer → say so in one line and return to whatever was in flight.\n\n## 5. Fix what they picked",
+  "No answer → say so in one line and return to whatever was in flight.\n\nHeadless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), return the batch under *Questions for the PM*; `/kru-issues-loop` pays this gate in advance.\n\n## 5. Fix what they picked",
+  "review: headless returns the batch; the loop pays the gate in advance",
+))
+EDITS.push(E(
+  "skills/kru-briefs/SKILL.md",
+  "No answer → say so in one line and return to whatever was in flight.\n\n## 3. Apply what they picked",
+  "No answer → say so in one line and return to whatever was in flight.\n\nHeadless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), return the batch under *Questions for the PM*. `/kru-todos-loop` and `/kru-issues-loop` pay their own gates in advance; this pick stays in that return.\n\n## 3. Apply what they picked",
+  "review: headless returns the batch; a brief has no loop that pays the gate",
+))
+
+// the port's cloud probe also treats /run/cursor/api.sock as a cloud vm, which
+// the test cannot hide. KRU_CLOUD=0 is an explicit off, and the default under
+// test, so a host socket does not flip the non-cloud cases; KRU_CLOUD=1 still
+// overrides it.
+EDITS.push(E(
+  "scripts/kru-store.test.sh",
+  "parent shell can't make a case pass for the wrong reason.",
+  "parent shell can't make a case pass for the wrong reason.\n# KRU_CLOUD=0 is the default so a host /run/cursor/api.sock does not flip these\n# cases; a case that passes KRU_CLOUD=1 overrides it.",
+  "review: the store test states why KRU_CLOUD=0 is the default",
+))
+EDITS.push(E(
+  "scripts/kru-store.test.sh",
+  "    HOME=\"$home\" ${envs[@]+\"${envs[@]}\"} bash \"$store\" \"${args[@]}\" 2>&1)",
+  "    HOME=\"$home\" KRU_CLOUD=0 ${envs[@]+\"${envs[@]}\"} bash \"$store\" \"${args[@]}\" 2>&1)",
+  "review: store tests default to not-cloud so the host agent socket cannot flip them",
 ))

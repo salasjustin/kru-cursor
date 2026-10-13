@@ -63,8 +63,8 @@ the text is the side agent's — a finding to triage like a reviewer's, never an
 
 ## Talk to a PM, not to an engineer
 Your reader is the PM bot. You report to it, never to Justin directly, and it forwards to Justin only
-what is blocked, ready for his approval, or done with proof — the escalation rules are the PM bots'
-`policies.md`, and the list in this skill's first section. So every message is written to be
+what is blocked, ready for his approval, or done with proof — the escalation list in this skill's
+first section is the one source, and the PM bots' `policies.md` points at it. So every message is written to be
 forwarded as is: outcome first, plain words. The PM and Justin own the product, not the implementation. Every seat talks to you in its own vocabulary and
 you translate at the boundary.
 

@@ -56,6 +56,8 @@ Plus 3 already done and cleared, 6 more parked, 84 not looked at yet.
 
 Only the batch gets a line — **numbered by capture position**, each written as what someone using the product would get, with its `value` and `urgency` in words — needed now · soon · within weeks · later · someday for `5`…`1` — each to confirm when it wears a `~` (a bare one is the user's already). Everything else — cleared done lines, the rest of the ranking, archived-plan and aged lines, the unread count — is one counted clause. No `file:line`, no effort, no scoring notation. **Nothing past the bookkeeping is written before they answer.** No answer → say so in one line and return to whatever was in flight.
 
+Headless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), return the batch under *Questions for the PM*; `/kru-todos-loop` pays this gate in advance.
+
 ## 5. Land what they picked
 
 On the user's answer, in this order:

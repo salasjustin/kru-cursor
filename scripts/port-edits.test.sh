@@ -22,6 +22,8 @@ fresh() { # <dir> — upstream at the base commit, the fork-owned files over it
   done
 }
 
+check "an edit replaces its passage even when the replacement is already in the file" bash -c 'cd "$1" && node scripts/port.mjs --test-edits' _ "$repo"
+
 n=$(cd "$repo" && node -e 'import("./scripts/cursor/edits.mjs").then((m) => console.log(m.EDITS.length))')
 fresh "$t/a"
 check "a fresh port applies every edit" bash -c 'cd "$1" && node scripts/port.mjs --quiet' _ "$t/a"

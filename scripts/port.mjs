@@ -213,7 +213,7 @@ const RULES = [
   R(/'claude mcp list'\*\|'claude plugin list'\*\|'claude plugin details'\*\)/g, "'agent mcp list'*|'agent status'*|'agent models'*|'cursor-agent mcp list'*|'cursor-agent status'*)", { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /'agent mcp list'/ }),
   // a cloud vm: cursor's managed vms expose the agent metadata socket
   R(/kru_is_cloud\(\) \{ \[ "\$\{CLAUDE_CODE_REMOTE:-\}" = "true" \]; \}/g,
-    'kru_is_cloud() { [ "${KRU_CLOUD:-}" = "1" ] || [ -n "${CURSOR_AGENT_SOCKET:-}" ] || [ -S /run/cursor/api.sock ]; }', { sh: true, files: /^scripts\/kru-store\.sh$/, required: /CURSOR_AGENT_SOCKET/ }),
+    'kru_is_cloud() { [ "${KRU_CLOUD:-}" = "0" ] && return 1; [ "${KRU_CLOUD:-}" = "1" ] || [ -n "${CURSOR_AGENT_SOCKET:-}" ] || [ -S /run/cursor/api.sock ]; }', { sh: true, files: /^scripts\/kru-store\.sh$/, required: /CURSOR_AGENT_SOCKET/ }),
   R(/CLAUDE_CODE_REMOTE=true/g, "KRU_CLOUD=1", { sh: true, files: /^scripts\/kru-store\.test\.sh$/ }),
   R(/-u CLAUDE_CODE_REMOTE\b/g, "-u KRU_CLOUD -u CURSOR_AGENT_SOCKET", { sh: true }),
   R(/(?<!CURSOR_PROJECT_DIR:-)\$\{CLAUDE_PROJECT_DIR:-\$PWD\}/g, "${CURSOR_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-$PWD}}", { sh: true }),
@@ -645,19 +645,49 @@ function rewrite(text, rel) {
 }
 
 // the fork's own edits (scripts/cursor/edits.mjs), last, on the ported text.
-// an edit counts as applied when its `after` stands in the file; a file the
-// port never reaches leaves its edits unapplied, which the check below reports
-function applyEdits(text, rel) {
-  let out = text
-  for (const e of EDITS) {
-    if (e.file !== rel) continue
-    if (out.includes(e.after)) e.applied = true
-    else if (out.includes(e.before)) {
-      out = out.replace(e.before, () => e.after)
-      e.applied = true
+// replace the original passage while it is still in the file. the replacement
+// counting as already applied is only true once that passage is gone — a file
+// that contains the replacement somewhere else, with the original still
+// present, is not a silent pass. a replacement that quotes the passage it
+// replaced still contains it; that copy is not the original. a file the port
+// never reaches leaves its edits unapplied, which the check below reports.
+function indexOutside(text, needle, cover) {
+  const quoted = cover.includes(needle)
+  let from = 0
+  while (from <= text.length) {
+    const at = text.indexOf(needle, from)
+    if (at === -1) return -1
+    if (!quoted) return at
+    let inside = false
+    let cFrom = 0
+    while (cFrom <= at) {
+      const cAt = text.indexOf(cover, cFrom)
+      if (cAt === -1 || cAt > at) break
+      if (at + needle.length <= cAt + cover.length) {
+        inside = true
+        break
+      }
+      cFrom = cAt + 1
     }
+    if (!inside) return at
+    from = at + 1
+  }
+  return -1
+}
+function applyEditList(text, rel, edits) {
+  let out = text
+  for (const e of edits) {
+    if (e.file !== rel) continue
+    const at = indexOutside(out, e.before, e.after)
+    if (at !== -1) {
+      out = out.slice(0, at) + e.after + out.slice(at + e.before.length)
+      e.applied = true
+    } else if (out.includes(e.after)) e.applied = true
   }
   return out
+}
+function applyEdits(text, rel) {
+  return applyEditList(text, rel, EDITS)
 }
 let bareCommand
 function BARE_COMMAND() {
@@ -876,6 +906,43 @@ function audit() {
     log(`\nsurfaces cursor lacks (PORTING.md → Known gaps): ${[...watched.values()].reduce((a, b) => a + b, 0)} references in ${watched.size} file(s)`)
     for (const [rel, n] of [...watched].sort((a, b) => b[1] - a[1]).slice(0, 8)) log(`  ? ${rel} (${n})`)
   }
+}
+
+// --test-edits: the apply order, including a replacement that quotes its own
+// original passage (eleven edits do) and one that already sits elsewhere in
+// the file. exits before the port.
+if (process.argv.includes("--test-edits")) {
+  const file = "t.md"
+  const fail = (name) => {
+    console.error(`edit apply: ${name}`)
+    process.exit(1)
+  }
+  const run = (before, after, text) => {
+    const e = { file, before, after, applied: false }
+    return { out: applyEditList(text, file, [e]), applied: e.applied }
+  }
+  {
+    const { out, applied } = run("ALPHA passage", "BETA passage", "intro BETA passage middle ALPHA passage end")
+    if (out !== "intro BETA passage middle BETA passage end" || !applied) fail("replacement elsewhere hid the original")
+    const again = run("ALPHA passage", "BETA passage", out)
+    if (again.out !== out || !again.applied) fail("second pass rewrote a finished edit")
+  }
+  {
+    const { out, applied } = run("keep this", "keep this, and more", "keep this")
+    if (out !== "keep this, and more" || !applied) fail("did not extend the passage")
+    const again = run("keep this", "keep this, and more", out)
+    if (again.out !== out || !again.applied) fail("a replacement that quotes the original was applied again")
+  }
+  {
+    const { out, applied } = run("keep this", "keep this, and more", "keep this, and more\n\nkeep this")
+    if (out !== "keep this, and more\n\nkeep this, and more" || !applied) fail("replaced inside the existing replacement")
+  }
+  {
+    const { applied } = run("gone", "new", "unrelated")
+    if (applied) fail("a missing passage counted as applied")
+  }
+  console.log("edit apply: ok")
+  process.exit(0)
 }
 
 // --list-models: the confirmed ids, one per line (scripts/verify.sh checks every
