@@ -7,15 +7,19 @@ name: sync-upstream
 # port can't take the new upstream (it reworded a line a rule needs), an issue
 # says what broke instead. nothing here merges, tags or releases: a person (the
 # PM) reviews the pull request. skills/kru-roster/fork-sync.md is the runbook.
+#
+# verify.sh runs upstream's code (its hook tests, audit.sh) before anyone has
+# read it, so the job that runs it holds a read-only token, keeps no
+# credentials in .git/config, and passes its result on as an artifact; the job
+# that pushes and files runs no repo code. every value crossing into a script
+# goes through env:, never ${{ }} inside run:, and the propose job re-checks
+# each one (scripts/workflows.test.sh holds these rules).
 on:
   schedule:
     - cron: "23 6 * * 1" # mondays 06:23 utc
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+permissions: {}
 
 concurrency:
   group: sync-upstream
@@ -24,14 +28,24 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
-      GH_TOKEN: ${{ github.token }}
       UPSTREAM_URL: https://github.com/ap-justin/kru.git
+    outputs:
+      exists: ${{ steps.branch.outputs.exists }}
+      branch: ${{ steps.branch.outputs.name }}
+      base: ${{ steps.branch.outputs.base }}
+      status: ${{ steps.sync.outputs.status }}
+      upstream_version: ${{ steps.sync.outputs.upstream_version }}
+      upstream_sha: ${{ steps.sync.outputs.upstream_sha }}
+      verify_ok: ${{ steps.verify.outputs.ok }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
       - run: command -v jq || (sudo apt-get update && sudo apt-get install -y jq)
@@ -47,14 +61,19 @@ jobs:
 
       - name: pick the branch for this upstream commit
         id: branch
+        env:
+          # read-only, and only here: nothing from upstream has run yet
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
           up=$(git ls-remote "$UPSTREAM_URL" refs/heads/main | cut -f1)
-          [ -n "$up" ] || { echo "could not read upstream main"; exit 1; }
+          [[ $up =~ ^[0-9a-f]{40}$ ]] || { echo "could not read upstream main"; exit 1; }
           name="sync/upstream-${up:0:8}"
           echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "base=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           # one proposal per upstream commit: a branch already pushed means a
           # pull request (or an issue) for it exists, and a rerun is a no-op
-          if git ls-remote --exit-code --heads origin "$name" >/dev/null; then
+          if gh api "repos/$REPO/branches/$name" --silent 2>/dev/null; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
             echo "$name is already proposed"
           fi
@@ -63,12 +82,14 @@ jobs:
         id: sync
         if: steps.branch.outputs.exists != 'true'
         env:
+          BRANCH: ${{ steps.branch.outputs.name }}
           KRU_UPSTREAM_URL: ${{ env.UPSTREAM_URL }}
-          KRU_SYNC_REPORT: ${{ runner.temp }}/sync-report.md
+          KRU_SYNC_REPORT: ${{ runner.temp }}/out/report.md
         run: |
+          mkdir -p "$RUNNER_TEMP/out"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c "${{ steps.branch.outputs.name }}"
+          git switch -c "$BRANCH"
           set +e
           bash scripts/sync-upstream.sh
           code=$?
@@ -76,7 +97,22 @@ jobs:
           # 2 = the port failed on the new upstream: report it, don't fail the run
           [ "$code" = 0 ] || [ "$code" = 2 ] || exit "$code"
 
-      - name: verify
+      # the commit leaves this job as a bundle, written before upstream's code runs
+      - name: bundle the sync commit
+        if: steps.sync.outputs.status == 'synced'
+        env:
+          BRANCH: ${{ steps.branch.outputs.name }}
+          BASE: ${{ steps.branch.outputs.base }}
+        run: git bundle create "$RUNNER_TEMP/out/sync.bundle" "$BASE..refs/heads/$BRANCH"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.sync.outputs.status == 'synced' || steps.sync.outputs.status == 'port-failed'
+        with:
+          name: sync
+          path: ${{ runner.temp }}/out/
+          retention-days: 7
+          overwrite: true
+
+      - name: verify (no token; runs upstream's code)
         id: verify
         if: steps.sync.outputs.status == 'synced'
         run: |
@@ -86,16 +122,87 @@ jobs:
           set -e
           tail -n 40 "$RUNNER_TEMP/verify.log"
           echo "ok=$([ "$code" = 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          mkdir -p "$RUNNER_TEMP/verify" && awk '/^== summary/ { f = 1 } f' "$RUNNER_TEMP/verify.log" > "$RUNNER_TEMP/verify/summary.txt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.sync.outputs.status == 'synced'
+        with:
+          name: verify
+          path: ${{ runner.temp }}/verify/
+          retention-days: 7
+          overwrite: true
+
+  propose:
+    needs: sync
+    if: needs.sync.outputs.status == 'synced' || needs.sync.outputs.status == 'port-failed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    env:
+      STATUS: ${{ needs.sync.outputs.status }}
+      BRANCH: ${{ needs.sync.outputs.branch }}
+      BASE: ${{ needs.sync.outputs.base }}
+      VERSION: ${{ needs.sync.outputs.upstream_version }}
+      UPSTREAM_SHA: ${{ needs.sync.outputs.upstream_sha }}
+      VERIFY_OK: ${{ needs.sync.outputs.verify_ok }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ needs.sync.outputs.base }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: sync
+          path: ${{ runner.temp }}/sync
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        if: env.STATUS == 'synced'
+        with:
+          name: verify
+          path: ${{ runner.temp }}/verify
+
+      # the sync job ran upstream's code, so what it hands over is checked
+      # before it reaches a push, a title or a branch name
+      - name: check what the sync job handed over
+        run: |
+          [[ $BRANCH =~ ^sync/upstream-[0-9a-f]{8}$ ]] || { echo "bad branch name"; exit 1; }
+          [[ $BASE =~ ^[0-9a-f]{40}$ && $UPSTREAM_SHA =~ ^[0-9a-f]{40}$ ]] || { echo "bad commit id"; exit 1; }
+          [ "${BRANCH#sync/upstream-}" = "${UPSTREAM_SHA:0:8}" ] || { echo "branch and upstream commit disagree"; exit 1; }
+          [ -z "$VERSION" ] || [[ $VERSION =~ ^[0-9A-Za-z.+-]{1,64}$ ]] || { echo "bad version"; exit 1; }
+          [ -f "$RUNNER_TEMP/sync/report.md" ] || { echo "no report"; exit 1; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ "$STATUS" = synced ]; then
+            git bundle verify "$RUNNER_TEMP/sync/sync.bundle"
+            git fetch --no-tags "$RUNNER_TEMP/sync/sync.bundle" "refs/heads/$BRANCH:refs/heads/$BRANCH"
+            git merge-base --is-ancestor "$BASE" "refs/heads/$BRANCH"
+            git merge-base --is-ancestor "$UPSTREAM_SHA" "refs/heads/$BRANCH"
+          fi
+
+      - name: push the branch
+        id: push
+        if: env.STATUS == 'synced'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh auth setup-git
+          set +e
+          git push origin "refs/heads/$BRANCH:refs/heads/$BRANCH" 2> "$RUNNER_TEMP/push.err"
+          code=$?
+          set -e
+          cat "$RUNNER_TEMP/push.err" >&2
+          echo "ok=$([ "$code" = 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
       - name: open the pull request
-        if: steps.sync.outputs.status == 'synced'
+        if: env.STATUS == 'synced' && steps.push.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          branch="${{ steps.branch.outputs.name }}"
-          version="${{ steps.sync.outputs.upstream_version }}"
-          git push origin "$branch"
           body="$RUNNER_TEMP/pr-body.md"
-          cat "${{ steps.sync.outputs.report }}" > "$body"
-          if [ "${{ steps.verify.outputs.ok }}" = true ]; then
+          cat "$RUNNER_TEMP/sync/report.md" > "$body"
+          if [ "$VERIFY_OK" = true ]; then
             printf '\n### verify.sh\n\nAll checks passed.\n\n' >> "$body"
           else
             cat >> "$body" <<'EOF'
@@ -106,25 +213,50 @@ jobs:
 
           EOF
           fi
-          { echo '```'; awk '/^== summary/ { f = 1 } f' "$RUNNER_TEMP/verify.log"; echo '```'; } >> "$body"
+          { echo '```'; cat "$RUNNER_TEMP/verify/summary.txt" 2>/dev/null; echo '```'; } >> "$body"
           cat >> "$body" <<'EOF'
 
-          Opened by the weekly `sync-upstream` workflow. A pull request opened with the workflow token starts no other workflow, so the verify result above is this run's; push a commit to run CI again. Releasing after the merge: `skills/kru-roster/release.md`.
+          Opened by the weekly `sync-upstream` workflow. The verify result above came from a job that ran upstream's code before review, so read it as that code's own report; a pull request opened with the workflow token starts no other workflow, so push a commit to run CI. Releasing after the merge: `skills/kru-roster/release.md`.
           EOF
           draft=()
-          [ "${{ steps.verify.outputs.ok }}" = true ] || draft=(--draft)
-          gh pr create --base "${{ github.event.repository.default_branch }}" --head "$branch" \
-            --title "sync: upstream kru $version" --body-file "$body" "${draft[@]}"
+          [ "$VERIFY_OK" = true ] || draft=(--draft)
+          gh pr create --base "$DEFAULT_BRANCH" --head "$BRANCH" \
+            --title "sync: upstream kru ${VERSION:-?}" --body-file "$body" "${draft[@]}"
+
+      # the workflow token can't push a commit that touches .github/workflows/,
+      # which upstream's history can carry even though its files aren't taken
+      - name: open an issue when the push is refused
+        if: env.STATUS == 'synced' && steps.push.outputs.ok != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          body="$RUNNER_TEMP/issue-body.md"
+          {
+            printf '## The sync branch could not be pushed\n\n'
+            printf 'Upstream `%s` merged and regenerated cleanly, but pushing `%s` was refused. A refusal naming `.github/workflows` means upstream changed a workflow file, which the workflow token may not push: run the sync by hand (`skills/kru-roster/fork-sync.md`) and push with your own credentials.\n\n' "${UPSTREAM_SHA:0:8}" "$BRANCH"
+            printf '```\n%s\n```\n\n' "$(tail -n 20 "$RUNNER_TEMP/push.err")"
+            cat "$RUNNER_TEMP/sync/report.md"
+          } > "$body"
+          title="upstream sync blocked: kru ${VERSION:-?} (${UPSTREAM_SHA:0:8}) could not be pushed"
+          existing=$(gh issue list --state open --search "in:title \"${UPSTREAM_SHA:0:8}\"" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file "$body"
+          else
+            gh issue create --title "$title" --body-file "$body"
+          fi
 
       - name: open an issue when the port can't take upstream
-        if: steps.sync.outputs.status == 'port-failed'
+        if: env.STATUS == 'port-failed'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          title="upstream sync blocked: kru ${{ steps.sync.outputs.upstream_version }} (${{ steps.sync.outputs.upstream_sha }})"
+          title="upstream sync blocked: kru ${VERSION:-?} ($UPSTREAM_SHA)"
           # mark the commit as handled so a rerun doesn't file it twice
-          git push origin "HEAD:refs/heads/${{ steps.branch.outputs.name }}"
+          gh auth setup-git
+          git push origin "HEAD:refs/heads/$BRANCH"
           existing=$(gh issue list --state open --search "in:title \"upstream sync blocked\"" --json number --jq '.[0].number')
           if [ -n "$existing" ]; then
-            gh issue comment "$existing" --body-file "${{ steps.sync.outputs.report }}"
+            gh issue comment "$existing" --body-file "$RUNNER_TEMP/sync/report.md"
           else
-            gh issue create --title "$title" --body-file "${{ steps.sync.outputs.report }}"
+            gh issue create --title "$title" --body-file "$RUNNER_TEMP/sync/report.md"
           fi

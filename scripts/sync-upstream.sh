@@ -32,6 +32,12 @@ out() { [ -n "${GITHUB_OUTPUT:-}" ] && printf '%s=%s\n' "$1" "$2" >> "$GITHUB_OU
 git fetch --quiet --no-tags "$url" "$ref" || { echo "sync: could not fetch $url $ref" >&2; exit 1; }
 up=$(git rev-parse FETCH_HEAD)
 up_version=$(git show "$up:VERSION" 2>/dev/null | tr -d '[:space:]')
+# upstream's VERSION reaches the workflow's outputs, a commit message and a pull
+# request title, so anything but a version string is refused rather than quoted
+if [ -n "$up_version" ] && ! [[ $up_version =~ ^[0-9A-Za-z.+-]{1,64}$ ]]; then
+  echo "sync: upstream ${up:0:8} has a VERSION that isn't a version string; refusing it: $(printf '%q' "${up_version:0:60}")" >&2
+  exit 1
+fi
 out upstream_sha "$up"
 out upstream_version "$up_version"
 
@@ -51,6 +57,10 @@ base_version=$(git show "$base:VERSION" 2>/dev/null | tr -d '[:space:]')
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/tree" && git archive "$up" | tar -x -C "$tmp/tree"
+# the fork owns .github/ outright (its copy is laid over below): upstream's
+# workflows don't run here, and the workflow token can't push a new one
+upstream_workflows=$(cd "$tmp/tree" && find .github -type f 2>/dev/null | sed 's#^\./##' | sort || true)
+rm -rf "$tmp/tree/.github"
 while IFS= read -r f; do
   mkdir -p "$tmp/tree/$(dirname "$f")" && cp -p "$f" "$tmp/tree/$f"
 done < <(node scripts/port.mjs --list-fork-owned)
@@ -85,6 +95,13 @@ changed=$({
 } | sort -u)
 {
   printf '### What the port changed\n\n%s file(s) added, removed or rewritten:\n\n```\n%s\n```\n\n' "$(printf '%s' "$changed" | grep -c . || true)" "$(printf '%s\n' "$changed" | head -n 60)"
+  dropped=$(comm -23 <(printf '%s\n' "$upstream_workflows" | grep . || true) <(node scripts/port.mjs --list-fork-owned | sort) || true)
+  if [ -n "$dropped" ]; then
+    printf '### Not taken: upstream files under .github/\n\n'
+    printf 'This fork owns `.github/`, so these upstream files were left out; port one by hand if Cursor needs it:\n\n'
+    printf '%s\n' "$dropped" | sed 's/^/- `/; s/$/`/'
+    printf '\n'
+  fi
   if [ -n "$overridden" ]; then
     printf '### Read by hand: upstream changed files this fork replaces\n\n'
     printf 'The fork keeps its own copy of these (PORTING.md → Hand-owned); mirror what upstream changed if it applies to Cursor:\n\n'

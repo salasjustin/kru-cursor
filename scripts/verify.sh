@@ -54,6 +54,8 @@ fresh_port() {
   [ -n "$base" ] || { echo "no upstream commit in this clone's history (CI: checkout with fetch-depth 0)"; return 1; }
   tmp=$(mktemp -d)
   git archive "$base" | tar -x -C "$tmp" || { rm -rf "$tmp"; return 1; }
+  # the fork owns .github/ outright; upstream's is not taken (scripts/sync-upstream.sh)
+  rm -rf "$tmp/.github"
   while IFS= read -r f; do
     mkdir -p "$tmp/$(dirname "$f")" && cp -p "$f" "$tmp/$f"
   done < <(node scripts/port.mjs --list-fork-owned)

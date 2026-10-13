@@ -9,7 +9,7 @@ here. Bringing upstream in is `fork-sync.md`; this file starts once `main` holds
 |---|---|
 | the version bump commit, local, with `bash scripts/verify.sh` green | Claude Code (the lead), on the PM's ask |
 | push, pull request, merge, tag | Kai, kru's PM bot — Kai owns kru releases and may merge and tag |
-| resubmitting to Cursor's marketplace, or making the repo public for it | Justin: anything public or live goes to him (the escalation rule in `skills/kru-lead/SKILL.md`) |
+| resubmitting to Cursor's marketplace, or making the repo public for it | Justin: anything public or live goes to him (publishing is a one-way door, which goes to the user: `skills/kru-lead/SKILL.md` → *Talk to a PM, not to an engineer*) |
 | a Teams marketplace, the Cursor GitHub App, any new outside account | Justin decides (money, outside services); Otto sets the account up |
 
 ## The version

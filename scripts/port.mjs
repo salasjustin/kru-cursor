@@ -124,6 +124,7 @@ const FORK_OWNED = new Set([
   "scripts/cursor-smoke.sh",
   "scripts/sync-upstream.sh",
   "scripts/sync-upstream.test.sh",
+  "scripts/workflows.test.sh",
   "skills/kru-roster/release.md",
   "skills/kru-roster/fork-sync.md",
   "hooks/cursor-hook.sh",

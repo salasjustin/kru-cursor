@@ -14,6 +14,8 @@ newest commit with the fork-owned files laid over it, ported once by `scripts/po
 2. Runs `scripts/sync-upstream.sh` on that branch. It records upstream as a merge parent
    (`git merge -s ours`) and replaces the tree with the fresh port, so a text conflict can't happen —
    even where a port rule rewrote a line upstream also edited.
+   Upstream's `.github/` is not taken: the fork owns that directory, and the workflow token can't
+   push a workflow file. A file upstream added there is listed in the report under *Not taken*.
 3. Runs `bash scripts/verify.sh`, then one of:
 
 | outcome | what you get |
@@ -22,8 +24,17 @@ newest commit with the fork-owned files laid over it, ported once by `scripts/po
 | synced, checks green | a pull request `sync: upstream kru X.Y.Z` with the upstream commits, the files the port changed, the files to read by hand, and the verify summary |
 | synced, checks red | the same pull request as a draft, with the failing summary |
 | the port failed on the new upstream | no pull request; an issue `upstream sync blocked: …` (or a comment on the open one) with the port's problem list |
+| synced, but the push was refused | no pull request; an issue `upstream sync blocked: … could not be pushed` with git's refusal. Upstream's history touched `.github/workflows/`, which the workflow token may not push: run the sync by hand (below) and push with your own credentials |
+| upstream's `VERSION` isn't a version string | the run fails red before anything is committed (`sync-upstream.sh` exits 1) |
 
-The job runs on the default `GITHUB_TOKEN` (`contents`, `pull-requests`, `issues: write`); no secret.
+Two jobs, on the default `GITHUB_TOKEN`; no secret. `verify.sh` runs upstream's code (its hook tests,
+`audit.sh`) before anyone has read it, so the **sync** job that runs it holds a read-only token
+(`contents: read`), checks out without stored credentials, and runs verify with no token in its
+environment; it hands the sync commit on as a git bundle, written before verify runs. The **propose**
+job (`contents`, `pull-requests`, `issues: write`) runs none of the repo's code: it re-checks the
+branch name, commit ids and version it was handed, fetches the bundle, and pushes and files with the
+token set on those steps only. Values reach the scripts through `env:`, never `${{ }}` inside `run:`;
+`scripts/workflows.test.sh` holds these rules and the actions' commit-SHA pins.
 
 ### Repo settings it needs (once)
 
@@ -35,8 +46,8 @@ The job runs on the default `GITHUB_TOKEN` (`contents`, `pull-requests`, `issues
 ## Reviewing a sync pull request (Kai)
 
 - **CI.** A pull request opened with the workflow token starts no other workflow, so the `verify`
-  check doesn't appear by itself; the summary in the body is the sync run's own `verify.sh`. Push any
-  commit to the branch to get a CI run.
+  check doesn't appear by itself; the summary in the body is the sync run's own `verify.sh` — run on
+  upstream's code, so it is that code's own report. Push any commit to the branch to get a CI run.
 - **Read by hand.** The body lists upstream files this fork replaces with its own copy
   (`hooks/require-lead.sh`, `hooks/brainstorm-guard.sh`, `README.md`, …). Upstream changed them;
   decide whether the change applies to Cursor and mirror it in the fork's copy on the same branch.
