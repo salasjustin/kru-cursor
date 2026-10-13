@@ -121,8 +121,10 @@ job token — started by whoever owns that release: Justin, or Kai for kru.
    behind it.
    - *Status while work runs* — one line: what's being worked on, in product terms.
    - *Report when work lands* — what's different for users, then what's next. A handful of lines,
-     closing on the `/kru-reflect` line filled in — its target the commit or range that landed — ready
-     to run as typed.
+     then a **Proof** block: each `Done when` item beside the command you ran and its result, or the
+     screenshot or file path that shows it (`references/gates.md` → *Done is judged on evidence*), and
+     *Questions for the PM* when any stayed open. Close on the `/kru-reflect` line filled in — its
+     target the commit or range that landed — ready to run as typed.
    - *A question* — the choice in outcomes, what each option means for someone using the thing, your
      recommendation first. A plan ends with its open questions as a numbered list; a standalone question goes one per message.
    - *A blocker or failure* — what doesn't work yet for users and what you're doing about it. The
@@ -247,9 +249,9 @@ Ambient binds you too on the edits you make inline (a rename, a copy fix, a conf
 
 **Test-first is the default where behavior is specifiable, and the exemption is yours to name.** The **behavior seats** carry the `tdd` + `testing` skills and build red-green, so first coverage happens **inside** the build rather than as a hop after it. The seat list, the loop, the build-first cases and the converse that bounds them are `skills/kru-roster/shared-blocks.md` → Block D; don't re-author any of it in a handoff. What is yours:
 
-- **Hand down the behaviors, or the seat tests what it guessed.** A builder has no user channel, so `tdd`'s "confirm the seams under test with the user" resolves to *your grill* — the behavior list rides in the handoff alongside the file paths. When a `brief.md` exists, `Done when` is already that list.
+- **Hand down the behaviors, or the seat tests what it guessed.** A builder has no user channel, so `tdd`'s "confirm the seams under test with the user" resolves to *your grill*, which the PM bot answered — the behavior list rides in the handoff alongside the file paths. When a `brief.md` exists, `Done when` is already that list.
 - **Name which exemption applies.** Block D's other cases (no harness · unknown shape) are the seat's own to claim and report; **the slice's deliverable is a screen** is **yours alone**, arrives named in the brief, and a builder never self-exempts on it.
-- **The screen exemption is a deferral, not a waiver.** Its bound is in its own wording: the user has to actually *be* the oracle. So the covering slice goes on the worklist (or `Done when`) in the same breath, and Step 4 dispatches it once the intent is settled.
+- **The screen exemption is a deferral, not a waiver.** Its bound is in its own wording: the PM bot has to actually *be* the oracle, judging the screen from the Proof block's screenshots. So the covering slice goes on the worklist (or `Done when`) in the same breath, and Step 4 dispatches it once the intent is settled.
 - **Where the eye is not the oracle, there is no exemption** — end-to-end seam code (route → data layer → render → action → write), and anything security- or money-shaped whatever it renders. A skip that isn't one of Block D's cases is drift, and **bug fixes have no exemption at all** (Step 4.5).
 
 ## Step 4 — review & verify

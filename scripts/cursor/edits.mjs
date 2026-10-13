@@ -244,3 +244,73 @@ EDITS.push(E(
   "there is no sheet in AGENTS.md. Name /kru-setup to the PM once this session (the PM bot runs it itself; a headless run says it in its return), then carry on:",
   "t3: the PM bot runs /kru-setup; the sheet is AGENTS.md here",
 ))
+
+// --- t4: the oracle is the PM bot's done-check, with proof returned ----------
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "pair every behavior on the list you handed down (your grill, or `brief.md`'s `Done when`) with its proof — a test name, a command's output, a count, from the return or from your own scoped run.",
+  "pair every behavior on the list you handed down (your grill, or `brief.md`'s `Done when` — the PM bot's done-check, and the oracle for the whole change) with its proof — a test name, a command's output, a count, a screenshot path, from the return or from your own scoped run. Those pairs are the **Proof** block of your report (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Report when work lands*), which is what the PM bot reviews.",
+  "t4: the oracle is the PM bot's done-check, and the proof goes back to it",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "- Design work: **the gate is the user's eye, and there is no substitute for it**",
+  "- Design work: **the gate is the PM bot's eye, and there is no substitute for it** — it judges the screenshots and paths in your Proof block, and takes the call to Justin only when it can't judge it",
+  "t4: design conformance goes to the PM bot, Justin only if it can't judge",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "A **named gap** in the builder's return is the one output you act on before the user looks: it goes to the **user** as the visible choice (\"what colour for warnings?\"), not to a seat — the token name it would need stays in the record and the builder's brief. The user reports back through you",
+  "A **named gap** in the builder's return is the one output you act on before the PM looks: it goes to the **PM** as the visible choice (\"what colour for warnings?\"), not to a seat — the token name it would need stays in the record and the builder's brief. The PM reports back through you",
+  "t4",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "their findings merge into the same fix list as `code-reviewer`'s, and the user's eye above remains the gate.",
+  "their findings merge into the same fix list as `code-reviewer`'s, and the PM bot's eye above remains the gate.",
+  "t4",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "   - *Report when work lands* — what's different for users, then what's next. A handful of lines,\n     closing on the `/kru-reflect` line filled in — its target the commit or range that landed — ready\n     to run as typed.",
+  "   - *Report when work lands* — what's different for users, then what's next. A handful of lines,\n     then a **Proof** block: each `Done when` item beside the command you ran and its result, or the\n     screenshot or file path that shows it (`references/gates.md` → *Done is judged on evidence*), and\n     *Questions for the PM* when any stayed open. Close on the `/kru-reflect` line filled in — its\n     target the commit or range that landed — ready to run as typed.",
+  "t4: every return carries a proof block",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "A builder has no user channel, so `tdd`'s \"confirm the seams under test with the user\" resolves to *your grill*",
+  "A builder has no user channel, so `tdd`'s \"confirm the seams under test with the user\" resolves to *your grill*, which the PM bot answered",
+  "t4",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "Its bound is in its own wording: the user has to actually *be* the oracle.",
+  "Its bound is in its own wording: the PM bot has to actually *be* the oracle, judging the screen from the Proof block's screenshots.",
+  "t4: the PM bot is the screen oracle",
+))
+EDITS.push(E(
+  "skills/kru-landed/SKILL.md",
+  "The user just watched their PR merge.",
+  "Justin just merged the PR, and the PM bot runs this.",
+  "t4: the PM bot runs /kru-landed after Justin merges",
+))
+EDITS.push(E(
+  "skills/kru-landed/SKILL.md",
+  "List the paths and stop; commit or stash is the user's call, not yours.",
+  "List the paths and stop; commit or stash is the PM bot's call, not yours — report it there.",
+  "t4: landed's stops report to the PM bot",
+))
+EDITS.push(E(
+  "skills/kru-landed/SKILL.md",
+  "Name the path and let the user leave it first.",
+  "Name the path and let the PM bot leave it first.",
+  "t4",
+))
+
+// --- t4: (cont.) landed's stops ----------------------------------------------
+EDITS.push(E(
+  "skills/kru-landed/SKILL.md",
+  "**Local sync only.** Landing already happened on the remote. Nothing here merges, rebases, pushes, or force-anythings.",
+  "**Local sync only.** Landing already happened on the remote. Nothing here merges, rebases, pushes, or force-anythings.\n\n**Every stop below is a report to the PM bot**: what stopped, the paths or commits involved, and the one command that would resolve it. The PM bot decides the next step.",
+  "t4: landed's stops report to the PM bot",
+))
