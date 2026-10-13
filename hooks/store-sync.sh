@@ -30,8 +30,9 @@ stored=$(kru_path agent-memory)
 # stop has no model-only field short of blocking, so there it goes to stderr
 say() {
   local msg="kru store: $1" raw=${2:-}
-  # a budget that ran out says so, not the sign-in hint the failure line carries
-  case $raw in "no answer from the remote"*) msg="kru store: ${1%%; sync failed*}; sync timed out after ${budget}s. A large store needs a higher KRU_STORE_SYNC_TIMEOUT" ;; esac
+  # a budget that ran out says so, not the sign-in hint the failure line carries.
+  # the clock decides, not git's words: ssh or a helper may print before the kill
+  [ -n "$raw" ] && [ "$SECONDS" -ge "$deadline" ] && msg="kru store: ${1%%; sync failed*}; sync timed out after ${budget}s. A large store needs a higher KRU_STORE_SYNC_TIMEOUT"
   if command -v jq >/dev/null 2>&1; then
     if [ "$mode" = start ] && [ -n "$raw" ]; then
       jq -nc --arg m "$msg" --arg r "kru store sync error: $raw" \

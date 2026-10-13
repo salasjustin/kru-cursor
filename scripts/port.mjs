@@ -170,33 +170,56 @@ const RULES = [
     "# package.json + lockfile into every cached plugin version — 65 MB a version for\n# two seats that rarely run. cursor has no plugin data dir, so on cursor they live\n# in the user's data dir (KRU_PLUGIN_DATA overrides) — outside the store, which a\n# store repo would sync — where a plugin update leaves them.", { sh: true, files: /^scripts\/asset\/run\.sh$/ }),
   // the read-only listings a triage turn reaches for, cursor's cli
   R(/'claude mcp list'\*\|'claude plugin list'\*\|'claude plugin details'\*\)/g, "'agent mcp list'*|'agent status'*|'agent models'*|'cursor-agent mcp list'*|'cursor-agent status'*)", { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /'agent mcp list'/ }),
-  // verbs that read by default and write on a flag: awk's system() and getline
-  // run commands — checked over the whole line when awk is on it, since an awk
-  // program spans the segments the gate splits on, and only then, so grep or rg
-  // for the words still reads — sort -o (GNU takes any unambiguous prefix: --o,
-  // --out) writes a file and --compress-program runs one, any --output writes,
-  // rg --pre runs a program per file, sed's w/W commands and s///w write and its
-  // e runs a command, yq -i/--inplace and --split-exp write, date -s/--set or a
-  // clock operand sets the clock, `command` runs whatever follows it bar -v/-V
+  // verbs that read by default and write on a flag or an operand. every flag
+  // check reads the segment's words with quotes resolved (kru_words, from
+  // scripts/cursor/readonly-words.sh), so a quoted flag is the flag. awk's
+  // system(), getline, @include and @load run code — checked over the whole
+  // line when awk is on it, since an awk program spans the segments the gate
+  // splits on, and only then, so grep or rg for the words still reads — and
+  // awk -f/--file or any flag but -F/-v loads a program the line can't show.
+  // sed is an allowlist (kru_sed_reads): its w/W/e need no separator, so only
+  // read flags, addresses, p d q = G g h H N P x l y and s///[gpIiMm0-9]* read,
+  // and -f/--file/-i are writes. sort -o (GNU takes any unambiguous prefix:
+  // --o, --out) writes a file and --compress-program runs one, --output writes
+  // (--output-separator doesn't), rg --pre runs a program per file, yq
+  // -i/--inplace and --split-exp write, date -s/--set or a clock operand sets
+  // the clock (-I takes a format), `command` runs whatever follows it bar
+  // -v/-V, uniq's second operand and file -C write, macOS base64 -o writes,
+  // xxd's second operand writes so it leaves the list, and <( runs a command
   // (tests: hooks/readonly-bash.test.sh)
-  R(/\|\*'xargs'\*\) return 1 ;;/g, "|*'xargs'*|*'--output'*) return 1 ;;", { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /\|\*'xargs'\*\|\*'--output'\*\) return 1 ;;/ }),
-  R(/(?<!esac\n)^( +)case "\$1" in\n/m, (_m, a) => [
+  R(/(refusal costs one message\.\n)\n(?=# kru_readonly_bash <command>)/, (_m, a) => `${a}\n${block("readonly-words.sh")}\n`,
+    { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^kru_sed_reads\(\) \{$/m }),
+  R(/\|\*'xargs'\*\) return 1 ;;/g, "|*'xargs'*|*'<('*) return 1 ;;", { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /\|\*'xargs'\*\|\*'<\('\*\) return 1 ;;/ }),
+  R(/^(kru_readonly_bash\(\) \{\n)( +)case "\$1" in\n/m, (_m, f, a) => f + [
     "# awk's system() and getline run commands, system with any space before its",
     "# paren. an awk program spans the segments split below, so the whole line",
     "# answers — whenever awk is on it, so grep or rg for the words still reads",
-    String.raw`case $1 in *awk*) [[ $1 =~ system[[:space:]]*\(|getline ]] && return 1 ;; esac`,
+    String.raw`case $1 in *awk*) [[ $1 =~ system[[:space:]]*\(|getline|@include|@load ]] && return 1 ;; esac`,
+    "# any --output writes its file (git diff --output=x); --output-separator and",
+    "# the other --output-* names don't",
+    String.raw`[[ $1 =~ --output([=[:space:]\'\"]|$) ]] && return 1`,
     'case "$1" in',
   ].map((l) => a + l + "\n").join(""),
     { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^ +case \$1 in \*awk\*\) /m }),
-  R(/( +)ls\|cat\|head\|tail\|wc\|grep\|egrep\|fgrep\|rg\|find\|(.*)\n( +)which\|command\|type\|echo\|printf\|jq\|yq\|sort\|uniq\|cut\|tr\|column\|date\|test\|true\|diff\) continue ;;\n/g,
-    (_m, a, rest, b) => `${a}ls|cat|head|tail|wc|grep|egrep|fgrep|find|${rest}\n${b}which|type|echo|printf|jq|uniq|cut|tr|column|test|true|diff) continue ;;\n` +
-      String.raw`${b}sort) local re="[[:space:]]['\"]?(-[^-[:space:]]*o|--o|--co)"; [[ " $seg" =~ $re ]] && return 1; continue ;;` + "\n" +
-      `${b}rg) [[ " $seg " =~ [[:space:]]--pre([[:space:]=]) ]] && return 1; continue ;;\n` +
-      String.raw`${b}sed) local re="[/;{}[:space:]'\"0-9\$!,][gpIiMm0-9]*[wWe]([[:space:]'\";}]|\$)"; [[ " $seg" =~ $re ]] && return 1; continue ;;` + "\n" +
-      String.raw`${b}yq) local re="[[:space:]]['\"]?(-[a-zA-Z]*[is]|--inplace|--split-exp)"; [[ " $seg" =~ $re ]] && return 1; continue ;;` + "\n" +
-      String.raw`${b}date) local re="[[:space:]]['\"]?(-[a-zA-Z]*s|--s)|[[:space:]]['\"]?[0-9.]{4,}(['\"[:space:]]|\$)"; [[ " $seg" =~ $re ]] && return 1; continue ;;` + "\n" +
-      String.raw`${b}command) [[ "$seg" =~ ^command\ -[vV]\  ]] && continue; return 1 ;;` + "\n",
-    { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^ +command\) \[\[ "\$seg" =~ \^command/m }),
+  R(/( +)ls\|cat\|head\|tail\|wc\|grep\|egrep\|fgrep\|rg\|find\|file\|(.*)\n( +)which\|command\|type\|echo\|printf\|jq\|yq\|sort\|uniq\|cut\|tr\|column\|date\|test\|true\|diff\) continue ;;\n( +)# safe only because the write-tell case above already took sed -i and any redirect\n( +)sed\|awk\|nl\|tac\|comm\|xxd\|base64\) continue ;;\n/g,
+    (_m, a, rest) => [
+      `ls|cat|head|tail|wc|grep|egrep|fgrep|find|${rest}`,
+      "which|type|echo|printf|jq|cut|tr|column|test|true|diff) continue ;;",
+      "# the verbs that read until a flag or an operand says otherwise",
+      String.raw`sort) kru_words "$seg" && ! kru_any '^(-[^-]*o|--o|--co)' && continue; return 1 ;;`,
+      String.raw`rg) kru_words "$seg" && ! kru_any '^--pre(=|$)' && continue; return 1 ;;`,
+      String.raw`sed) kru_words "$seg" && kru_sed_reads "${"$"}{KRU_W[@]:1}" && continue; return 1 ;;`,
+      String.raw`awk) kru_words "$seg" && kru_awk_reads "${"$"}{KRU_W[@]:1}" && continue; return 1 ;;`,
+      String.raw`yq) kru_words "$seg" && ! kru_any '^(-[a-zA-Z]*[is]|--inplace|--split-exp)' && continue; return 1 ;;`,
+      String.raw`date) kru_words "$seg" && ! kru_any '^(-[^-dfrI]*s|--s|[0-9.]{4,}$)' && continue; return 1 ;;`,
+      String.raw`command) kru_words "$seg" && [[ ${"$"}{KRU_W[1]:-} == -[vV] ]] && continue; return 1 ;;`,
+      String.raw`uniq) kru_words "$seg" && kru_operands 1 '^-[fsw]$' "${"$"}{KRU_W[@]:1}" && continue; return 1 ;;`,
+      String.raw`file) kru_words "$seg" && ! kru_any '^(-[^-]*C|--co)' && continue; return 1 ;;`,
+      String.raw`base64) kru_words "$seg" && ! kru_any '^(-[^-]*o|--o)' && continue; return 1 ;;`,
+      "# safe only because the write-tell case above already took any redirect",
+      "nl|tac|comm) continue ;;",
+    ].map((l) => a + l + "\n").join(""),
+    { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^ +sed\) kru_words "\$seg" && kru_sed_reads/m }),
   // a hung remote must not hold the hook: the first preToolUse has 15s and the
   // stop hook 30s, and the stop path's push, pull, push would take three
   // separate timeouts past that. every call shares one budget, and a watchdog
@@ -230,8 +253,9 @@ const RULES = [
   // a budget that ran out says so, keeping what still holds, instead of the
   // sign-in hint its failure line carries (tests: scripts/cursor-hooks.test.sh)
   R(/^(  local msg="kru store: \$1" raw=\$\{2:-\}\n)(?!  # a budget)/m, (_m, a) => a + [
-    "  # a budget that ran out says so, not the sign-in hint the failure line carries",
-    '  case $raw in "no answer from the remote"*) msg="kru store: ${1%%; sync failed*}; sync timed out after ${budget}s. A large store needs a higher KRU_STORE_SYNC_TIMEOUT" ;; esac',
+    "  # a budget that ran out says so, not the sign-in hint the failure line carries.",
+    "  # the clock decides, not git's words: ssh or a helper may print before the kill",
+    '  [ -n "$raw" ] && [ "$SECONDS" -ge "$deadline" ] && msg="kru store: ${1%%; sync failed*}; sync timed out after ${budget}s. A large store needs a higher KRU_STORE_SYNC_TIMEOUT"',
     "",
   ].join("\n"), { sh: true, files: /^hooks\/store-sync\.sh$/, required: /^  # a budget that ran out says so/m }),
   R(/\$\(git clone -q "\$url"/g, '$(net clone -q "$url"', { sh: true, files: /^hooks\/store-sync\.sh$/, required: /\$\(net clone -q "\$url"/ }),

@@ -45,5 +45,30 @@ for c in \
   expect write "$c"
 done
 
+# the second review: sed reads only on an allowlist (its read flags, addresses,
+# p d q = G g h H N P x l y and s///[gpIiMm0-9]*), every tool's flags are read
+# off the unquoted words, and awk -f / sed -f hide a program the line can't show
+for c in "sed -n 's/[/]/x/gp' a" "sed -nE '/a/,/b/p' a" "sed -n '\$=' a" "sed -z 's/\\n/ /g' a" \
+  "sed -n '1~2p' a" "sed 'y/abc/xyz/' a" 'sed --quiet 10q a' "sed -s -n '\$p' a b" 'sed -e p -e 2d a' \
+  "sed -n '/x/I,+3p' a" "sed 's,a,b,2' a" "sed -n '/w/{p}' a" "sed -u -r 's/(e)/\\1/' a" 'sed --expr=p a' 'sed -n l a' "sed -n 'p' -- -i" \
+  "awk -v x=1 '{print x}' a" "awk -F, '{print \$1}' a" "awk -F : '{print}' a" \
+  'column --output-separator , a' 'column -t --output-width 80 a' 'date -Iseconds' 'date -I' 'date --iso-8601=seconds' \
+  'date -d tuesday +%F' "date -ud 'next sunday'" \
+  'uniq -c in' 'uniq -f 1 in' 'file a.txt' 'file -b a' 'base64 a' 'base64 -d a'; do
+  expect read "$c"
+done
+
+for c in "sed '1eid' a" 'sed 1e\ id a' "sed \$'1e\\tid' a" 'sed --expression=e a' "sed -n 's/a/b/w/tmp/x' a" \
+  "sed -n '1w/tmp/x' a" "sed -n 's/a/b/ew out' a" "sed \"1e id\" a" "sed 's/a/b/2w out' a" "sed '1!e id' a" \
+  "sed \$'1{\\ne id\\n}' a" 'sed -f s.sed a' 'sed --file=s.sed a' 'sed --expr=e a' 'sed --fi=s.sed a' \
+  'sed -n p a -i' 'sed -ni p a' 'sed --in-pl p a' "sed -e 'w x' a" "sed p -e 'w x' a" \
+  "sed 's/x/y/m e' a" "sed -n '1W/tmp/x' a" 'sed -s -i p a' \
+  "rg '--pre' ./p.sh foo" 'rg "--pre=./p.sh" foo' 'rg "$PRE" foo' \
+  'awk -f prog.awk a' 'awk --file=prog.awk a' 'awk -fprog.awk a' "awk '-f' p a" "awk '@include \"x\"' a" \
+  "yq '-i' '.a = 1' f.yaml" 'yq "--inplace" .a f' 'date "--set=x"' "command '-p' ls" \
+  'cat <(rm -rf build)' 'uniq in out' 'xxd in out' 'file -C -m magic' 'base64 -i a -o b'; do
+  expect write "$c"
+done
+
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

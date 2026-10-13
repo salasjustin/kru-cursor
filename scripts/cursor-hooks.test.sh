@@ -238,6 +238,11 @@ check "store-sync: a hung clone gives up inside the first-turn budget" test $((t
 check "…and the tool call is allowed" has '.permission == "allow"'
 resp=$(cd "$work" && printf '{}' | PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=1 bash "$plugin/hooks/store-sync.sh" start "$plugin" 2>/dev/null)
 check "…and says it timed out, not that the repo or sign-in is wrong" has '.systemMessage | test("not loaded; sync timed out after 1s")'
+# the verdict comes from the budget, not git's words: a remote that prints first
+# (ssh's banner, a helper's progress) and then hangs still reads as a timeout
+printf '#!/bin/bash\ncase " $* " in *" clone "*) echo "ssh: connect to host github.com port 22" >&2; exec sleep 60 ;; esac\nexec "%s" "$@"\n' "$real_git" > "$sandbox/bin/git"
+resp=$(cd "$work" && printf '{}' | PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=1 bash "$plugin/hooks/store-sync.sh" start "$plugin" 2>/dev/null)
+check "…even when git printed something before it hung" has '.systemMessage | test("not loaded; sync timed out after 1s")'
 # the first pull gets the budget of the hook it runs in, unless the variable is set
 printf '#!/bin/bash\ncase " $* " in *" clone "*) echo "$KRU_STORE_SYNC_TIMEOUT" >> "%s"; exit 1 ;; esac\nexec "%s" "$@"\n' "$sandbox/budget" "$real_git" > "$sandbox/bin/git"
 PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store fire sessionStart "$(jq -nc '{session_id: "bud1", conversation_id: "bud1"}')"
