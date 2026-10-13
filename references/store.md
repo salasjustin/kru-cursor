@@ -7,15 +7,7 @@ The team writes two kinds of durable state, and they have different lifetimes:
 - **Project** — one project's plan of record: `TODOS.md`, `issues/`, `notes/`, `plan/`
   (`TRACKER.md` owns its layout).
 
-The project root is the private half of tracking. Where each thing goes:
-
-| what | where it goes | how |
-|---|---|---|
-| a **security or vulnerability** finding — anything an attacker could use: an auth bypass, data exposure, an injection, a leaked secret | the store's `issues/` (one file per finding), or a GitHub **private security advisory** on the product repo — **never a public issue** | `/kru-issue`, the lead's defect capture (Step 4.5) |
-| a **normal bug** or a **product want** | a **GitHub issue on the product repo** (`gh issue create`, labelled `bug` or `enhancement`), on the Agent Board (salasjustin's GitHub project #1), and closed by the pull request that fixes it (`Fixes #n`) | `/kru-issue`, `/kru-todo`, the lead's captures (Step 4.5) |
-| the team's **scratch todo** — a want the team turned up mid-task that nobody has asked for yet | the store's `TODOS.md` | the lead's todo capture (Step 4.5), `/kru-setup` |
-
-A repo with no GitHub remote, issues turned off, or no `gh` sign-in sends a bug to `issues/` and a want to `TODOS.md`, and the capture says so. Unsure whether a bug is security-shaped → treat it as one: a private file can be published later, a public issue can't be taken back.
+The project root is the private half of tracking: security findings and the team's scratch todos live here, while normal bugs and product wants go to the product repo's GitHub issues. Which goes where is `TRACKER.md` → *Where each thing is tracked*.
 
 **`scripts/kru-store.sh` resolves both.** It is the single source of truth for where the store sits:
 

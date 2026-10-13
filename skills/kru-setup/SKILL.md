@@ -91,7 +91,10 @@ plugin skill lacks has an inbox line; every package a major behind its skill's p
 every other outdated one is on the catch-up line or its own major's.
 
 ### 1b. Blank repo — grill, then deploy — *full run*
-Nothing on disk answers step 1, so the user does, and the sheet is written from the **decision**. Load
+Nothing on disk answers step 1, so the user does, and the sheet is written from the **decision**. Headless
+(`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), the brief's answers
+are the rounds: take the subject and the lanes it settles, deploy on those, and put each lane it left
+open under **Questions for the PM** with your recommendation instead of a round. Otherwise load
 **`grilling`**; its rounds are these three:
 
 1. **What we are building** — the subject, who it is for, and the one job it has to do. Completion: one
@@ -354,6 +357,8 @@ plugin included, and the hand that wrote whatever you are proposing to cut. The 
 pass's edits that cut a copy another file answers are the team's: write them. Ask first only before
 cutting a rule the user (or a teammate) authored whose only copy is here — one question, in their
 words, with what dropping it would cost. Everything the answer can't touch is written already.
+Headless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), keep the
+rule and return the question under **Questions for the PM**.
 
 Completion: the file holds the pass and the sheet, and no rule the user authored left it without
 their yes.

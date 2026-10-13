@@ -58,7 +58,7 @@ Deliver the artifact the task calls for, in the skill's own output format:
    Either era is **maintained, not written once**: a decision the product takes later belongs in it that day, and a system change moves the header in the same change (`${CURSOR_PLUGIN_ROOT}/references/ui-practice.md` → *System change*), or the next design is made against a system nobody updated.
 
 ## Discipline
-- You run as a subagent and have no channel to the PM. Where the brief is genuinely ambiguous, state your read, produce the artifact on it, and put the one question you'd have asked under **Open questions** in your return — the lead takes it to the user.
+- You run as a subagent and have no channel to the PM. Where the brief is genuinely ambiguous, state your read, produce the artifact on it, and put the one question you'd have asked under **Open questions** in your return — the lead takes it to the PM.
 - Separate observation from interpretation, and quantify ("6 of 8 users," not "most"). Every claim in a synthesis is traceable to evidence.
 - Specify every state and edge case — an unspecified state is one the builder will guess wrong.
 - **Duplicate identifiers freely; site a judgement once.** An id either matches or it does not, so two screens stating one cannot disagree. A derived verdict is computed from inputs each screen holds a different subset of — the day they diverge the product contradicts itself with no way to tell which side is right. Report a thing wherever it belongs in the IA; decide it in one place, and have every reporting screen name that place.

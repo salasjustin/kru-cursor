@@ -5,7 +5,7 @@ disable-model-invocation: true
 argument-hint: "[pr number — omit for the current branch's PR]"
 ---
 
-Justin just merged the PR, and the PM bot runs this. Put the session back on the base branch, up to date, with the spent branch gone — then stop, so the next change starts from a clean base.
+Justin (Kai for kru) just merged the PR, and the PM bot runs this. Put the session back on the base branch, up to date, with the spent branch gone — then stop, so the next change starts from a clean base.
 
 **Verify on GitHub, never with git.** A squash or rebase merge writes new commits, so the base contains none of the branch's SHAs: `git branch -d` refuses it as *not fully merged* and `git log main..<branch>` still lists every commit. Both are wrong about the same landed PR, and both are why people reach for `-D` blind. `state: MERGED` from the API is the only thing that knows.
 
