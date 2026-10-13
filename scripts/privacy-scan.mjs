@@ -12,10 +12,16 @@
 // history plus this fork's commits: a hit there that was reviewed is listed in
 // HISTORY_REVIEWED with the commit, the file and why it stays — anything else
 // fails. PORTING.md → Privacy carries the review.
+// a fixed roster of case-sensitive whole words, plus one phrase, is checked on
+// the tree only. history keeps the commits that introduced them. the words are
+// code points so this file does not spell them.
+// a fixed roster of case-sensitive whole words, plus one phrase, is checked on
+// the tree only. history keeps the commits that introduced them. the words are
+// code points so this file does not spell them.
 // gitleaks, when it is on PATH, runs too (detect over the tree / git log).
 import { execFileSync, spawnSync } from "node:child_process"
 import { createHash } from "node:crypto"
-import { readFileSync, mkdtempSync, rmSync } from "node:fs"
+import { readFileSync, mkdtempSync, rmSync, realpathSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -120,6 +126,31 @@ function allowed(id, path, line, value) {
   return PATH_OK.some((p) => (p.id === "*" || p.id === id) && p.path.test(path) && (!p.line || p.line.test(line)))
 }
 
+// code points, not letters: a tree grep for the roster stays at zero.
+const ROSTER_WORDS = [
+  [75, 97, 105],
+  [79, 116, 116, 111],
+  [86, 101, 114, 97],
+  [73, 118, 121],
+  [84, 97, 108, 105],
+  [74, 117, 110, 111],
+  [78, 111, 114, 97],
+  [82, 104, 101, 97],
+  [74, 117, 115, 116, 105, 110],
+].map((codes) => String.fromCharCode(...codes))
+const ROSTER_PHRASE = String.fromCharCode(71, 114, 111, 107, 32, 66, 111, 116, 32, 80, 77)
+
+export function rosterHits(line, { history = false } = {}) {
+  if (history) return []
+  const out = []
+  for (const w of ROSTER_WORDS) {
+    if (new RegExp(`\\b${w}\\b`).test(line)) out.push({ id: "team-name", value: w })
+  }
+  if (line.includes(ROSTER_PHRASE)) out.push({ id: "team-name", value: ROSTER_PHRASE })
+  return out
+}
+export { ROSTER_WORDS, ROSTER_PHRASE }
+
 function scanLine(path, line, hits, where) {
   for (const h of hashedHits(line)) if (!allowed(h.id, path, line, h.value)) hits.push({ ...where, id: h.id, path, value: h.value, line })
   for (const p of PATTERNS) {
@@ -130,8 +161,12 @@ function scanLine(path, line, hits, where) {
       if (m && !allowed(p.id, path, line, m[0])) hits.push({ ...where, id: p.id, path, value: m[0], line })
     }
   }
+  for (const h of rosterHits(line, { history: HISTORY })) {
+    if (!allowed(h.id, path, line, h.value)) hits.push({ ...where, id: h.id, path, value: h.value, line })
+  }
 }
 
+function main() {
 const hits = []
 if (!HISTORY) {
   const files = git("ls-files", "-co", "--exclude-standard", "-z").split("\0").filter(Boolean)
@@ -214,3 +249,6 @@ if (open.length) {
   process.exit(1)
 }
 console.log("clean")
+}
+
+if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) main()

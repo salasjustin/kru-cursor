@@ -47,9 +47,9 @@ holds these rules and the actions' commit-SHA pins.
 - Scheduled workflows run from the default branch only, and GitHub turns a schedule off after 60
   days without repository activity; re-enable it from the Actions tab.
 
-## Reviewing a sync pull request (Kai)
+## Reviewing a sync pull request (the plugin maintainer)
 
-Kai is kru's PM bot (`skills/kru-lead/SKILL.md`, first paragraph and *Who acts at the door*): he reviews this pull request, and he merges and tags kru's releases.
+The plugin maintainer reviews this pull request, and merges and tags this plugin's releases (`skills/kru-lead/SKILL.md`, first paragraph and *Who acts at the door*). The PM bot's own operating rules govern escalation and approval; the plugin's generic default applies only when the PM has none.
 
 - **CI.** A pull request opened with the workflow token starts no other workflow, so the `verify`
   check doesn't appear by itself; the summary in the body is the sync run's own `verify.sh` — run on

@@ -9,7 +9,7 @@ Grill to exhaustion, then **write it down**, so the shared understanding survive
 reset, and the hand-off to every seat downstream.
 
 There is **no roadmap, no prioritization framework, and no PM pass** — the PM (the PM bot that
-briefed the session, under Justin: `skills/kru-lead/SKILL.md`, first paragraph) brings the subject. Your output is not "what should we build," it's **a holistic account of the change that's
+briefed the session, under the owner: `skills/kru-lead/SKILL.md`, first paragraph) brings the subject. Your output is not "what should we build," it's **a holistic account of the change that's
 going to land**.
 
 **Inside a repo, map it before you grill** (`lead` Step 1): a question answerable from the codebase is

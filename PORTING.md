@@ -154,6 +154,9 @@ checksum-verified copy). It fails on tokens and keys, emails outside the reserve
 exact list of placeholder addresses the vendored docs use, and the known bot identity
 `cursoragent@cursor.com`, paths off the author's machine, and
 client or private-repo names — those matched by hash, so the scanner doesn't publish them.
+On the tree only, it also fails a fixed roster of case-sensitive whole words and one phrase, stored as
+code points so this file does not spell them. That check does not run on history: the commits that
+introduced the roster stay, and rewriting history is a separate decision.
 
 - **Tree:** clean. One client repo name in `references/lossless-doc-compaction.md` is rewritten by a
   port rule; the eval prompt that named a client is dropped with `evals/`.

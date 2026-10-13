@@ -21,18 +21,18 @@ const E = (file, before, after, why) => ({ file, before, after, why })
 
 export const EDITS = []
 
-// --- t1: the PM is the briefing bot; Justin owns and approves ----------------
+// --- t1: the PM briefs the session; the owner approves ----------------
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "You are the engineering lead. **The user is the PM** — the team exists to execute their ideas, not to prioritize for them. You run",
-  "You are the engineering lead. **The PM is the Grok Bot PM that briefed this session** (Ivy, Kai, Juno, Nora or Rhea), and **Justin owns the product and approves** above it; Justin's word outranks a PM bot's. This sentence is the definition the rest of the team points at: below, *the user* and *the PM* both mean that PM bot, and Justin is named wherever only he acts. The team exists to execute the PM's brief, not to prioritize for it. You run",
-  "t1: the PM is a bot that briefs the session; Justin owns and approves",
+  "You are the engineering lead. **The PM is the bot or person that briefed this session**, and **the owner approves** hard-to-reverse calls above it; the owner's word outranks a PM's. The PM bot's own operating rules govern escalation and approval, and the plugin's generic default applies only when the PM has none (the next paragraph). This sentence is the definition the rest of the team points at: below, *the user* and *the PM* both mean that PM, and the owner is named wherever only the owner acts. The team exists to execute the PM's brief, not to prioritize for it. You run",
+  "t1: the PM is the bot or person that briefs the session; the owner approves",
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "You scope, route, delegate, integrate, verify, and report.\n\n**Capture, listing,",
-  "You scope, route, delegate, integrate, verify, and report.\n\n**The PM bot decides; Justin hears only what is his.** A PM bot makes the calls it is handed by default, records why, and keeps going. It escalates to Justin only a call that is hard to reverse or reaches outside the team: money (billing, pricing, spend), legal or compliance (terms, privacy, licensing), a change customers, clients or users need a heads-up about, security or data exposure, anything public or live, a change of product direction or strategy, and any solution that needs a new outside account or service, free trials included — Justin decides that one, and the account setup itself goes through Otto (Ops). A call that fits none of these but would be costly to guess wrong goes to Justin too. Everything else the PM bot answers, including your grill. **Not an escalation:** a bug or want issue on the team's own product repo is internal tracking, public repo or not — the lead files it itself at Step 4.5, the PM bot through `/kru-issue` and `/kru-todo` (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*); a security finding never goes there and stays private.\n\n**Capture, listing,",
-  "t1: the escalation rule (Justin's answers 1-2), one source the other files point at",
+  "You scope, route, delegate, integrate, verify, and report.\n\n**The PM decides; the owner hears only a hard-to-reverse call.** The PM is the bot or person that briefed this session. A PM makes the calls it is handed by default, records why, and keeps going. The PM bot's own operating rules govern escalation and approval. The plugin's generic default applies only when the PM has none: escalate to the owner only a call that is hard to reverse or reaches outside the team — money (billing, pricing, spend), legal or compliance (terms, privacy, licensing), user impact (a change customers, clients or users need a heads-up about), security or data exposure, anything public or live, product direction (a change of direction or strategy), and any new outside account or service, free trials included. The owner decides that last one, and the account setup itself goes through ops. A call that fits none of these but would be costly to guess wrong goes to the owner too. Everything else the PM answers, including your grill. **Not an escalation:** a bug or want issue on the team's own product repo is internal tracking, public repo or not — the lead files it itself at Step 4.5, the PM bot through `/kru-issue` and `/kru-todo` (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*); a security finding never goes there and stays private.\n\n**Capture, listing,",
+  "t1: the escalation default, one source the other files point at",
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
@@ -43,13 +43,13 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "roadmaps, prioritization, and what-to-build-next are the user's.",
-  "roadmaps, prioritization, and what-to-build-next are the PM's, under Justin.",
+  "roadmaps, prioritization, and what-to-build-next are the PM's, under the owner.",
   "t1",
 ))
 EDITS.push(E(
   "TRACKER.md",
   "no priority scores — the **user is the PM** and brings the subject;",
-  "no priority scores — the **PM** (the PM bot that briefs the session, with Justin as owner — `skills/kru-lead/SKILL.md`, first paragraph) brings the subject;",
+  "no priority scores — the **PM** (the PM bot that briefs the session, with the owner approving hard-to-reverse calls — `skills/kru-lead/SKILL.md`, first paragraph) brings the subject;",
   "t1",
 ))
 EDITS.push(E(
@@ -61,8 +61,8 @@ EDITS.push(E(
 EDITS.push(E(
   "TRACKER.md",
   "`pitched` = user, `discovered` = team",
-  "`pitched` = the PM bot or Justin (`skills/kru-lead/SKILL.md`, first paragraph), `discovered` = team",
-  "t1: pitched is a PM bot or Justin",
+  "`pitched` = the PM or the owner (`skills/kru-lead/SKILL.md`, first paragraph), `discovered` = team",
+  "t1: pitched is the PM or the owner",
 ))
 EDITS.push(E(
   "TRACKER.md",
@@ -73,19 +73,19 @@ EDITS.push(E(
 EDITS.push(E(
   "TRACKER.md",
   "governs scoring: the user's own words win and are filed bare;",
-  "governs scoring: the PM's own words win and are filed bare (Justin's over a PM bot's when they differ);",
-  "t1: Justin's words outrank a PM bot's",
+  "governs scoring: the PM's own words win and are filed bare (the owner's over a PM's when they differ);",
+  "t1: the owner's words outrank a PM's",
 ))
 EDITS.push(E(
   "ROSTER.md",
   "**The user is the PM** — there is no product-management function, no roadmap, and no prioritization framework in the team; what-to-build-next is the user's call,",
-  "**The PM is the PM bot that briefs the session, with Justin as owner and approver** (`skills/kru-lead/SKILL.md`, first paragraph) — there is no product-management function, no roadmap, and no prioritization framework in the team; what-to-build-next is the PM's call,",
+  "**The PM is the PM bot that briefs the session, with the owner approving hard-to-reverse calls** (`skills/kru-lead/SKILL.md`, first paragraph) — there is no product-management function, no roadmap, and no prioritization framework in the team; what-to-build-next is the PM's call,",
   "t1",
 ))
 EDITS.push(E(
   "skills/kru-brief/SKILL.md",
   "There is **no roadmap, no prioritization framework, and no PM pass** — the user is the PM and brings\nthe subject.",
-  "There is **no roadmap, no prioritization framework, and no PM pass** — the PM (the PM bot that\nbriefed the session, under Justin: `skills/kru-lead/SKILL.md`, first paragraph) brings the subject.",
+  "There is **no roadmap, no prioritization framework, and no PM pass** — the PM (the PM bot that\nbriefed the session, under the owner: `skills/kru-lead/SKILL.md`, first paragraph) brings the subject.",
   "t1",
 ))
 
@@ -93,7 +93,7 @@ EDITS.push(E(
 EDITS.push(E(
   "SOURCES.md",
   "**The user is the PM**: no roadmap,",
-  "**The PM brings the subject** (the briefing PM bot, under Justin): no roadmap,",
+  "**The PM brings the subject** (the PM that briefed the session, under the owner): no roadmap,",
   "t1",
 ))
 EDITS.push(E(
@@ -125,31 +125,31 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "**Two things reach them.** A **product call** — what the thing does, who it's for, what it says, what\nit costs someone using it — is theirs, because nothing in the codebase implies the answer. A\n**one-way door** — deploying, publishing, a migration, a deletion, anything outward-facing or\nexpensive to undo — is theirs, because a wrong guess can't be walked back.",
-  "**Two things reach the PM.** A **product call** — what the thing does, who it's for, what it says, what\nit costs someone using it — is the PM's, because nothing in the codebase implies the answer. A\n**one-way door** — deploying, publishing, a migration, a deletion, anything outward-facing or\nexpensive to undo — is the PM's too, because a wrong guess can't be walked back; the PM bot takes it\non to Justin when the escalation rule above says so, and a merge, deploy or publish always waits\nfor Justin, or Kai for kru (*Who acts at the door*, below).",
-  "t2: product calls and one-way doors go to the PM bot, which escalates to Justin",
+  "**Two things reach the PM.** A **product call** — what the thing does, who it's for, what it says, what\nit costs someone using it — is the PM's, because nothing in the codebase implies the answer. A\n**one-way door** — deploying, publishing, a migration, a deletion, anything outward-facing or\nexpensive to undo — is the PM's too, because a wrong guess can't be walked back; the PM takes it\non to the owner when the PM's own operating rules say so, or under the plugin's generic default when the PM has none, and a merge, deploy or publish always waits\nfor the owner, or the plugin maintainer for this plugin (*Who acts at the door*, below).",
+  "t2: product calls and one-way doors go to the PM, which escalates to the owner",
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "**A push is a one-way door, and most of the user's repos are public.** Read the repo's visibility\n(`gh repo view --json visibility`) before any push. A security fix stays local\nuntil the user OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` the session starts through the GitHub API, the workflow creating the tag\non its job token — the release is the session's to run end to end.",
-  "**Who acts at the door.** You commit locally and return proof; the push is not yours. The PM bot\nreviews the proof, pushes the branch and opens the pull request. Merging, tagging, releasing,\ndeploying, publishing and any message outside the team wait for Justin — except kru's own releases,\nwhich Kai (kru's PM bot) merges and tags. A bug or want issue on the product repo is internal\ntracking, not a message outside the team (first section). Most product repos are public, so the PM bot reads the\nrepo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local\nuntil Justin OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` started through the GitHub API, the workflow creating the tag on its\njob token — started by whoever owns that release: Justin, or Kai for kru.",
-  "t2: Claude Code commits, the PM bot pushes and opens the PR, Justin merges/tags/deploys (Kai for kru)",
+  "**Who acts at the door.** You commit locally and return proof; the push is not yours. The PM bot\nreviews the proof, pushes the branch and opens the pull request. Merging, tagging, releasing,\ndeploying, publishing and any message outside the team wait for the owner — except this plugin's own releases,\nwhich the plugin maintainer merges and tags. A bug or want issue on the product repo is internal\ntracking, not a message outside the team (first section). Most product repos are public, so the PM bot reads the\nrepo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local\nuntil the owner OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` started through the GitHub API, the workflow creating the tag on its\njob token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.",
+  "t2: the lead commits, the PM pushes and opens the PR, the owner merges (the plugin maintainer for this plugin)",
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "   - *An ask to act* — running a command, logging in, approving a push — only when it can't be yours;\n     the exact thing to type and why, in one clause.",
-  "   - *An ask to act* — running a command, logging in, a push or pull request (the PM bot's) — only when\n     it can't be yours; the exact thing to type and why, in one clause. A merge, deploy or release is\n     Justin's (Kai's for kru), and the PM bot carries it there.",
+  "   - *An ask to act* — running a command, logging in, a push or pull request (the PM bot's) — only when\n     it can't be yours; the exact thing to type and why, in one clause. A merge, deploy or release is\n     the owner's (the plugin maintainer's for this plugin), and the PM carries it there.",
   "t2: no line asks a human to approve a push",
 ))
 EDITS.push(E(
   "skills/kru-roster/SKILL.md",
   "| 9 | git | `commit` + `tag vX.Y.Z` — **only when the user asks** (team git rule) |",
-  "| 9 | git | `commit` locally when the PM asks; the PM bot pushes and opens the pull request; merging and `tag vX.Y.Z` are Kai's — kru's PM bot owns kru releases (`skills/kru-lead/SKILL.md` → *Who acts at the door*) |",
-  "t2: kru releases are Kai's",
+  "| 9 | git | `commit` locally when the PM asks; the PM bot pushes and opens the pull request; merging and `tag vX.Y.Z` are the plugin maintainer's — the plugin maintainer owns this plugin's releases (`skills/kru-lead/SKILL.md` → *Who acts at the door*) |",
+  "t2: this plugin's releases are the plugin maintainer's",
 ))
 EDITS.push(E(
   "skills/kru-setup/SKILL.md",
   "clause (\"plus 6 cleanups to the project notes\"); the diff is there if asked.",
-  "clause (\"plus 6 cleanups to the project notes\"); the diff is there if asked. Setup commits at most\nlocally: the PM bot reviews the diff, pushes it and opens the pull request, and Justin merges it\n(`skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "clause (\"plus 6 cleanups to the project notes\"); the diff is there if asked. Setup commits at most\nlocally: the PM bot reviews the diff, pushes it and opens the pull request, and the owner merges it\n(`skills/kru-lead/SKILL.md` → *Who acts at the door*).",
   "t2: setup's report names who pushes and merges",
 ))
 
@@ -257,8 +257,8 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
   "- Design work: **the gate is the user's eye, and there is no substitute for it**",
-  "- Design work: **the gate is the PM bot's eye, and there is no substitute for it** — it judges the screenshots and paths in your Proof block, and takes the call to Justin only when it can't judge it",
-  "t4: design conformance goes to the PM bot, Justin only if it can't judge",
+  "- Design work: **the gate is the PM bot's eye, and there is no substitute for it** — it judges the screenshots and paths in your Proof block, and takes the call to the owner only when it can't judge it",
+  "t4: design conformance goes to the PM, the owner only if the PM can't judge",
 ))
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
@@ -293,8 +293,8 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-landed/SKILL.md",
   "The user just watched their PR merge.",
-  "Justin (Kai for kru) just merged the PR, and the PM bot runs this.",
-  "t4: the PM bot runs /kru-landed after Justin merges",
+  "The owner (the plugin maintainer, for this plugin) just merged the PR, and the PM runs this.",
+  "t4: the PM runs /kru-landed after the owner merges",
 ))
 EDITS.push(E(
   "skills/kru-landed/SKILL.md",
@@ -321,7 +321,7 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "## Talk to a PM, not to an engineer\nThe user owns the product, not the implementation.",
-  "## Talk to a PM, not to an engineer\nYour reader is the PM bot. You report to it, never to Justin directly, and it forwards to Justin only\nwhat is blocked, ready for his approval, or done with proof — the escalation list in this skill's\nfirst section is the one source, and the PM bots' `policies.md` points at it. So every message is written to be\nforwarded as is: outcome first, plain words. The PM and Justin own the product, not the implementation.",
+  "## Talk to a PM, not to an engineer\nYour reader is the PM. You report to the PM, never to the owner directly, and the PM forwards to the owner only\nwhat that PM's own operating rules say to escalate. The plugin's generic default applies only when the PM has none —\nthe escalation list in this skill's first section. So every message is written to be\nforwarded as is: outcome first, plain words. The PM and the owner own the product, not the implementation.",
   "t5: the PM bot is the reader; the escalation list in the first section is the one source",
 ))
 EDITS.push(E(
@@ -341,31 +341,31 @@ EDITS.push(E(
 EDITS.push(E(
   "PREFERENCES.md",
   "1. **The user, explicitly** — `/kru-remember <what they liked>`. Never inferred from approval; the team does not guess.",
-  "1. **Justin or the PM bot, explicitly** — `/kru-remember <what they liked>`, sourced `user:justin` or `pm:<bot>` (`pm:kai`). **Two channels, one each:** how the PM bots themselves operate goes to the PM bots' own `remember` skill, which Vera files into their policies, never here; the engineering practice the seats should carry comes here. Only the PM-to-lead loop counts as input, kept within the escalation rule (`skills/kru-lead/SKILL.md`, first section): a `pm:<bot>` line is a proposal, and Justin's words outrank it. Never inferred from approval; the team does not guess.",
+  "1. **The owner or the PM, explicitly** — `/kru-remember <what they liked>`, sourced `owner` or `pm`. **Two channels, one each:** how a PM bot itself operates stays in that PM bot's own operating rules, never here; the engineering practice the seats should carry comes here. Only the PM-to-lead loop counts as input. The PM bot's own operating rules govern escalation and approval; the plugin's generic default applies only when the PM has none (`skills/kru-lead/SKILL.md`, first section): a `pm` line is a proposal, and the owner's words outrank it. Never inferred from approval; the team does not guess.",
   "t6: two preference channels, one each; PM-bot lines are proposals",
 ))
 EDITS.push(E(
   "PREFERENCES.md",
   "- [design] prefers bento-grid hero over centered-stack — _user · acme-site · 2026-07-21_\n- [code] approved Result<T,E> returns over throwing at call boundaries — _agent:sveltekit-builder · acme-site · 2026-07-21_\n- [workflow] wants the plan grilled before any build, always — _user · acme-site · 2026-07-21_\n- [design] liked this pricing table → patterns/pricing-3col.md — _user · acme-site · 2026-07-21_",
-  "- [design] prefers bento-grid hero over centered-stack — _user:justin · acme-site · 2026-07-21_\n- [code] approved Result<T,E> returns over throwing at call boundaries — _agent:sveltekit-builder · acme-site · 2026-07-21_\n- [workflow] wants the plan grilled before any build, always — _pm:kai · acme-site · 2026-07-21_\n- [design] liked this pricing table → patterns/pricing-3col.md — _user:justin · acme-site · 2026-07-21_",
+  "- [design] prefers bento-grid hero over centered-stack — _owner · acme-site · 2026-07-21_\n- [code] approved Result<T,E> returns over throwing at call boundaries — _agent:sveltekit-builder · acme-site · 2026-07-21_\n- [workflow] wants the plan grilled before any build, always — _pm · acme-site · 2026-07-21_\n- [design] liked this pricing table → patterns/pricing-3col.md — _owner · acme-site · 2026-07-21_",
   "t6: the source tags",
 ))
 EDITS.push(E(
   "PREFERENCES.md",
   "- **source** `user`, `agent:<seat-slug>`, or `setup` — who captured it",
-  "- **source** `user:justin`, `pm:<bot>`, `agent:<seat-slug>`, or `setup` — who captured it (a bare `user` from before the split reads as `user:justin`)",
+  "- **source** `owner`, `pm`, `agent:<seat-slug>`, or `setup` — who captured it (a bare `user` from before the split reads as `owner`)",
   "t6",
 ))
 EDITS.push(E(
   "PREFERENCES.md",
   "Nothing is committed, so the uncommitted diff is the user's review.",
-  "Nothing is committed: Kai reviews the uncommitted diff from its kru checkout, then commits, pushes, opens the pull request, merges and tags (Kai owns kru releases).",
-  "t6: learn's review and release are Kai's",
+  "Nothing is committed: the plugin maintainer reviews the uncommitted diff from a checkout of this plugin, then commits, pushes, opens the pull request, merges and tags (the plugin maintainer owns this plugin's releases).",
+  "t6: learn's review and release are the plugin maintainer's",
 ))
 EDITS.push(E(
   "PREFERENCES.md",
   "(run from the plugin source repo; decides, user reviews the diff)",
-  "(run from Kai's kru checkout; decides, Kai reviews the diff)",
+  "(run from the plugin maintainer's checkout of this plugin; the plugin maintainer decides and reviews the diff)",
   "t6",
 ))
 EDITS.push(E(
@@ -377,43 +377,43 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-remember/SKILL.md",
   "Source is always `user` for this command (agents append their own lines directly, per the lead's handoff).",
-  "Source is `user:justin` for Justin's words and `pm:<bot>` (`pm:kai`) for a PM bot's — a PM bot's line is a proposal, and Justin's words outrank it at the sweep. Agents append their own lines directly, per the lead's handoff.",
+  "Source is `owner` for the owner's words and `pm` for a PM's — a PM's line is a proposal, and the owner's words outrank it at the sweep. Agents append their own lines directly, per the lead's handoff.",
   "t6: the source tag accepts pm:<bot>",
 ))
 EDITS.push(E(
   "skills/kru-remember/SKILL.md",
   "- Don't promote it now — capture is lossless and untriaged; the sweep is the gated step that edits the team.",
-  "- Don't promote it now — capture is lossless and untriaged; the sweep is the gated step that edits the team.\n- How the PM bots themselves operate is not a team preference: it goes to the PM bots' own `remember` skill (`${CURSOR_PLUGIN_ROOT}/PREFERENCES.md` → Tier 1, writer 1). This inbox takes what the seats should carry.",
+  "- Don't promote it now — capture is lossless and untriaged; the sweep is the gated step that edits the team.\n- How a PM bot itself operates is not a team preference: it stays in that PM bot's own operating rules, never here. This inbox takes what the seats should carry.",
   "t6: two channels",
 ))
 EDITS.push(E(
   "skills/kru-roster/learn.md",
   "The review is the uncommitted diff — commit stays the user's, so an edit they disagree with is reverted before it ships.\n\nRun this **from the plugin source repo** (it commits the plugin), not a product repo.",
-  "The review is the uncommitted diff — Kai's, so an edit it disagrees with is reverted before it ships.\n\nRun this **from Kai's kru checkout** (it changes the plugin), not a product repo. Kai reviews the diff, commits, pushes, opens the pull request, merges and tags — Kai owns kru releases. Justin's words (`user:justin`) outrank a PM bot's (`pm:<bot>`) in every verdict below.",
-  "t6: learn runs from Kai's checkout; Kai reviews and releases; Justin outranks",
+  "The review is the uncommitted diff — the plugin maintainer's, so an edit they disagree with is reverted before it ships.\n\nRun this **from the plugin maintainer's checkout of this plugin** (it changes the plugin), not a product repo. The plugin maintainer reviews the diff, commits, pushes, opens the pull request, merges and tags — the plugin maintainer owns this plugin's releases. The owner's words (`owner`) outrank a PM's (`pm`) in every verdict below.",
+  "t6: learn runs from the plugin maintainer's checkout; the owner outranks",
 ))
 EDITS.push(E(
   "skills/kru-roster/learn.md",
   "- **Put it to the user** when a `user`-sourced line contradicts a rule the plugin states — the conflict is resolved at its source, not won by the standing text. It becomes a numbered question in the report (keep the rule, or change it to the line) and stays in the inbox, deferred, until the user answers.",
-  "- **Put it to the source** when a `user:justin`-sourced line contradicts a rule the plugin states — the conflict is resolved at its source, not won by the standing text. It becomes a numbered question in the report for Kai to carry to Justin (keep the rule, or change it to the line) and stays in the inbox, deferred, until Justin answers. A `pm:<bot>` line contradicting a stated rule or a `user:justin` line is a proposal that lost: drop it with the reason.",
-  "t6: Justin's lines outrank PM-bot lines",
+  "- **Put it to the source** when an `owner`-sourced line contradicts a rule the plugin states — the conflict is resolved at its source, not won by the standing text. It becomes a numbered question in the report for the plugin maintainer to carry to the owner (keep the rule, or change it to the line) and stays in the inbox, deferred, until the owner answers. A `pm` line contradicting a stated rule or an `owner` line is a proposal that lost: drop it with the reason.",
+  "t6: the owner's lines outrank a PM's",
 ))
 EDITS.push(E(
   "skills/kru-roster/learn.md",
   "Leave `commit`+`tag` to the user (git rule).",
-  "`commit`, push, pull request, merge and `tag` are Kai's (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "`commit`, push, pull request, merge and `tag` are the plugin maintainer's (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*).",
   "t6",
 ))
 EDITS.push(E(
   "hooks/check-handoff.sh",
   "(the user rejected X twice and chose Y)",
-  "(the PM or Justin rejected X twice and chose Y)",
+  "(the PM or the owner rejected X twice and chose Y)",
   "t6",
 ))
 EDITS.push(E(
   "references/store.md",
   "the half that is supposed to follow the user rather",
-  "the half that is supposed to follow Justin and the PM bots rather",
+  "the half that is supposed to follow the owner and the PM rather",
   "t6",
 ))
 
@@ -421,7 +421,7 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-roster/learn.md",
   "questions (each user line against the rule it contradicts), deferred — as a list numbered 1, 2, 3 the user can answer by item.",
-  "questions (each `user:justin` line against the rule it contradicts), deferred — as a list numbered 1, 2, 3 Kai can answer, or carry to Justin, by item.",
+  "questions (each `owner` line against the rule it contradicts), deferred — as a list numbered 1, 2, 3 the plugin maintainer can answer, or carry to the owner, by item.",
   "t6",
 ))
 
@@ -435,7 +435,7 @@ EDITS.push(E(
 EDITS.push(E(
   "TRACKER.md",
   "Why user-level files, not in-repo and not Issues: the working repo stays clean — **no management files in it, ever**: no `management/` dir, no `issues/`, no plan docs, briefs, or todo lists, and **no pointer in its `AGENTS.md`**.",
-  "## Where each thing is tracked\n\n| what | where it goes | how |\n|---|---|---|\n| a **security or vulnerability** finding — anything an attacker could use: an auth bypass, data exposure, an injection, a leaked secret | the store's `issues/` (one file per finding), or a GitHub **private security advisory** on the product repo — **never a public issue** | `/kru-issue`, the lead's defect capture (Step 4.5) |\n| a **normal bug** or a **product want** | a **GitHub issue on the product repo** (`gh issue create`, labelled `bug` or `enhancement`), on the Agent Board (salasjustin's GitHub project #1), and closed by the pull request that fixes it (`Fixes #n`) | `/kru-issue`, `/kru-todo`, the lead's captures (Step 4.5) |\n| the team's **scratch todo** — a want the team turned up mid-task that nobody has asked for yet | the store's `TODOS.md` | the lead's todo capture (Step 4.5), `/kru-setup` |\n\nA repo with no GitHub remote, issues turned off, or no `gh` sign-in sends a bug to `issues/` and a want to `TODOS.md`, and the capture says so. Unsure whether a bug is security-shaped → treat it as one: a private file can be published later, a public issue can't be taken back.\n\n**Filing a bug or want issue is internal tracking, not an escalation.** It goes up on the team's own product repo without Justin's go-ahead, public repo or not: the lead files it at Step 4.5, the PM bot through `/kru-issue` and `/kru-todo` (`skills/kru-lead/SKILL.md`, first section). Only the security row stays private.\n\nWhy user-level files for the rest, not in-repo: the working repo stays clean — **no management files in it, ever**: no `management/` dir, no `issues/`, no plan docs, briefs, or todo lists, and **no pointer in its `AGENTS.md`**.",
+  "## Where each thing is tracked\n\n| what | where it goes | how |\n|---|---|---|\n| a **security or vulnerability** finding — anything an attacker could use: an auth bypass, data exposure, an injection, a leaked secret | the store's `issues/` (one file per finding), or a GitHub **private security advisory** on the product repo — **never a public issue** | `/kru-issue`, the lead's defect capture (Step 4.5) |\n| a **normal bug** or a **product want** | a **GitHub issue on the product repo** (`gh issue create`, labelled `bug` or `enhancement`), and closed by the pull request that fixes it (`Fixes #n`) | `/kru-issue`, `/kru-todo`, the lead's captures (Step 4.5) |\n| the team's **scratch todo** — a want the team turned up mid-task that nobody has asked for yet | the store's `TODOS.md` | the lead's todo capture (Step 4.5), `/kru-setup` |\n\nA repo with no GitHub remote, issues turned off, or no `gh` sign-in sends a bug to `issues/` and a want to `TODOS.md`, and the capture says so. Unsure whether a bug is security-shaped → treat it as one: a private file can be published later, a public issue can't be taken back.\n\n**Filing a bug or want issue is internal tracking, not an escalation.** It goes up on the team's own product repo without the owner's go-ahead, public repo or not: the lead files it at Step 4.5, the PM bot through `/kru-issue` and `/kru-todo` (`skills/kru-lead/SKILL.md`, first section). Only the security row stays private.\n\nWhy user-level files for the rest, not in-repo: the working repo stays clean — **no management files in it, ever**: no `management/` dir, no `issues/`, no plan docs, briefs, or todo lists, and **no pointer in its `AGENTS.md`**.",
   "t7: the three destinations in one table; the old not-Issues rationale goes",
 ))
 EDITS.push(E(
@@ -495,8 +495,8 @@ EDITS.push(E(
 EDITS.push(E(
   "references/store.md",
   "session bookkeeping (`audit/`, `lead-gate/`). It follows the **user**, across every engagement.",
-  "session bookkeeping (`audit/`, `lead-gate/`). It follows **Justin and the PM bots**, across every engagement.",
-  "t6 (the line the ticket named): the store follows Justin and the PM bots",
+  "session bookkeeping (`audit/`, `lead-gate/`). It follows **the owner and the PM**, across every engagement.",
+  "t6 (the line the ticket named): the store follows the owner and the PM",
 ))
 EDITS.push(E(
   "skills/kru-issue/SKILL.md",
@@ -507,7 +507,7 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-issue/SKILL.md",
   "2. **Glance at `issues/`** (`ls`, nothing more). Same defect already has a file → append the user's new detail to it and stop. One directory listing isn't investigation; two files for one bug is drift.\n3. **Write the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path issues/<kebab-slug>` names.** **No precondition**: create the dir if it isn't there.",
-  "2. **Pick the destination from what you were told.** Security-shaped — anything an attacker could use: an auth bypass, data exposure, an injection, a leaked secret — or unsure → the store file (step 3 on). Otherwise a normal bug → a GitHub issue, when the product repo has one to file in (`gh repo view --json hasIssuesEnabled` answers true); else the store file, and the confirm line says why.\n   - **GitHub:** glance for the same bug (`gh issue list --state open --search \"<two words from the symptom>\"`, nothing more) — found → add the new detail as a comment (`gh issue comment <n>`) and stop. Else `gh issue create --label bug --title \"<the symptom, one line>\" --body \"<the template below, minus the frontmatter, with severity and urgency as its first line>\"`, adding `--project \"Agent Board\"` when the repo is on salasjustin's board (drop either flag if `gh` refuses it, and say so). Then step 5.\n3. **Glance at `issues/`** (`ls`, nothing more). Same defect already has a file → append the new detail to it and stop. One directory listing isn't investigation; two files for one bug is drift. Else **write the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path issues/<kebab-slug>` names.** **No precondition**: create the dir if it isn't there.",
+  "2. **Pick the destination from what you were told.** Security-shaped — anything an attacker could use: an auth bypass, data exposure, an injection, a leaked secret — or unsure → the store file (step 3 on). Otherwise a normal bug → a GitHub issue, when the product repo has one to file in (`gh repo view --json hasIssuesEnabled` answers true); else the store file, and the confirm line says why.\n   - **GitHub:** glance for the same bug (`gh issue list --state open --search \"<two words from the symptom>\"`, nothing more) — found → add the new detail as a comment (`gh issue comment <n>`) and stop. Else `gh issue create --label bug --title \"<the symptom, one line>\" --body \"<the template below, minus the frontmatter, with severity and urgency as its first line>\"` (drop `--label` if `gh` refuses it, and say so). Then step 5.\n3. **Glance at `issues/`** (`ls`, nothing more). Same defect already has a file → append the new detail to it and stop. One directory listing isn't investigation; two files for one bug is drift. Else **write the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path issues/<kebab-slug>` names.** **No precondition**: create the dir if it isn't there.",
   "t7: normal bug -> gh issue create; security -> the store",
 ))
 EDITS.push(E(
@@ -537,7 +537,7 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-todo/SKILL.md",
   "2. **Append** to the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path todos` names. **No precondition**: create the dir and the file if they don't exist.",
-  "2. **File it.** The product repo has GitHub issues (`gh repo view --json hasIssuesEnabled` answers true) → `gh issue create --label enhancement --title \"<the thing, one line>\" --body \"<the line's three scores and any sub-bullets, as written below>\"`, adding `--project \"Agent Board\"` when the repo is on salasjustin's board (drop either flag if `gh` refuses it, and say so). Otherwise **append** to the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path todos` names. **No precondition**: create the dir and the file if they don't exist.",
+  "2. **File it.** The product repo has GitHub issues (`gh repo view --json hasIssuesEnabled` answers true) → `gh issue create --label enhancement --title \"<the thing, one line>\" --body \"<the line's three scores and any sub-bullets, as written below>\"` (drop `--label` if `gh` refuses it, and say so). Otherwise **append** to the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path todos` names. **No precondition**: create the dir and the file if they don't exist.",
   "t7",
 ))
 EDITS.push(E(
@@ -711,20 +711,20 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-update/SKILL.md",
   "- **Consider** — the only verdict the user is asked about; the action verdicts run through `/kru-roster` without a question. Real value at a cost the user decides:",
-  "- **Consider** — the only verdict that goes to Kai (kru's PM bot) first; the action verdicts run through `/kru-roster` without a question. Real value at a cost someone has to decide — Kai does, and takes it on to Justin when it is on the escalation list (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md`, first section):",
-  "t11: Consider goes to Kai first",
+  "- **Consider** — the only verdict that goes to the plugin maintainer first; the action verdicts run through `/kru-roster` without a question. Real value at a cost someone has to decide — the plugin maintainer does, and takes it on to the owner when the PM's own operating rules say so, or under the plugin's generic default when the PM has none (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md`, first section):",
+  "t11: Consider goes to the plugin maintainer first",
 ))
 EDITS.push(E(
   "TRACKER.md",
   "It's the one artifact with no capture rule: the user writes it, and the lead only when asked to keep something they thought out loud.",
-  "It's the one artifact with no capture rule: the PM bot and Justin write it, and the lead only when asked to keep something one of them thought out loud.",
-  "t11: notes/ writers are the PM bot and Justin",
+  "It's the one artifact with no capture rule: the PM and the owner write it, and the lead only when asked to keep something one of them thought out loud.",
+  "t11: notes/ writers are the PM and the owner",
 ))
 EDITS.push(E(
   "TRACKER.md",
   "Who writes it: the **user**, mostly, and the lead when the user thinks out loud and asks for it to be kept.",
-  "Who writes it: the **PM bot and Justin**, mostly, and the lead when either thinks out loud and asks for it to be kept.",
-  "t11: notes/ writers are the PM bot and Justin",
+  "Who writes it: the **PM and the owner**, mostly, and the lead when either thinks out loud and asks for it to be kept.",
+  "t11: notes/ writers are the PM and the owner",
 ))
 
 // --- review fixes (PR 4) ------------------------------------------------------

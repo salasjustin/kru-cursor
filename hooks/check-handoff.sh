@@ -354,7 +354,7 @@ fi
 # text names itself so the auditor reading the stored prompt can tell the hook's
 # paragraph from the lead's own.
 add=""
-[ "$inject_channel" = true ] && add="\n\nkru hook — learnings channel: a durable, cross-project preference you hit mid-task (the PM or Justin rejected X twice and chose Y), or what moving a library to a new major broke or needed (naming its kru skill), goes as one line to $(kru_path inbox), format at ${plugin_root}/PREFERENCES.md. Journaling, not derailing."
+[ "$inject_channel" = true ] && add="\n\nkru hook — learnings channel: a durable, cross-project preference you hit mid-task (the PM or the owner rejected X twice and chose Y), or what moving a library to a new major broke or needed (naming its kru skill), goes as one line to $(kru_path inbox), format at ${plugin_root}/PREFERENCES.md. Journaling, not derailing."
 add="${add}${inject_report}"
 [ -z "$add" ] && exit 0
 printf '%s' "$input" | jq -c --arg add "$add" '{

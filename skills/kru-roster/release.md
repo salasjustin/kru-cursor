@@ -5,14 +5,14 @@ here. Bringing upstream in is `fork-sync.md`; this file starts once `main` holds
 
 ## Who acts
 
-The names below are the ones defined in `skills/kru-lead/SKILL.md` (first paragraph and *Who acts at the door*). Kai is kru's PM bot. Justin owns the product and approves. Otto (Ops) sets up an account once Justin has approved it.
+The roles below are the ones defined in `skills/kru-lead/SKILL.md` (first paragraph and *Who acts at the door*). The PM is the bot or person that briefs a session. The owner approves hard-to-reverse calls. The plugin maintainer merges and tags this plugin's releases. Ops sets up an account once the owner has approved it. The PM bot's own operating rules govern escalation and approval; the plugin's generic default applies only when the PM has none.
 
 | step | who |
 |---|---|
 | the version bump commit, local, with `bash scripts/verify.sh` green | Claude Code (the lead), on the PM's ask |
-| push, pull request, merge, tag | Kai, kru's PM bot — he pushes and opens the pull request, and he merges and tags kru's releases |
-| resubmitting to Cursor's marketplace, or making the repo public for it | Justin: anything public or live goes to him. The lead reports to the PM bot, which carries this to Justin |
-| a Teams marketplace, the Cursor GitHub App, any new outside account | Justin decides (money, outside services); Otto sets the account up |
+| push, pull request, merge, tag | the plugin maintainer — pushes and opens the pull request, and merges and tags this plugin's releases |
+| resubmitting to Cursor's marketplace, or making the repo public for it | the owner: anything public or live goes to the owner. The lead reports to the PM, which carries this to the owner |
+| a Teams marketplace, the Cursor GitHub App, any new outside account | the owner decides (money, outside services); ops sets the account up |
 
 ## The version
 
@@ -34,7 +34,7 @@ disagree.
    manifests from `VERSION`, and the fresh-port check reads the fork half back from
    `.cursor-plugin/plugin.json`. Commit `release: v<VERSION>` with a short list of what changed
    for someone using the plugin since the last tag (`git log v<last>..HEAD --oneline`).
-2. **Merge.** Kai pushes, opens the pull request, checks CI (`verify`), and merges.
+2. **Merge.** The plugin maintainer pushes, opens the pull request, checks CI (`verify`), and merges.
 3. **Tag** the merge commit on `main` with `v` + `VERSION`
    (`git tag -a "v$(cat VERSION)" -m "kru-cursor $(cat VERSION)"`) and push the tag. Upstream's own tags (`v0.150.0`) live in the same repo; the `+kru` suffix keeps
    the fork's apart.
@@ -63,7 +63,7 @@ reads that file from `~/.cursor/plugins/cache/`; the source resolver returns the
   Cursor marketplace contact naming the tag and its commit SHA), and the release is live only
   once Cursor approves it.
 - `salasjustin/kru-cursor` is private today, so this channel needs the repo made public first:
-  Justin's call.
+  the owner's call.
 
 ### Channel 2: a Teams team marketplace
 
@@ -77,5 +77,5 @@ reads that file from `~/.cursor/plugins/cache/`; the source resolver returns the
   commit or keeps the SHA it pinned. Check with step 5 after the first refresh before relying on it.
 - Tracking `main` makes every merge a release. To keep tags meaningful, point the marketplace at a
   `release` branch and fast-forward it to each tag.
-- A Teams plan and the GitHub App are a paid plan and an outside service: Justin decides, Otto sets
+- A Teams plan and the GitHub App are a paid plan and an outside service: the owner decides, ops sets
   them up.

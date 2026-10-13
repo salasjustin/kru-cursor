@@ -18,7 +18,7 @@ any project (cwd = someone's repo)         the cross-project root
                                               │        ◀─── /kru-setup files what a repo knows
                                               │            that a plugin skill lacks
                                      /kru-roster learn
-                                              │  (run from Kai's kru checkout; decides, Kai reviews the diff)
+                                              │  (run from the plugin maintainer's checkout of this plugin; the plugin maintainer decides and reviews the diff)
                                               ▼
                               the plugin, versioned + shared
                                 agents/<seat>.md              (targeted prompt edits)
@@ -42,21 +42,21 @@ Three arrows, one circuit. **Cheap lossless capture**, then a **curated sweep** 
 
 It has **three writers**:
 
-1. **Justin or the PM bot, explicitly** — `/kru-remember <what they liked>`, sourced `user:justin` or `pm:<bot>` (`pm:kai`). **Two channels, one each:** how the PM bots themselves operate goes to the PM bots' own `remember` skill, which Vera files into their policies, never here; the engineering practice the seats should carry comes here. Only the PM-to-lead loop counts as input, kept within the escalation rule (`skills/kru-lead/SKILL.md`, first section): a `pm:<bot>` line is a proposal, and Justin's words outrank it. Never inferred from approval; the team does not guess. A liked *pattern* with concrete code is saved as an artifact under `~/.kru/patterns/<slug>.md` and indexed by an inbox line.
+1. **The owner or the PM, explicitly** — `/kru-remember <what they liked>`, sourced `owner` or `pm`. **Two channels, one each:** how a PM bot itself operates stays in that PM bot's own operating rules, never here; the engineering practice the seats should carry comes here. Only the PM-to-lead loop counts as input. The PM bot's own operating rules govern escalation and approval; the plugin's generic default applies only when the PM has none (`skills/kru-lead/SKILL.md`, first section): a `pm` line is a proposal, and the owner's words outrank it. Never inferred from approval; the team does not guess. A liked *pattern* with concrete code is saved as an artifact under `~/.kru/patterns/<slug>.md` and indexed by an inbox line.
 2. **Agents, as they work** — a builder/reviewer that discovers a durable preference (the user rejected X twice and chose Y; this repo's approved convention is Z) appends one line at end-of-run. This is journaling a *learning*, not reading approval — the same instinct as `test-writer` capturing a repo's testing conventions. The **lead** hands each dispatched seat the inbox path + this format so the learning lands (Step 3).
 3. **`dispatch-auditor`, on the team's own process** — the plugin's hooks log every team-seat dispatch to a session ledger (`audit/<session>`), and a Stop-hook nudge fires the seat to audit it against the `lead` Step 3 contract, filing `[workflow]` lines for durable deviations (routing misses, incomplete handoffs, restated ambient blocks). This is the loop's autonomous half — the team observes how it was run and proposes its own corrections — and it is autonomy at the **capture** tier only: still never inferred from approval (the ledger holds the lead's dispatch text, not the user's reactions), and still gated at the sweep like every other line. The handoff gate's refusals land in that ledger too, and in `~/.kru/refusals.jsonl` across sessions, which the sweep reads beside the inbox for gate misfires (`skills/kru-roster/learn.md`).
 
 Entry format — one line, untriaged, lossless (mirrors the `TODOS.md` line):
 
 ```markdown
-- [design] prefers bento-grid hero over centered-stack — _user:justin · acme-site · 2026-07-21_
+- [design] prefers bento-grid hero over centered-stack — _owner · acme-site · 2026-07-21_
 - [code] approved Result<T,E> returns over throwing at call boundaries — _agent:sveltekit-builder · acme-site · 2026-07-21_
-- [workflow] wants the plan grilled before any build, always — _pm:kai · acme-site · 2026-07-21_
-- [design] liked this pricing table → patterns/pricing-3col.md — _user:justin · acme-site · 2026-07-21_
+- [workflow] wants the plan grilled before any build, always — _pm · acme-site · 2026-07-21_
+- [design] liked this pricing table → patterns/pricing-3col.md — _owner · acme-site · 2026-07-21_
 ```
 
 - **lane tag** `[design|code|workflow]` — routes the sweep to the right destination.
-- **source** `user:justin`, `pm:<bot>`, `agent:<seat-slug>`, or `setup` — who captured it (a bare `user` from before the split reads as `user:justin`) (`setup` files a recipe a repo holds that a plugin skill lacks, found while deriving its sheet).
+- **source** `owner`, `pm`, `agent:<seat-slug>`, or `setup` — who captured it (a bare `user` from before the split reads as `owner`) (`setup` files a recipe a repo holds that a plugin skill lacks, found while deriving its sheet).
 - **project** the repo slug it surfaced in, then the date captured. The slug is the **promotion bar**, not just context: the sweep collapses a group to its distinct slugs, and one slug reads as that client where two or more read as the team (`skills/kru-roster/learn.md` → step 1).
 - Optional `→ patterns/<slug>.md` when a concrete artifact backs it.
 
@@ -71,7 +71,7 @@ The **curated** half — it edits the team, so it lives under roster-ops (`/kru-
    - **seat-specific** (a default only `graphic-designer`, or only the Svelte builder, should carry) → a **targeted prompt edit** to that `agents/<seat>.md`.
    - **cross-seat** (several seats should carry it) → the same targeted edit in each affected seat, or the owning skill (`lead` SKILL.md for orchestration-wide rules).
    - **reusable concrete pattern** → keep the `patterns/<slug>.md` artifact, reference it from the seat/skill that uses it.
-3. **Decides each line** — land, route to a repo's sheet, or drop with a reason — by the bars in `skills/kru-roster/learn.md` → step 3, and writes the landed edits. Nothing is committed: Kai reviews the uncommitted diff from its kru checkout, then commits, pushes, opens the pull request, merges and tags (Kai owns kru releases).
+3. **Decides each line** — land, route to a repo's sheet, or drop with a reason — by the bars in `skills/kru-roster/learn.md` → step 3, and writes the landed edits. Nothing is committed: the plugin maintainer reviews the uncommitted diff from a checkout of this plugin, then commits, pushes, opens the pull request, merges and tags (the plugin maintainer owns this plugin's releases).
 4. **Drains** every line it gave a verdict (leaves deferred lines for next time), archiving artifacts it kept.
 5. Version-bumps (minor for new prefs/capability, patch for a tiny tweak), runs `audit`, hands off. Commit/tag left to the user (git rule).
 

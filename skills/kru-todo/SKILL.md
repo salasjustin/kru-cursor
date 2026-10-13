@@ -40,7 +40,7 @@ Same cost rule as expansion — score from what you already hold, never from a f
 ## Do
 
 1. **Read `$ARGUMENTS`** — the thing to log. If empty, ask one line ("What do you want logged?") and stop.
-2. **File it.** The product repo has GitHub issues (`gh repo view --json hasIssuesEnabled` answers true) → `gh issue create --label enhancement --title "<the thing, one line>" --body "<the line's three scores and any sub-bullets, as written below>"`, adding `--project "Agent Board"` when the repo is on salasjustin's board (drop either flag if `gh` refuses it, and say so). Otherwise **append** to the file `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" path todos` names. **No precondition**: create the dir and the file if they don't exist.
+2. **File it.** The product repo has GitHub issues (`gh repo view --json hasIssuesEnabled` answers true) → `gh issue create --label enhancement --title "<the thing, one line>" --body "<the line's three scores and any sub-bullets, as written below>"` (drop `--label` if `gh` refuses it, and say so). Otherwise **append** to the file `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" path todos` names. **No precondition**: create the dir and the file if they don't exist.
 
    Cold — one line, the standing format:
 

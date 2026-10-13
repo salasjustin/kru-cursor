@@ -3,7 +3,7 @@
 The team writes two kinds of durable state, and they have different lifetimes:
 
 - **Cross-project** — the preference loop (`inbox`, `patterns/`, `refusals`) and the hooks' own
-  session bookkeeping (`audit/`, `lead-gate/`). It follows **Justin and the PM bots**, across every engagement.
+  session bookkeeping (`audit/`, `lead-gate/`). It follows **the owner and the PM**, across every engagement.
 - **Project** — one project's plan of record: `TODOS.md`, `issues/`, `notes/`, `plan/`
   (`TRACKER.md` owns its layout).
 
@@ -82,7 +82,7 @@ The **project** root is always files. The **cross-project** root has two backend
 | `fs` | default | files under the cross-project root |
 | `artifact` | `KRU_STORE_URL` is set | the `ArtifactData` store on that artifact |
 
-`artifact` exists because the preference loop is the half that is supposed to follow Justin and the PM bots rather
+`artifact` exists because the preference loop is the half that is supposed to follow the owner and the PM rather
 than a machine — and today a laptop's `inbox.md` reaches neither the user's other machine nor a cloud
 session. An artifact's database is account-scoped, so both read the same store.
 
