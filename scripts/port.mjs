@@ -127,7 +127,12 @@ const FORK_OWNED = new Set([
   "scripts/privacy-scan.mjs",
   "scripts/cursor-hooks.test.sh",
   "scripts/cursor-smoke.sh",
+  "scripts/sync-upstream.sh",
+  "scripts/sync-upstream.test.sh",
+  "scripts/workflows.test.sh",
   "scripts/port-edits.test.sh",
+  "skills/kru-roster/release.md",
+  "skills/kru-roster/fork-sync.md",
   "hooks/cursor-hook.sh",
   "hooks/require-lead.sh",
   "hooks/require-lead.test.sh",
@@ -352,6 +357,8 @@ const RULES = [
   R(/Generation needs `GOOGLE_API_KEY` \(Google AI Studio\) in the environment\./g, "Generation needs `GOOGLE_API_KEY` (Google AI Studio) or `XAI_API_KEY` (xAI) in the environment: with `XAI_API_KEY` set, stills and edits go through xAI's Grok Imagine (`grok-imagine-image-2.0`, falling back to `grok-imagine-image`) unless you pass a Google `--model` or `--backend google`; video and cutouts stay on the Google path.", { md: true, files: /^agents\/graphic-designer\.md$/, required: /or `XAI_API_KEY` \(xAI\) in the environment/ }),
   R(/generation needs `GOOGLE_API_KEY` and Node\.js on PATH/g, "generation needs `GOOGLE_API_KEY` (or `XAI_API_KEY` for stills and edits) and Node.js on PATH", { md: true, files: /^references\/routing\.md$/, required: /\(or `XAI_API_KEY` for stills and edits\)/ }),
   R(/needs `GOOGLE_API_KEY`\. Verify model ids\/params via Context7, never memory\. \|/g, "needs `GOOGLE_API_KEY`, or `XAI_API_KEY` for the xAI backend (`scripts/asset/xai.mjs`, Grok Imagine stills and edits; source: docs.x.ai → Inference API → Images). Verify model ids/params via Context7, never memory. |", { md: true, files: /^SOURCES\.md$/, required: /or `XAI_API_KEY` for the xAI backend/ }),
+  // the fork's release and sync runbooks are hand-owned files beside the roster skill
+  R(/(?<!follow `release\.md`\.\n\n)^## Wiring map — the single source of truth$/m, "**This fork's release and upstream sync** are `release.md` (version, tag, Cursor's marketplace) and `fork-sync.md` (the weekly upstream pull request), beside this file. The version and git rows below follow `release.md`.\n\n## Wiring map — the single source of truth", { md: true, files: /^skills\/kru-roster\/SKILL\.md$/, required: /^\*\*This fork's release and upstream sync\*\*/m }),
   // the harness itself. "Claude Code channel(s)" is a product extension-builder
   // builds, not the harness, so it stays
   R(/\s*\(resolves in both local and web plugin loads\)/g, " (it resolves in local and cloud-agent loads alike)", { md: true }),
@@ -495,6 +502,21 @@ function relayout() {
   for (const d of readdirSync(skillsDir)) {
     if (d.startsWith(PREFIX) || !statSync(join(skillsDir, d)).isDirectory()) continue
     const to = join(skillsDir, PREFIX + d)
+    // a fork-owned file inside a ported skill dir (skills/kru-roster/release.md)
+    // is laid over a fresh upstream tree before the port runs, so the ported dir
+    // exists holding only those files: upstream's dir moves in beside them
+    const overlayOnly = existsSync(to) && !existsSync(join(to, "SKILL.md")) && walk(to).every((p) => FORK_OWNED.has(relative(ROOT, p)))
+    if (overlayOnly) {
+      changed.push(`skills/${d} → skills/${PREFIX}${d} (beside its fork-owned files)`)
+      if (!CHECK) {
+        for (const e of readdirSync(join(skillsDir, d))) {
+          if (existsSync(join(to, e))) problems.push(`skills/${d}/${e}: upstream added a file this fork owns at skills/${PREFIX}${d}/${e} — rename the fork's copy`)
+          else renameSync(join(skillsDir, d, e), join(to, e))
+        }
+        rmSync(join(skillsDir, d), { recursive: true, force: true })
+      }
+      continue
+    }
     if (existsSync(to)) {
       problems.push(`skills/${d} and skills/${PREFIX}${d} both exist — a merge brought an upstream edit in beside the ported copy; move its change across and delete skills/${d}`)
       continue
