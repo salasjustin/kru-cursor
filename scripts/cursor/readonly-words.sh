@@ -1,3 +1,34 @@
+# kru_segments <command> — the command's simple commands in KRU_S, split on the
+# | ; & and newlines bash splits on, and not on one a quote or a backslash
+# holds, so sed -n '/x/{p;q}' or awk '{print $1; print $2}' stays one segment.
+# non-zero on an unclosed quote
+kru_segments() {
+  local s=$1 i=0 c seg="" part
+  KRU_S=()
+  while [ "$i" -lt "${#s}" ]; do
+    c=${s:i:1}; i=$((i + 1))
+    case $c in
+      [\|\;\&$'\n']) KRU_S+=("$seg"); seg=""; continue ;;
+      \\) c+=${s:i:1}; i=$((i + 1)) ;;
+      \') part=${s:i}; [[ $part == *\'* ]] || return 1; part=${part%%\'*}; c+="$part'"; i=$((i + ${#part} + 1)) ;;
+      \"|\$)
+        # "…" and $'…' end at their first unescaped closing quote
+        if [ "$c" = \$ ]; then [ "${s:i:1}" = "'" ] || { seg+=$c; continue; }; c+="'"; i=$((i + 1)); part="'"; else part=\"; fi
+        while :; do
+          [ "$i" -lt "${#s}" ] || return 1
+          c+=${s:i:1}; i=$((i + 1))
+          case ${c: -1} in
+            "$part") break ;;
+            \\) c+=${s:i:1}; i=$((i + 1)) ;;
+          esac
+        done ;;
+    esac
+    seg+=$c
+  done
+  KRU_S+=("$seg")
+  return 0
+}
+
 # kru_words <segment> — the segment's words as the shell hands them to the verb,
 # quotes and escapes resolved, in KRU_W: every flag check reads these, so a
 # quoted flag ('-o', "--pre=x") is the flag. non-zero on an unclosed quote or an
@@ -9,7 +40,8 @@ kru_words() {
     c=${s:i:1}; i=$((i + 1))
     case $c in
       [[:space:]]) [ "$inw" = 1 ] && KRU_W+=("$w"); w="" inw=0; continue ;;
-      \\) w+=${s:i:1}; i=$((i + 1)) ;;
+      # a backslash-newline is a line continuation, gone before the verb sees it
+      \\) [ "${s:i:1}" = $'\n' ] || w+=${s:i:1}; i=$((i + 1)); [ -n "$w" ] || continue ;;
       \') part=${s:i}; [[ $part == *\'* ]] || return 1; part=${part%%\'*}; w+=$part; i=$((i + ${#part} + 1)) ;;
       \")
         while :; do
@@ -18,7 +50,7 @@ kru_words() {
           case $c in
             \") break ;;
             \$|\`) return 1 ;;
-            \\) case ${s:i:1} in [\$\`\"\\]) w+=${s:i:1}; i=$((i + 1)) ;; *) w+=$c ;; esac ;;
+            \\) case ${s:i:1} in [\$\`\"\\]) w+=${s:i:1}; i=$((i + 1)) ;; $'\n') i=$((i + 1)) ;; *) w+=$c ;; esac ;;
             *) w+=$c ;;
           esac
         done ;;
@@ -43,7 +75,7 @@ kru_any() { local w; for w in "${KRU_W[@]:1}"; do [[ $w =~ $1 ]] && return 0; do
 # kru_sed_reads <arg>... — an allowlist, since sed's w, W, e and s///w s///e
 # need no separator before what they write or run: 0 only for -n -E -r -s -z -u
 # (and their long names, any prefix GNU accepts), -e/--expression, and scripts
-# of addresses, p d q = G g h H N P x l y { } and s///[gpIiMm0-9]*
+# of addresses, p d D q = G g h H N P x l y { } and s///[gpIiMm0-9]*
 kru_sed_reads() {
   local w o c name hit opts=1 scripts=() ops=()
   while [ $# -gt 0 ]; do
@@ -90,7 +122,7 @@ kru_sed_script() {
     c=${s:i:1}; i=$((i + 1))
     case $c in
       \{) continue ;;
-      [}pdq=GghHNPxl]) [[ $c == [ql] ]] && while [[ ${s:i:1} == [[:blank:]0-9] ]]; do i=$((i + 1)); done ;;
+      [}pdDq=GghHNPxl]) [[ $c == [ql] ]] && while [[ ${s:i:1} == [[:blank:]0-9] ]]; do i=$((i + 1)); done ;;
       y) d=${s:i:1}; [[ -n $d && $d != [[:space:]\\] ]] || return 1; i=$((i + 1)); kru_sed_part "$d" || return 1; kru_sed_part "$d" || return 1 ;;
       s) d=${s:i:1}; [[ -n $d && $d != [[:space:]\\] ]] || return 1; i=$((i + 1)); kru_sed_part "$d" re || return 1; kru_sed_part "$d" || return 1
          while [[ ${s:i:1} == [gpIiMm0-9] ]]; do i=$((i + 1)); done ;;
@@ -137,9 +169,16 @@ kru_sed_part() {
   return 1
 }
 
-# kru_awk_reads <arg>... — awk's program is on the line, where system() and
-# getline are caught; -f/--file and every flag but -F and -v load or run one
-# the line can't show
+# kru_awk_runs — the awk branch matches this against the segment's quote-resolved
+# words ("${KRU_W[*]}"). system(), getline, @include, @load and gawk's indirect
+# @name() run code, and quoting can hide them (sys''tem, $'\x73ystem', @\x66).
+# a | other than || pipes to a command and > writes a file: the quote-aware
+# segment split no longer fail-closes those, so they are refused here too
+kru_awk_runs='system[[:space:]]*\(|getline|@include|@load|@[[:space:]]*[A-Za-z_][A-Za-z0-9_:]*[[:space:]]*\(|>|(^|[^|])[|]([^|]|$)'
+
+# kru_awk_reads <arg>... — -f/--file and every flag but -F and -v load or run a
+# program the line can't show. system() and the rest of kru_awk_runs are the
+# caller's check, on the quote-resolved words
 kru_awk_reads() {
   while [ $# -gt 0 ]; do
     case $1 in

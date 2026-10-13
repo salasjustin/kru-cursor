@@ -46,7 +46,7 @@ for c in \
 done
 
 # the second review: sed reads only on an allowlist (its read flags, addresses,
-# p d q = G g h H N P x l y and s///[gpIiMm0-9]*), every tool's flags are read
+# p d D q = G g h H N P x l y and s///[gpIiMm0-9]*), every tool's flags are read
 # off the unquoted words, and awk -f / sed -f hide a program the line can't show
 for c in "sed -n 's/[/]/x/gp' a" "sed -nE '/a/,/b/p' a" "sed -n '\$=' a" "sed -z 's/\\n/ /g' a" \
   "sed -n '1~2p' a" "sed 'y/abc/xyz/' a" 'sed --quiet 10q a' "sed -s -n '\$p' a b" 'sed -e p -e 2d a' \
@@ -54,7 +54,8 @@ for c in "sed -n 's/[/]/x/gp' a" "sed -nE '/a/,/b/p' a" "sed -n '\$=' a" "sed -z
   "awk -v x=1 '{print x}' a" "awk -F, '{print \$1}' a" "awk -F : '{print}' a" \
   'column --output-separator , a' 'column -t --output-width 80 a' 'date -Iseconds' 'date -I' 'date --iso-8601=seconds' \
   'date -d tuesday +%F' "date -ud 'next sunday'" \
-  'uniq -c in' 'uniq -f 1 in' 'file a.txt' 'file -b a' 'base64 a' 'base64 -d a'; do
+  'uniq -c in' 'uniq -f 1 in' 'file a.txt' 'file -b a' 'base64 a' 'base64 -d a' \
+  'find . -name x' 'find . -type f -print'; do
   expect read "$c"
 done
 
@@ -67,6 +68,26 @@ for c in "sed '1eid' a" 'sed 1e\ id a' "sed \$'1e\\tid' a" 'sed --expression=e a
   'awk -f prog.awk a' 'awk --file=prog.awk a' 'awk -fprog.awk a' "awk '-f' p a" "awk '@include \"x\"' a" \
   "yq '-i' '.a = 1' f.yaml" 'yq "--inplace" .a f' 'date "--set=x"' "command '-p' ls" \
   'cat <(rm -rf build)' 'uniq in out' 'xxd in out' 'file -C -m magic' 'base64 -i a -o b'; do
+  expect write "$c"
+done
+
+# the third review: awk's system/getline/@name() check also runs on the
+# quote-resolved words, segments split only where bash splits them, sed D reads,
+# and find -ok/-okdir writes
+for c in "sed -n '/x/{p;q}' a" "sed -n '1!G;h;\$p' a" "sed -n '\$!N;P;D' a" "awk '{print \$1; print \$2}' a" \
+  "awk '{print \$1; print \$2}' a | sort -u" "grep -n 'a|b' f" "grep -E 'x;y' f | head -3" "echo 'a & b'" \
+  "grep system f | awk '{print \$1}'" 'cat a && ls' "awk 'a || b' f" "find . -name 'a;b'" \
+  $'grep -n foo \\\nbar'; do
+  expect read "$c"
+done
+
+for c in "awk 'BEGIN{sys''tem(\"touch /tmp/pwn\")}'" "awk \$'BEGIN{\\x73ystem(\"touch /tmp/pwn\")}'" \
+  "awk 'BEGIN{get''line x < \"f\"}'" "awk 'BEGIN{@f(\"id\")}'" \
+  "awk 'BEGIN{f=\"sys\" \"tem\"; @f(\"touch /tmp/pwn\")}'" "awk 'BEGIN{f=\"x\"; @ f (\"y\")}'" \
+  "awk \$'BEGIN{@\\x66(\"id\")}'" "awk '{print | \"sh\"}' a" "awk '{print > \"out\"}' a" \
+  'find . -ok rm {} \;' 'find . -okdir rm {} \;' "find . '-ok' rm {} \;" \
+  'ls; rm -rf build' 'cat a | sh' 'cat a & rm b' $'grep a f\nrm -rf build' \
+  $'sort \\\n-o out a' "ls 'unclosed"; do
   expect write "$c"
 done
 

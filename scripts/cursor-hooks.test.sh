@@ -249,6 +249,13 @@ PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store fire sessionStart "$(jq -nc 
 PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store fire preToolUse "$(tool bud2 Read '{"path":"README.md"}')"
 PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=7 fire preToolUse "$(tool bud3 Read '{"path":"README.md"}')"
 check "first-turn: 45s from sessionStart, 10s from the first tool call, an explicit value wins" test "$(tr '\n' ' ' < "$sandbox/budget")" = "45 10 7 "
+# a budget that isn't all digits falls back to the default, and 08 is eight
+# rather than an octal error. a clone that fails at once is a failure, not a timeout
+for v in abc 10s 08 -5; do
+  resp=$(cd "$work" && printf '{}' | PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=$v bash "$plugin/hooks/store-sync.sh" start "$plugin" 2>"$sandbox/budget.err")
+  check "store-sync: KRU_STORE_SYNC_TIMEOUT=$v is not an arithmetic error" test ! -s "$sandbox/budget.err"
+  check "…and a clone that fails at once doesn't read as a timeout ($v)" has '.systemMessage | test("sync failed")'
+done
 # the stop path's push, pull and push share one budget (30s stop hook), and a
 # call that hangs in a child — ssh, a remote helper — still ends on time:
 # the child holds the output pipe, so killing git alone would leave it waiting
