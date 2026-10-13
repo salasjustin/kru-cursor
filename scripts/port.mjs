@@ -10,12 +10,15 @@
 // what it owns: the layout (skills/kru-<name>/, the claude-only files dropped),
 // agent and skill frontmatter, the generated pieces (.cursor-plugin/, rules/,
 // commands/, hooks/hooks.json), the version pin, and the harness-vocabulary
-// rewrites. what it never touches: prose judgment. a rewrite that needs judgment
-// is a hand-owned block (scripts/cursor/*.md) or a known gap in PORTING.md.
+// rewrites. what it never decides: prose judgment. a rewrite that needs judgment
+// is a fork edit (scripts/cursor/edits.mjs — an exact passage and what it
+// becomes, applied last), a hand-owned block (scripts/cursor/*.md) or a known
+// gap in PORTING.md.
 
 import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync, rmSync, renameSync, statSync } from "node:fs"
 import { join, dirname, basename, relative } from "node:path"
 import { fileURLToPath } from "node:url"
+import { EDITS } from "./cursor/edits.mjs"
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
 const CHECK = process.argv.includes("--check")
@@ -86,6 +89,7 @@ const FORK_OWNED = new Set([
   "scripts/privacy-scan.mjs",
   "scripts/cursor-hooks.test.sh",
   "scripts/cursor-smoke.sh",
+  "scripts/port-edits.test.sh",
   "hooks/cursor-hook.sh",
   "hooks/require-lead.sh",
   "hooks/require-lead.test.sh",
@@ -531,6 +535,22 @@ function rewrite(text, rel) {
   // upstream spells its commands both `/kru:x` and bare `/x`; a bare one is
   // re-pointed from the skill set on disk rather than from a list that drifts
   if (md && !pathsOnly) out = out.replace(BARE_COMMAND(), (_m, p, n) => `${p}/${PREFIX}${n}`)
+  return applyEdits(out, rel)
+}
+
+// the fork's own edits (scripts/cursor/edits.mjs), last, on the ported text.
+// an edit counts as applied when its `after` stands in the file; a file the
+// port never reaches leaves its edits unapplied, which the check below reports
+function applyEdits(text, rel) {
+  let out = text
+  for (const e of EDITS) {
+    if (e.file !== rel) continue
+    if (out.includes(e.after)) e.applied = true
+    else if (out.includes(e.before)) {
+      out = out.replace(e.before, () => e.after)
+      e.applied = true
+    }
+  }
   return out
 }
 let bareCommand
@@ -559,6 +579,8 @@ function portText() {
     if (rule === PATHS_END || !rule.required) continue
     if (!rule.hits) problems.push(`required rule no longer matches (${rule.files}): ${String(rule.re).slice(0, 100)} — upstream reworded it; port the new text by hand`)
   }
+  for (const e of EDITS)
+    if (!e.applied) problems.push(`fork edit no longer matches ${e.file} (${e.why}): ${JSON.stringify(e.before.slice(0, 90))}… — upstream reworded it; copy the new passage into scripts/cursor/edits.mjs`)
 }
 
 // --- step 5: version ----------------------------------------------------------------------
