@@ -687,7 +687,8 @@ function portRules(version) {
     "",
     "- **Before building, reviewing or dispatching any seat, load the `kru-lead` skill** (`/kru-lead`) and follow it — it is the contract the whole team runs on. A triage or config turn that only reads needs nothing.",
     "- Seats are custom subagents: dispatch one with the Task tool as `kru-<seat>` (`kru-code-reviewer`, `kru-react-ui-builder`). Prose names them bare (`code-reviewer`).",
-    "- Team skills are `kru-<name>` (`kru-testing`), and the user's commands are `/kru-<name>` (`/kru-brief`, `/kru-setup`).",
+    "- The PM is the Grok Bot PM that briefed this session; Justin owns the product and approves (the `kru-lead` skill says what reaches him).",
+    "- Team skills are `kru-<name>` (`kru-testing`), and the PM's commands are `/kru-<name>` (`/kru-brief`, `/kru-setup`).",
     "- The install dir is `${CURSOR_PLUGIN_ROOT}`; the store resolver is `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\"`.",
     "",
   ].join("\n")

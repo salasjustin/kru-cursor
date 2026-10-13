@@ -17,7 +17,7 @@ This is the one judgment the skill makes, and the line is **cost, not usefulness
 - **Cold, or the context is unrelated** — fresh session, or they're parking something you know nothing about → **log the line as they said it** and stop. No exploration to make it look better.
 - **The test, before writing anything extra:** *would knowing this require a tool call?* If yes, you don't know it — leave it out. No `Explore`, no grep, no opening a file, no checking whether it's already done, no dedupe against existing lines. A skill that "helpfully" investigated would turn a deferred want into work nobody asked for.
 
-**Expansion adds detail, never commitment.** Past the two numbers below, no triage, no scheduling, no scoping it into the current effort, no verdict on whether it's a good idea. The parking lot is pre-decision by construction — the user is the PM, and thinking it through is `/kru-brief`'s job, later, if the line is ever pulled into scope.
+**Expansion adds detail, never commitment.** Past the two numbers below, no triage, no scheduling, no scoping it into the current effort, no verdict on whether it's a good idea. The parking lot is pre-decision by construction — the PM decides, and thinking it through is `/kru-brief`'s job, later, if the line is ever pulled into scope.
 
 ## Score it in three numbers — yours wear a `~`
 
