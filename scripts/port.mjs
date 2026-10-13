@@ -119,6 +119,8 @@ const FORK_OWNED = new Set([
   "scripts/port.mjs",
   "scripts/verify.sh",
   "scripts/verify-tree.mjs",
+  "scripts/asset/xai.mjs",
+  "scripts/asset/xai.test.mjs",
   "scripts/privacy-scan.mjs",
   "scripts/cursor-hooks.test.sh",
   "scripts/cursor-smoke.sh",
@@ -130,8 +132,6 @@ const FORK_OWNED = new Set([
   "hooks/cursor-hook.sh",
   "hooks/require-lead.sh",
   "hooks/require-lead.test.sh",
-  "scripts/asset/xai.mjs",
-  "scripts/asset/xai.test.mjs",
   "hooks/brainstorm-guard.sh",
   "hooks/brainstorm-guard.test.sh",
   "hooks/prompt-state.sh",
@@ -210,50 +210,6 @@ const RULES = [
   R(/data="\$\{CLAUDE_PLUGIN_DATA:-\$HOME\/\.claude\/plugins\/data\/kru-kru\}\/asset"/g, 'data="${KRU_PLUGIN_DATA:-${XDG_DATA_HOME:-$HOME/.local/share}/kru-cursor}/asset"', { sh: true, files: /^scripts\/asset\/run\.sh$/, required: /KRU_PLUGIN_DATA:-/ }),
   R(/# package\.json \+ lockfile into every cached plugin version — 65 MB a version for\n# two seats that rarely run — while \$\{CLAUDE_PLUGIN_DATA\} survives updates\./g,
     "# package.json + lockfile into every cached plugin version — 65 MB a version for\n# two seats that rarely run. cursor has no plugin data dir, so on cursor they live\n# in the user's data dir (KRU_PLUGIN_DATA overrides) — outside the store, which a\n# store repo would sync — where a plugin update leaves them.", { sh: true, files: /^scripts\/asset\/run\.sh$/ }),
-  // the asset generator's xai backend (scripts/asset/xai.mjs, hand-owned):
-  // Grok Imagine stills and edits when XAI_API_KEY is set, the google path
-  // otherwise. run.sh copies the module beside the generator it imports from
-  R(/^(cmp -s "\$src\/gen-asset\.ts" "\$data\/gen-asset\.ts" \|\| cp "\$src\/gen-asset\.ts" "\$data\/"\n)(?!cmp -s "\$src\/xai\.mjs")/m, '$1cmp -s "$src/xai.mjs" "$data/xai.mjs" || cp "$src/xai.mjs" "$data/"\n', { sh: true, files: /^scripts\/asset\/run\.sh$/, required: /cp "\$src\/xai\.mjs" "\$data\/"/ }),
-  R(/^(import \{ fileURLToPath \} from "node:url";\n)(?!import \* as xai)/m, '$1import * as xai from "./xai.mjs";\n', { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^import \* as xai from "\.\/xai\.mjs";$/m }),
-  R(/^(\/\/ env: GOOGLE_API_KEY \(or GEMINI_API_KEY\) — a Google AI Studio key\.)(?! Or\n)/m,
-    "$1 Or\n// XAI_API_KEY, an xAI key: with it set, stills and edits (no --model, or a\n// grok-imagine-* one) go through Grok Imagine (./xai.mjs); --backend google opts\n// out, --xai-quality low|medium picks its quality. Keys are", { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^\/\/ XAI_API_KEY, an xAI key: with it set/m }),
-  R(/^const apiKey = process\.env\.GOOGLE_API_KEY \?\? process\.env\.GEMINI_API_KEY;\nif \(!apiKey && !isCutout\) \{/m, () => [
-    "// xai backend: stills and edits when XAI_API_KEY is set; video, cutouts and an",
-    "// explicit google model take the path below, as does every run without the key",
-    "const choice = xai.pickBackend({ env: process.env, backend: args.backend, model: args.model, isVideo, isCutout });",
-    "if (choice.note) console.error(choice.note);",
-    'const useXai = choice.backend === "xai";',
-    "",
-    "const apiKey = process.env.GOOGLE_API_KEY ?? process.env.GEMINI_API_KEY;",
-    "if (!apiKey && !isCutout && !useXai) {",
-  ].join("\n"), { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^if \(!apiKey && !isCutout && !useXai\) \{$/m }),
-  R(/(?<!return out\.bytes;\n\}\n\n)^\/\/ --- optimize \+ write -+\n/m, () => [
-    "// the xai path returns the same raw bytes generate() does, so the sharp pass",
-    "// below treats both alike",
-    "async function generateXai(): Promise<Buffer> {",
-    '  const ext = extname(inputPath ?? "").toLowerCase();',
-    "  const out = await xai.generate({",
-    "    apiKey: process.env.XAI_API_KEY,",
-    "    prompt,",
-    '    model: args.model?.startsWith("grok-imagine") ? args.model : undefined,',
-    "    aspect: imgAspect,",
-    "    resolution: imageSize,",
-    '    quality: args["xai-quality"],',
-    '    inputB64: inputPath ? readFileSync(inputPath).toString("base64") : undefined,',
-    '    inputMime: ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : ext === ".webp" ? "image/webp" : "image/png",',
-    "    log: (l: string) => console.error(l),",
-    "  });",
-    "  console.error(`xai served ${out.model}`);",
-    "  return out.bytes;",
-    "}",
-    "",
-    "// --- optimize + write -----------------------------------------------------",
-    "",
-  ].join("\n"), { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^async function generateXai\(\): Promise<Buffer> \{$/m }),
-  // the google client warns on construction without its key; an xai run never calls it
-  R(/^const ai = new GoogleGenAI\(\{ apiKey \}\);$/m, "const ai = useXai ? (undefined as unknown as GoogleGenAI) : new GoogleGenAI({ apiKey });", { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^const ai = useXai \? /m }),
-  R(/`generating with \$\{model\}\$\{inputPath/g, '`generating with ${useXai ? `xAI ${args.model ?? xai.XAI_IMAGE_MODELS[0]}` : model}${inputPath', { files: /^scripts\/asset\/gen-asset\.ts$/, required: /generating with \$\{useXai \?/ }),
-  R(/written = await optimizeAndWrite\(await generate\(\)\);/g, "written = await optimizeAndWrite(useXai ? await generateXai() : await generate());", { files: /^scripts\/asset\/gen-asset\.ts$/, required: /useXai \? await generateXai\(\) : await generate\(\)/ }),
   // the read-only listings a triage turn reaches for, cursor's cli
   R(/'claude mcp list'\*\|'claude plugin list'\*\|'claude plugin details'\*\)/g, "'agent mcp list'*|'agent status'*|'agent models'*|'cursor-agent mcp list'*|'cursor-agent status'*)", { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /'agent mcp list'/ }),
   // a cloud vm: cursor's managed vms expose the agent metadata socket
@@ -279,6 +235,51 @@ const RULES = [
   R(/"Block Q heading and memory: local seat lists differ"/g, '"Block Q heading and memory line seat lists differ"', { sh: true, files: /^scripts\/audit\.sh$/ }),
   R(/for h in \$\(grep -oE 'hooks\/\[a-z0-9-\]\+\\\.sh' hooks\/hooks\.json \| sort -u\); do/g,
     "for h in $(grep -oE 'hooks/[a-z0-9-]+\\.sh' hooks/hooks.json | sort -u) $(jq -r '.hooks[][].command' hooks/hooks.json | grep -oE ' [a-z0-9-]+\\.sh( |$)' | tr -d ' ' | sed 's#^#hooks/#' | sort -u); do", { sh: true, files: /^scripts\/audit\.sh$/, required: /jq -r .\.hooks\[\]\[\]\.command/ }),
+
+  // the asset generator's xai backend (scripts/asset/xai.mjs, hand-owned):
+  // Grok Imagine stills and edits when XAI_API_KEY is set, the google path
+  // otherwise. run.sh copies the module beside the generator it imports from
+  R(/^(cmp -s "\$src\/gen-asset\.ts" "\$data\/gen-asset\.ts" \|\| cp "\$src\/gen-asset\.ts" "\$data\/"\n)(?!cmp -s "\$src\/xai\.mjs")/m, '$1cmp -s "$src/xai.mjs" "$data/xai.mjs" || cp "$src/xai.mjs" "$data/"\n', { sh: true, files: /^scripts\/asset\/run\.sh$/, required: /cp "\$src\/xai\.mjs" "\$data\/"/ }),
+  R(/^(import \{ fileURLToPath \} from "node:url";\n)(?!import \* as xai)/m, '$1import * as xai from "./xai.mjs";\n', { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^import \* as xai from "\.\/xai\.mjs";$/m }),
+  R(/^(\/\/ env: GOOGLE_API_KEY \(or GEMINI_API_KEY\) — a Google AI Studio key\.)(?! Or\n)/m,
+    "$1 Or\n// XAI_API_KEY, an xAI key: with it set, stills and edits (no --model, or a\n// grok-imagine-* one) go through Grok Imagine (./xai.mjs); --backend google opts\n// out, --xai-quality low|medium picks its quality. Keys are", { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^\/\/ XAI_API_KEY, an xAI key: with it set/m }),
+  R(/^const apiKey = process\.env\.GOOGLE_API_KEY \?\? process\.env\.GEMINI_API_KEY;\nif \(!apiKey && !isCutout\) \{/m, () => [
+    "// xai backend: stills and edits when XAI_API_KEY is set; video, cutouts and an",
+    "// explicit google model take the path below, as does every run without the key",
+    "const choice = xai.pickBackend({ env: process.env, backend: args.backend, model: args.model, isVideo, isCutout });",
+    "if (choice.note) console.error(choice.note);",
+    'const useXai = choice.backend === "xai";',
+    "",
+    "const apiKey = process.env.GOOGLE_API_KEY ?? process.env.GEMINI_API_KEY;",
+    "if (!apiKey && !isCutout && !useXai) {",
+  ].join("\n"), { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^if \(!apiKey && !isCutout && !useXai\) \{$/m }),
+  R(/(?<!return out\.bytes;\n\}\n\n)^\/\/ --- optimize \+ write -+\n/m, () => [
+    "// the xai path returns the same raw bytes generate() does, so the sharp pass",
+    "// below treats both alike",
+    "async function generateXai(): Promise<Buffer> {",
+    "  const out = await xai.generate({",
+    "    apiKey: process.env.XAI_API_KEY,",
+    "    prompt,",
+    '    model: args.model?.startsWith("grok-imagine") ? args.model : undefined,',
+    "    aspect: imgAspect,",
+    "    resolution: imageSize,",
+    '    quality: args["xai-quality"],',
+    "    // the edits endpoint takes jpeg, png or webp; the source may be avif, so send png",
+    '    inputB64: inputPath ? (await sharp(inputPath).png().toBuffer()).toString("base64") : undefined,',
+    '    inputMime: "image/png",',
+    "    log: (l: string) => console.error(l),",
+    "  });",
+    "  console.error(`xai served ${out.model}`);",
+    "  return out.bytes;",
+    "}",
+    "",
+    "// --- optimize + write -----------------------------------------------------",
+    "",
+  ].join("\n"), { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^async function generateXai\(\): Promise<Buffer> \{$/m }),
+  // the google client warns on construction without its key; an xai run never calls it
+  R(/^const ai = new GoogleGenAI\(\{ apiKey \}\);$/m, "const ai = useXai ? (undefined as unknown as GoogleGenAI) : new GoogleGenAI({ apiKey });", { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^const ai = useXai \? /m }),
+  R(/`generating with \$\{model\}\$\{inputPath/g, '`generating with ${useXai ? `xAI ${args.model ?? xai.XAI_IMAGE_MODELS[0]}` : model}${inputPath', { files: /^scripts\/asset\/gen-asset\.ts$/, required: /generating with \$\{useXai \?/ }),
+  R(/written = await optimizeAndWrite\(await generate\(\)\);/g, "written = await optimizeAndWrite(useXai ? await generateXai() : await generate());", { files: /^scripts\/asset\/gen-asset\.ts$/, required: /useXai \? await generateXai\(\) : await generate\(\)/ }),
 
   // --- prose (markdown) ---------------------------------------------------------
   // the instruction files: cursor reads AGENTS.md (and CLAUDE.md) at a repo
@@ -346,14 +347,14 @@ const RULES = [
     `${Object.keys(SEAT_MODELS).length} seats run on models other than upstream's pin (${Object.keys(SEAT_MODELS).map((n) => "`" + n + "`").join(", ")}), every pick has a fallback, ` +
     "`effort` becomes the model id's `[effort=…]` parameter, `experimental.cacheTtl` has no Cursor equivalent, and `scripts/port.mjs` writes every seat's `model:` line.\n\n",
     { md: true, files: /^ROSTER\.md$/, required: /^In kru-cursor `MODELS\.md` is the map/m }),
+  // the store's cloud surface
+  R(/cloud session \(`CLAUDE_CODE_REMOTE=true`\)/g, "cloud agent (`CURSOR_AGENT_SOCKET` set, or `KRU_CLOUD=1`)", { md: true }),
   // the asset key: an xai key is the alternative for stills and edits
   R(/Generation needs `GOOGLE_API_KEY` \(Google AI Studio\) in the environment\./g, "Generation needs `GOOGLE_API_KEY` (Google AI Studio) or `XAI_API_KEY` (xAI) in the environment: with `XAI_API_KEY` set, stills and edits go through xAI's Grok Imagine (`grok-imagine-image-2.0`, falling back to `grok-imagine-image`) unless you pass a Google `--model` or `--backend google`; video and cutouts stay on the Google path.", { md: true, files: /^agents\/graphic-designer\.md$/, required: /or `XAI_API_KEY` \(xAI\) in the environment/ }),
   R(/generation needs `GOOGLE_API_KEY` and Node\.js on PATH/g, "generation needs `GOOGLE_API_KEY` (or `XAI_API_KEY` for stills and edits) and Node.js on PATH", { md: true, files: /^references\/routing\.md$/, required: /\(or `XAI_API_KEY` for stills and edits\)/ }),
   R(/needs `GOOGLE_API_KEY`\. Verify model ids\/params via Context7, never memory\. \|/g, "needs `GOOGLE_API_KEY`, or `XAI_API_KEY` for the xAI backend (`scripts/asset/xai.mjs`, Grok Imagine stills and edits; source: docs.x.ai → Inference API → Images). Verify model ids/params via Context7, never memory. |", { md: true, files: /^SOURCES\.md$/, required: /or `XAI_API_KEY` for the xAI backend/ }),
   // the fork's release and sync runbooks are hand-owned files beside the roster skill
   R(/(?<!follow `release\.md`\.\n\n)^## Wiring map — the single source of truth$/m, "**This fork's release and upstream sync** are `release.md` (version, tag, Cursor's marketplace) and `fork-sync.md` (the weekly upstream pull request), beside this file. The version and git rows below follow `release.md`.\n\n## Wiring map — the single source of truth", { md: true, files: /^skills\/kru-roster\/SKILL\.md$/, required: /^\*\*This fork's release and upstream sync\*\*/m }),
-  // the store's cloud surface
-  R(/cloud session \(`CLAUDE_CODE_REMOTE=true`\)/g, "cloud agent (`CURSOR_AGENT_SOCKET` set, or `KRU_CLOUD=1`)", { md: true }),
   // the harness itself. "Claude Code channel(s)" is a product extension-builder
   // builds, not the harness, so it stays
   R(/\s*\(resolves in both local and web plugin loads\)/g, " (it resolves in local and cloud-agent loads alike)", { md: true }),

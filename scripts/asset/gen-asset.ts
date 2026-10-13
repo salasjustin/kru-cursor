@@ -221,7 +221,6 @@ async function generate(): Promise<Buffer> {
 // the xai path returns the same raw bytes generate() does, so the sharp pass
 // below treats both alike
 async function generateXai(): Promise<Buffer> {
-  const ext = extname(inputPath ?? "").toLowerCase();
   const out = await xai.generate({
     apiKey: process.env.XAI_API_KEY,
     prompt,
@@ -229,8 +228,9 @@ async function generateXai(): Promise<Buffer> {
     aspect: imgAspect,
     resolution: imageSize,
     quality: args["xai-quality"],
-    inputB64: inputPath ? readFileSync(inputPath).toString("base64") : undefined,
-    inputMime: ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : ext === ".webp" ? "image/webp" : "image/png",
+    // the edits endpoint takes jpeg, png or webp; the source may be avif, so send png
+    inputB64: inputPath ? (await sharp(inputPath).png().toBuffer()).toString("base64") : undefined,
+    inputMime: "image/png",
     log: (l: string) => console.error(l),
   });
   console.error(`xai served ${out.model}`);
