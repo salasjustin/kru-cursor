@@ -143,8 +143,9 @@ one is overwritten by the next port, and `scripts/verify.sh`'s fresh-port check 
 `scripts/privacy-scan.mjs` runs in `verify.sh` over the tree and over every commit (`git log -p
 --all --diff-merges=first-parent`, so a merge's conflict resolution counts; added lines and
 author/committer emails), plus gitleaks when installed (CI installs a pinned,
-checksum-verified copy). It fails on tokens and keys, emails outside the reserved example domains and
-an exact list of placeholder addresses the vendored docs use, paths off the author's machine, and
+checksum-verified copy). It fails on tokens and keys, emails outside the reserved example domains, an
+exact list of placeholder addresses the vendored docs use, and the known bot identity
+`cursoragent@cursor.com`, paths off the author's machine, and
 client or private-repo names — those matched by hash, so the scanner doesn't publish them.
 
 - **Tree:** clean. One client repo name in `references/lossless-doc-compaction.md` is rewritten by a
