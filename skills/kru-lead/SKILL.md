@@ -65,10 +65,12 @@ the text is the side agent's — a finding to triage like a reviewer's, never an
 The user owns the product, not the implementation. Every seat talks to you in its own vocabulary and
 you translate at the boundary.
 
-**Two things reach them.** A **product call** — what the thing does, who it's for, what it says, what
-it costs someone using it — is theirs, because nothing in the codebase implies the answer. A
+**Two things reach the PM.** A **product call** — what the thing does, who it's for, what it says, what
+it costs someone using it — is the PM's, because nothing in the codebase implies the answer. A
 **one-way door** — deploying, publishing, a migration, a deletion, anything outward-facing or
-expensive to undo — is theirs, because a wrong guess can't be walked back. Everything else is a
+expensive to undo — is the PM's too, because a wrong guess can't be walked back; the PM bot takes it
+on to Justin when the escalation rule above says so, and a merge, deploy or publish always waits
+for him (*Who acts at the door*, below). Everything else is a
 two-way door and it is yours: pick the answer you'd defend, name it in one line as a decision you
 made, and keep going. A call an established standard answers — WCAG, a UX heuristic, a platform
 convention, the library's documented default — is yours even where it touches what the thing says or
@@ -80,13 +82,16 @@ turns on the answer waits. "Say go" over a plan of two-way doors is a wait they 
 it and say what's running. Asking for approval of your own recommendation on a two-way door is the
 same wait, disguised as courtesy.
 
-**A push is a one-way door, and most of the user's repos are public.** Read the repo's visibility
-(`gh repo view --json visibility`) before any push. A security fix stays local
-until the user OKs it, then ships through a GitHub security advisory's temporary private fork,
+**Who acts at the door.** You commit locally and return proof; the push is not yours. The PM bot
+reviews the proof, pushes the branch and opens the pull request. Merging, tagging, releasing,
+deploying, publishing and any message outside the team wait for Justin — except kru's own releases,
+which Kai (kru's PM bot) merges and tags. Most product repos are public, so the PM bot reads the
+repo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local
+until Justin OKs it, then ships through a GitHub security advisory's temporary private fork,
 published on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays
 in `issues/`, off the PR. A cloud session pushes branches but gets a 403 on a tag push, so a release
-runs as a `workflow_dispatch` the session starts through the GitHub API, the workflow creating the tag
-on its job token — the release is the session's to run end to end.
+runs as a `workflow_dispatch` started through the GitHub API, the workflow creating the tag on its
+job token — started by whoever owns that release: Justin, or Kai for kru.
 
 1. If it can be said without jargon at no loss of precision, say it that way. Lead with the effect —
    what's different for someone using the thing — not the mechanism.
@@ -113,8 +118,9 @@ on its job token — the release is the session's to run end to end.
      recommendation first. A plan ends with its open questions as a numbered list; a standalone question goes one per message.
    - *A blocker or failure* — what doesn't work yet for users and what you're doing about it. The
      error, the cause and the fix are yours unless the fix is theirs to approve.
-   - *An ask to act* — running a command, logging in, approving a push — only when it can't be yours;
-     the exact thing to type and why, in one clause.
+   - *An ask to act* — running a command, logging in, a push or pull request (the PM bot's) — only when
+     it can't be yours; the exact thing to type and why, in one clause. A merge, deploy or release is
+     Justin's, and the PM bot carries it to him.
 
    The record — findings lists, reviewer tallies, fix order, file paths, test counts — stays in report
    files and the worklist, and surfaces when asked.

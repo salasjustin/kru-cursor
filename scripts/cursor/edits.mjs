@@ -118,3 +118,43 @@ EDITS.push(E(
   "pre-decision by construction — the PM decides, and thinking it through",
   "t1",
 ))
+
+// --- t2: gates match the PM bots' policy ----------------------------------
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "**Two things reach them.** A **product call** — what the thing does, who it's for, what it says, what\nit costs someone using it — is theirs, because nothing in the codebase implies the answer. A\n**one-way door** — deploying, publishing, a migration, a deletion, anything outward-facing or\nexpensive to undo — is theirs, because a wrong guess can't be walked back.",
+  "**Two things reach the PM.** A **product call** — what the thing does, who it's for, what it says, what\nit costs someone using it — is the PM's, because nothing in the codebase implies the answer. A\n**one-way door** — deploying, publishing, a migration, a deletion, anything outward-facing or\nexpensive to undo — is the PM's too, because a wrong guess can't be walked back; the PM bot takes it\non to Justin when the escalation rule above says so, and a merge, deploy or publish always waits\nfor him (*Who acts at the door*, below).",
+  "t2: product calls and one-way doors go to the PM bot, which escalates to Justin",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "**A push is a one-way door, and most of the user's repos are public.** Read the repo's visibility\n(`gh repo view --json visibility`) before any push. A security fix stays local\nuntil the user OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` the session starts through the GitHub API, the workflow creating the tag\non its job token — the release is the session's to run end to end.",
+  "**Who acts at the door.** You commit locally and return proof; the push is not yours. The PM bot\nreviews the proof, pushes the branch and opens the pull request. Merging, tagging, releasing,\ndeploying, publishing and any message outside the team wait for Justin — except kru's own releases,\nwhich Kai (kru's PM bot) merges and tags. Most product repos are public, so the PM bot reads the\nrepo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local\nuntil Justin OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` started through the GitHub API, the workflow creating the tag on its\njob token — started by whoever owns that release: Justin, or Kai for kru.",
+  "t2: Claude Code commits, the PM bot pushes and opens the PR, Justin merges/tags/deploys (Kai for kru)",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "   - *An ask to act* — running a command, logging in, approving a push — only when it can't be yours;\n     the exact thing to type and why, in one clause.",
+  "   - *An ask to act* — running a command, logging in, a push or pull request (the PM bot's) — only when\n     it can't be yours; the exact thing to type and why, in one clause. A merge, deploy or release is\n     Justin's, and the PM bot carries it to him.",
+  "t2: no line asks a human to approve a push",
+))
+EDITS.push(E(
+  "skills/kru-roster/SKILL.md",
+  "| 9 | git | `commit` + `tag vX.Y.Z` — **only when the user asks** (team git rule) |",
+  "| 9 | git | `commit` locally when the PM asks; the PM bot pushes and opens the pull request; merging and `tag vX.Y.Z` are Kai's — kru's PM bot owns kru releases (`skills/kru-lead/SKILL.md` → *Who acts at the door*) |",
+  "t2: kru releases are Kai's",
+))
+EDITS.push(E(
+  "skills/kru-setup/SKILL.md",
+  "clause (\"plus 6 cleanups to the project notes\"); the diff is there if asked.",
+  "clause (\"plus 6 cleanups to the project notes\"); the diff is there if asked. Setup commits at most\nlocally: the PM bot reviews the diff, pushes it and opens the pull request, and Justin merges it\n(`skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "t2: setup's report names who pushes and merges",
+))
+
+// --- t2: (cont.) propagate's push --------------------------------------------
+EDITS.push(E(
+  "skills/kru-propagate/SKILL.md",
+  "commit in the repo's own message style (read its `git log`); push to the working branch.",
+  "commit in the repo's own message style (read its `git log`); the push to the working branch is the PM bot's (`skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "t2: Claude Code commits, the PM bot pushes",
+))

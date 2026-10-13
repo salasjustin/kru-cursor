@@ -362,7 +362,9 @@ their yes.
 A short paragraph, in the user's vocabulary: what the team now knows about this project and what it
 will do differently for it — the seats this repo runs, anything the derivation turned up that the
 repo had never written down, what the team may now do without asking (step 1d) in one line. The pass's edits, filed lint slices and inbox lines ride as one counted
-clause ("plus 6 cleanups to the project notes"); the diff is there if asked.
+clause ("plus 6 cleanups to the project notes"); the diff is there if asked. Setup commits at most
+locally: the PM bot reviews the diff, pushes it and opens the pull request, and Justin merges it
+(`skills/kru-lead/SKILL.md` → *Who acts at the door*).
 
 Completion: before you send it, check yourself — every line that went in traces to a derivation, and
 every line that came out to the file that answers it. That accounting is your check, not the report's
