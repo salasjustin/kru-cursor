@@ -19,22 +19,34 @@ kru_segments() {
   return 0
 }
 
-# one physical line of kru_segments: split on | ; & outside quotes
+# one physical line of kru_segments: split on | ; & outside quotes.
+# $$ is the pid, so $$'…' is a pid plus a plain single-quoted string — the '
+# after the second $ must not open $'…' and swallow the separator after it.
+# any other unquoted $ (${}, $(), $((, $[], $"…", $name) and an unescaped $
+# or ` inside "…" fails closed: ${var@P} runs a command, and the value is not
+# on the line. $'…' is the one expansion whose text is literal
 kru_segments_line() {
-  local s=$1 i=0 c seg="" part
+  local s=$1 i=0 c seg="" part last
   while [ "$i" -lt "${#s}" ]; do
     c=${s:i:1}; i=$((i + 1))
     case $c in
       [\|\;\&]) KRU_S+=("$seg"); seg=""; continue ;;
       \\) c+=${s:i:1}; i=$((i + 1)) ;;
       \') part=${s:i}; [[ $part == *\'* ]] || return 1; part=${part%%\'*}; c+="$part'"; i=$((i + ${#part} + 1)) ;;
+      '`') return 1 ;;
       \"|\$)
-        # "…" and $'…' end at their first unescaped closing quote
-        if [ "$c" = \$ ]; then [ "${s:i:1}" = "'" ] || { seg+=$c; continue; }; c+="'"; i=$((i + 1)); part="'"; else part=\"; fi
+        if [ "$c" = \$ ]; then
+          if [ "${s:i:1}" = \$ ]; then seg+='$$'; i=$((i + 1)); continue; fi
+          [ "${s:i:1}" = "'" ] || return 1
+          c+="'"; i=$((i + 1)); part="'"
+        else part=\"; fi
         while :; do
           [ "$i" -lt "${#s}" ] || return 1
           c+=${s:i:1}; i=$((i + 1))
-          case ${c: -1} in
+          last=${c: -1}
+          # ${var@P} inside "…" runs whatever the value holds
+          [ "$part" = \" ] && { [ "$last" = \$ ] || [ "$last" = '`' ]; } && return 1
+          case $last in
             "$part") break ;;
             \\) c+=${s:i:1}; i=$((i + 1)) ;;
           esac
@@ -245,9 +257,14 @@ kru_readonly_bash() {
         [ -z "$seg" ] && continue
         verb=${seg%% *}
         case "${verb##*/}" in
-          ls|cat|head|tail|wc|grep|egrep|fgrep|find|stat|pwd|realpath|basename|dirname) continue ;;
+          ls|cat|head|tail|wc|grep|egrep|fgrep|stat|pwd|realpath|basename|dirname) continue ;;
           which|type|echo|printf|jq|cut|tr|column|test|true|diff) continue ;;
-          # the verbs that read until a flag or an operand says otherwise
+          # the verbs that read until a flag or an operand says otherwise.
+          # find's -exec/-ok/-delete/-fprint/-fls and git's --output are read off
+          # the quote-resolved words; a git segment with neither falls through to
+          # the read-only subcommand list below
+          find) kru_words "$seg" && ! kru_any '^-(exec|ok|delete|fls|fprint)' && continue; return 1 ;;
+          git) kru_words "$seg" || return 1; kru_any '^--output(=|$)' && return 1 ;;
           sort) kru_words "$seg" && ! kru_any '^(-[^-]*o|--o|--co)' && continue; return 1 ;;
           rg) kru_words "$seg" && ! kru_any '^--pre(=|$)' && continue; return 1 ;;
           sed) kru_words "$seg" && kru_sed_reads "${KRU_W[@]:1}" && continue; return 1 ;;

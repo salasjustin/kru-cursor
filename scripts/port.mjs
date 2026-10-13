@@ -188,7 +188,12 @@ const RULES = [
   // -i/--inplace and --split-exp write, date -s/--set or a clock operand sets
   // the clock (-I takes a format), `command` runs whatever follows it bar
   // -v/-V, uniq's second operand and file -C write, macOS base64 -o writes,
-  // xxd's second operand writes so it leaves the list, and <( runs a command
+  // xxd's second operand writes so it leaves the list, and <( runs a command.
+  // find's -exec/-execdir/-ok/-okdir/-delete/-fprint/-fprint0/-fprintf/-fls run
+  // or write, and quoting hides them (-ex''ec), so find is checked on the
+  // quote-resolved words. git --output writes its file the same way
+  // (--out''put=); --output-separator does not. $$' is a pid plus a single
+  // quote, not $'…', and any other unquoted $ fails closed (kru_segments_line)
   // (tests: hooks/readonly-bash.test.sh)
   R(/(refusal costs one message\.\n)\n(?=# kru_readonly_bash <command>)/, (_m, a) => `${a}\n${block("readonly-words.sh")}\n`,
     { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^kru_sed_reads\(\) \{$/m }),
@@ -207,9 +212,14 @@ const RULES = [
     { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /case \$1 in \*awk\*\) \[\[ \$1 =~ system\[\[:space:\]\]\*\\\(\|getline\|@include\|@load\|@\[\[:space:\]\]/ }),
   R(/( +)ls\|cat\|head\|tail\|wc\|grep\|egrep\|fgrep\|rg\|find\|file\|(.*)\n( +)which\|command\|type\|echo\|printf\|jq\|yq\|sort\|uniq\|cut\|tr\|column\|date\|test\|true\|diff\) continue ;;\n( +)# safe only because the write-tell case above already took sed -i and any redirect\n( +)sed\|awk\|nl\|tac\|comm\|xxd\|base64\) continue ;;\n/g,
     (_m, a, rest) => [
-      `ls|cat|head|tail|wc|grep|egrep|fgrep|find|${rest}`,
+      `ls|cat|head|tail|wc|grep|egrep|fgrep|${rest}`,
       "which|type|echo|printf|jq|cut|tr|column|test|true|diff) continue ;;",
-      "# the verbs that read until a flag or an operand says otherwise",
+      "# the verbs that read until a flag or an operand says otherwise.",
+      "# find's -exec/-ok/-delete/-fprint/-fls and git's --output are read off",
+      "# the quote-resolved words; a git segment with neither falls through to",
+      "# the read-only subcommand list below",
+      String.raw`find) kru_words "$seg" && ! kru_any '^-(exec|ok|delete|fls|fprint)' && continue; return 1 ;;`,
+      String.raw`git) kru_words "$seg" || return 1; kru_any '^--output(=|$)' && return 1 ;;`,
       String.raw`sort) kru_words "$seg" && ! kru_any '^(-[^-]*o|--o|--co)' && continue; return 1 ;;`,
       String.raw`rg) kru_words "$seg" && ! kru_any '^--pre(=|$)' && continue; return 1 ;;`,
       String.raw`sed) kru_words "$seg" && kru_sed_reads "${"$"}{KRU_W[@]:1}" && continue; return 1 ;;`,
@@ -223,7 +233,7 @@ const RULES = [
       "# safe only because the write-tell case above already took any redirect",
       "nl|tac|comm) continue ;;",
     ].map((l) => a + l + "\n").join(""),
-    { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^ +awk\) kru_words "\$seg" && ! \[\[ \$\{KRU_W\[\*\]\} =~ \$kru_awk_runs \]\]/m }),
+    { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /find\) kru_words "\$seg" && ! kru_any '\^-\(exec\|ok\|delete\|fls\|fprint\)'[\s\S]*git\) kru_words "\$seg" \|\| return 1; kru_any '\^--output\(=\|\$\)'/ }),
   // | ; & inside sed '/x/{p;q}' or awk '{print $1; print $2}' stay in the
   // program; a raw newline always splits (kru_segments, inserted above)
   R(/^( +)while IFS= read -r seg; do\n +seg=\$\(printf '%s' "\$seg" \| sed 's\/\^\[\[:space:\]\]\*\/\/; s\/\[\[:space:\]\]\*\$\/\/'\)\n([\s\S]*?)\n( +)done < <\(printf '%s\\n' "\$1" \| tr '\|;&' '\\n'\)\n/m,

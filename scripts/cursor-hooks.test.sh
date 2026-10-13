@@ -118,6 +118,10 @@ fire preToolUse "$(tool rl1 Write '{"path":"src/a.ts","contents":"x"}')"
 check "require-lead: once per conversation" has '.permission == "allow"'
 fire preToolUse "$(tool rl2 Shell '{"command":"git status && ls -la","working_directory":"/x"}')"
 check "require-lead: read-only shell passes" has '.permission == "allow"'
+# echo $$'\'; touch x; echo '\' — $$' is a pid plus a single quote, so touch runs
+r4cmd=$(printf '%s' $'echo $$\'\\\'; touch x; echo \'\\\'')
+fire preToolUse "$(tool r4 Shell "$(jq -nc --arg c "$r4cmd" '{command:$c,working_directory:"/x"}')")"
+check "require-lead: a \$\$' quote does not hide a shell write" has '.permission == "deny"'
 fire preToolUse "$(tool rl2 Read "{\"path\":\"$plugin/skills/kru-lead/SKILL.md\"}")"
 fire preToolUse "$(tool rl2 Write '{"path":"src/a.ts","contents":"x"}')"
 check "require-lead: reading the lead skill loads it" has '.permission == "allow"'

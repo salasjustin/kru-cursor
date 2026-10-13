@@ -92,5 +92,29 @@ for c in "awk 'BEGIN{sys''tem(\"touch /tmp/pwn\")}'" "awk \$'BEGIN{\\x73ystem(\"
   expect write "$c"
 done
 
+# the fourth review: $$' is a pid plus a single quote, not $'…', so the ;
+# after it runs. find's -exec/-ok/-delete/-fprint/-fls and git's --output are
+# read off the quote-resolved words. an unquoted $ other than $$ and $'…', and
+# an unescaped $ inside "…", fails closed (${var@P} runs a command)
+for c in 'echo $$' "echo \$'a;b'" "find . -printf '%f\\n'" 'git diff' 'git diff --output-separator=,' \
+  'find . -name x -print' 'column --output-separator , a'; do
+  expect read "$c"
+done
+
+for c in \
+  $'echo $$\'\\\'; touch x; echo \'\\\'' \
+  $'ls $$\'\\\' && touch x && ls \'\\\'' \
+  $'echo $$$\'a\'; touch x' \
+  $'echo $$$$\'\\\'; touch x; echo \'\\\'' \
+  "git diff --out''put=/tmp/x" "git diff --out\$'put'=/tmp/x" 'git log -p --output x' \
+  "find . -ex''ec touch x \\;" "find . -ex\\ec touch x \\;" "find . \$'-exec' touch x \\;" \
+  "find . -\"exec\" touch x \\;" "find . -o''k touch x \\;" "find . -de''lete" \
+  "find . -fp''rint /tmp/x" "find . -f''ls /tmp/x" "find . -fprint''f /tmp/x %f" \
+  $'x=$\'\\044(touch x)\'; echo ${x@P}' \
+  $'x=$\'\\044(touch x)\'; echo "${x@P}"' \
+  $'echo $"a"; touch x'; do
+  expect write "$c"
+done
+
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
