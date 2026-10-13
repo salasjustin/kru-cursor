@@ -30,6 +30,9 @@ stored=$(kru_path agent-memory)
 # stop has no model-only field short of blocking, so there it goes to stderr
 say() {
   local msg="kru store: $1" raw=${2:-}
+  # a budget that ran out says so, not the sign-in hint the failure line carries.
+  # the clock decides, not git's words: ssh or a helper may print before the kill
+  [ -n "$raw" ] && [ "$SECONDS" -ge "$deadline" ] && msg="kru store: ${1%%; sync failed*}; sync timed out after ${budget}s. A large store needs a higher KRU_STORE_SYNC_TIMEOUT"
   if command -v jq >/dev/null 2>&1; then
     if [ "$mode" = start ] && [ -n "$raw" ]; then
       jq -nc --arg m "$msg" --arg r "kru store sync error: $raw" \
@@ -48,6 +51,28 @@ case "$KRU_STORE_REPO" in
 esac
 
 g() { git -C "$home" "$@"; }
+# a remote that hangs must not hold the hook: every network call this run
+# makes shares one budget (KRU_STORE_SYNC_TIMEOUT; 10s at start, 20s at stop),
+# and the watchdog kills the call's process group, so the ssh or remote helper
+# git spawned ends with it. git's low-speed abort ends a stalled transfer sooner
+# a value that isn't a positive count of seconds gets the default; 0 falls back, 08 is eight
+budget=${KRU_STORE_SYNC_TIMEOUT:-}
+[[ $budget =~ ^[0-9]+$ ]] && [ "$((10#$budget))" -gt 0 ] && budget=$((10#$budget)) || budget=$([ "$mode" = stop ] && echo 20 || echo 10)
+deadline=$((SECONDS + budget))
+net() {
+  local left=$((deadline - SECONDS)) pid dog rc
+  [ "$left" -gt 0 ] || { echo "no answer from the remote in time" >&2; return 124; }
+  set -m
+  git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime="$left" "$@" &
+  pid=$!
+  set +m
+  ( trap 'kill "$s"; exit' TERM; sleep "$left" & s=$!; wait "$s"; kill -TERM -- "-$pid" ) >/dev/null 2>&1 &
+  dog=$!
+  wait "$pid"; rc=$?
+  kill "$dog" 2>/dev/null; wait "$dog" 2>/dev/null
+  [ "$rc" -gt 128 ] && echo "no answer from the remote in ${left}s" >&2
+  return "$rc"
+}
 first_line() { printf '%s' "$1" | head -n 1 | cut -c1-160; }
 
 # newer file wins, both directions; a dir that doesn't exist yet is skipped
@@ -86,7 +111,7 @@ case "$mode" in
   start)
     if [ ! -d "$home/.git" ]; then
       tmp=$(mktemp -d) || say "not loaded; sync failed. Free some disk space and restart the session"
-      err=$(git clone -q "$url" "$tmp/store" 2>&1) || { rm -rf "$tmp"; say "not loaded; sync failed. Check that $KRU_STORE_REPO exists and you're signed in to GitHub (gh auth status)" "$(first_line "$err")"; }
+      err=$(net clone -q "$url" "$tmp/store" 2>&1) || { rm -rf "$tmp"; say "not loaded; sync failed. Check that $KRU_STORE_REPO exists and you're signed in to GitHub (gh auth status)" "$(first_line "$err")"; }
       mkdir -p "$home"
       # a home that already holds files — hook state from this session — keeps
       # them; the checkout only fills in what the remote tracks
@@ -94,7 +119,7 @@ case "$mode" in
       g checkout -q -- . 2>/dev/null
     else
       register_driver
-      err=$(g pull -q --rebase --autostash 2>&1) || say "using the local copy; sync failed. Check your network or GitHub sign-in (gh auth status)" "$(first_line "$err")"
+      err=$(net -C "$home" pull -q --rebase --autostash 2>&1) || say "using the local copy; sync failed. Check your network or GitHub sign-in (gh auth status)" "$(first_line "$err")"
     fi
     register_driver
     seed_defaults
@@ -113,9 +138,9 @@ case "$mode" in
     # a push that failed on an earlier turn left commits ahead of the remote
     ahead=$(g rev-list --count '@{u}..HEAD' 2>/dev/null)
     [ "${ahead:-0}" = 0 ] && exit 0
-    if ! g push -q 2>/dev/null; then
-      err=$(g pull -q --rebase 2>&1) || { g rebase --abort >/dev/null 2>&1; say "saved locally; sync failed. Another machine's changes conflict: run git -C $home pull --rebase to merge them" "$(first_line "$err")"; }
-      err=$(g push -q 2>&1) || say "saved locally; sync failed. Check your network or GitHub sign-in (gh auth status)" "$(first_line "$err")"
+    if ! net -C "$home" push -q 2>/dev/null; then
+      err=$(net -C "$home" pull -q --rebase 2>&1) || { g rebase --abort >/dev/null 2>&1; say "saved locally; sync failed. Another machine's changes conflict: run git -C $home pull --rebase to merge them" "$(first_line "$err")"; }
+      err=$(net -C "$home" push -q 2>&1) || say "saved locally; sync failed. Check your network or GitHub sign-in (gh auth status)" "$(first_line "$err")"
     fi
     ;;
 esac

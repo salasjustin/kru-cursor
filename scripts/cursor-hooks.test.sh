@@ -118,6 +118,10 @@ fire preToolUse "$(tool rl1 Write '{"path":"src/a.ts","contents":"x"}')"
 check "require-lead: once per conversation" has '.permission == "allow"'
 fire preToolUse "$(tool rl2 Shell '{"command":"git status && ls -la","working_directory":"/x"}')"
 check "require-lead: read-only shell passes" has '.permission == "allow"'
+# echo $$'\'; touch x; echo '\' — $$' is a pid plus a single quote, so touch runs
+r4cmd=$(printf '%s' $'echo $$\'\\\'; touch x; echo \'\\\'')
+fire preToolUse "$(tool r4 Shell "$(jq -nc --arg c "$r4cmd" '{command:$c,working_directory:"/x"}')")"
+check "require-lead: a \$\$' quote does not hide a shell write" has '.permission == "deny"'
 fire preToolUse "$(tool rl2 Read "{\"path\":\"$plugin/skills/kru-lead/SKILL.md\"}")"
 fire preToolUse "$(tool rl2 Write '{"path":"src/a.ts","contents":"x"}')"
 check "require-lead: reading the lead skill loads it" has '.permission == "allow"'
@@ -189,6 +193,10 @@ fire preToolUse "$(tool bs1 Shell '{"command":"echo hi > notes.md"}')"
 check "brainstorm-guard: a shell write is refused" has '.permission == "deny"'
 fire preToolUse "$(tool bs1 Delete '{"path":"notes.md"}')"
 check "brainstorm-guard: a delete is refused" has '.permission == "deny"'
+# cursor tests a matcher as an unanchored regex: an unanchored `Write` would
+# put the guards on any tool whose name contains it
+fire preToolUse "$(tool bs1 WriteShellStdin '{"shellId":"s1","chars":"y"}')"
+check "brainstorm-guard: WriteShellStdin is not the Write tool" has '.permission == "allow"'
 fire beforeSubmitPrompt "$(prompt bs1 'go')"
 fire preToolUse "$(tool bs1 Write '{"path":"notes.md"}')"
 check "brainstorm-guard: the user's go lifts it" has '.permission == "allow"'
@@ -210,8 +218,68 @@ fire preToolUse "$(tool sa-plan Write '{"path":"plan.md"}' '{"parent_tool_call_i
 check "seat-guard: planner is refused the Write tool" has '.permission == "deny" and (.agent_message | test("planner"))'
 fire preToolUse "$(tool sa-plan Shell '{"command":"mkdir -p /tmp/x"}' '{"parent_tool_call_id":"tc-plan"}')"
 check "seat-guard: planner keeps the shell" has '.permission == "allow"'
+fire preToolUse "$(tool sa-plan WriteShellStdin '{"shellId":"s1","chars":"y"}' '{"parent_tool_call_id":"tc-plan"}')"
+check "seat-guard: WriteShellStdin is not the Write tool" has '.permission == "allow"'
+check "every tool matcher is anchored (or *)" jq -e '[.hooks[][] | select(has("matcher")) | .matcher | . == "*" or test("^\\^([A-Za-z][A-Za-z0-9:_-]*|\\([A-Za-z][A-Za-z0-9:_-]*(\\|[A-Za-z][A-Za-z0-9:_-]*)*\\))\\$$")] | all' "$hooks_json"
+# verify-tree's anchoring check: a name list is exact only as ^Name$ or
+# ^(A|B)$, and a matcher that doesn't compile matches every tool in cursor
+for m in '*' '^Task$' '^(Shell|Write|Delete)$' '^MCP:acme$'; do
+  check "verify-tree takes matcher $m" node "$repo/scripts/verify-tree.mjs" --matcher "$m"
+done
+for m in 'Write' 'Write$' '^Write' '^Write|Delete$' '^(Write$' '^Write)$' '^(Write|Delete' '^((Write)$' '^(|Write)$' '^(Write||Delete)$'; do
+  check "verify-tree refuses matcher $m" not node "$repo/scripts/verify-tree.mjs" --matcher "$m"
+done
 fire preToolUse "$(tool sa-node Write '{"path":"src/a.ts"}' '{"parent_tool_call_id":"tc-node"}')"
 check "seat-guard: a builder writes" has '.permission == "allow"'
+
+# --- store-sync on a hung remote ------------------------------------------------------------------
+# the first preToolUse waits on the store's clone; a remote that never answers
+# has to give up inside the hook's 15s, and the call still goes through
+mkdir -p "$sandbox/bin"
+real_git=$(command -v git)
+printf '#!/bin/bash\ncase " $* " in *" clone "*|*" pull "*) exec sleep 60 ;; esac\nexec "%s" "$@"\n' "$real_git" > "$sandbox/bin/git"
+chmod +x "$sandbox/bin/git"
+t0=$(date +%s)
+PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=2 fire preToolUse "$(tool hung1 Read '{"path":"README.md"}')"
+t1=$(date +%s)
+check "store-sync: a hung clone gives up inside the first-turn budget" test $((t1 - t0)) -lt 12
+check "…and the tool call is allowed" has '.permission == "allow"'
+resp=$(cd "$work" && printf '{}' | PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=1 bash "$plugin/hooks/store-sync.sh" start "$plugin" 2>/dev/null)
+check "…and says it timed out, not that the repo or sign-in is wrong" has '.systemMessage | test("not loaded; sync timed out after 1s")'
+# the verdict comes from the budget, not git's words: a remote that prints first
+# (ssh's banner, a helper's progress) and then hangs still reads as a timeout
+printf '#!/bin/bash\ncase " $* " in *" clone "*) echo "ssh: connect to host github.com port 22" >&2; exec sleep 60 ;; esac\nexec "%s" "$@"\n' "$real_git" > "$sandbox/bin/git"
+resp=$(cd "$work" && printf '{}' | PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=1 bash "$plugin/hooks/store-sync.sh" start "$plugin" 2>/dev/null)
+check "…even when git printed something before it hung" has '.systemMessage | test("not loaded; sync timed out after 1s")'
+# the first pull gets the budget of the hook it runs in, unless the variable is set
+printf '#!/bin/bash\ncase " $* " in *" clone "*) echo "$KRU_STORE_SYNC_TIMEOUT" >> "%s"; exit 1 ;; esac\nexec "%s" "$@"\n' "$sandbox/budget" "$real_git" > "$sandbox/bin/git"
+PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store fire sessionStart "$(jq -nc '{session_id: "bud1", conversation_id: "bud1"}')"
+PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store fire preToolUse "$(tool bud2 Read '{"path":"README.md"}')"
+PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=7 fire preToolUse "$(tool bud3 Read '{"path":"README.md"}')"
+check "first-turn: 45s from sessionStart, 10s from the first tool call, an explicit value wins" test "$(tr '\n' ' ' < "$sandbox/budget")" = "45 10 7 "
+# a budget that isn't a positive count of seconds falls back to the default
+# (0 included), and 08 is eight rather than an octal error. a clone that fails
+# at once is a failure, not a timeout
+for v in abc 10s 08 -5 0; do
+  resp=$(cd "$work" && printf '{}' | PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=$v bash "$plugin/hooks/store-sync.sh" start "$plugin" 2>"$sandbox/budget.err")
+  check "store-sync: KRU_STORE_SYNC_TIMEOUT=$v is not an arithmetic error" test ! -s "$sandbox/budget.err"
+  check "…and a clone that fails at once doesn't read as a timeout ($v)" has '.systemMessage | test("sync failed")'
+done
+# the stop path's push, pull and push share one budget (30s stop hook), and a
+# call that hangs in a child — ssh, a remote helper — still ends on time:
+# the child holds the output pipe, so killing git alone would leave it waiting
+git init -q --bare "$sandbox/store.git"
+git clone -q "$sandbox/store.git" "$sandbox/store-home" 2>/dev/null
+git -C "$sandbox/store-home" -c user.name=t -c user.email=t@example.com commit -q --allow-empty -m seed
+git -C "$sandbox/store-home" push -q origin HEAD 2>/dev/null
+git -C "$sandbox/store-home" config user.name t && git -C "$sandbox/store-home" config user.email t@example.com
+echo note > "$sandbox/store-home/inbox.md"
+printf '#!/bin/bash\ncase " $* " in *" push "*|*" pull "*) sleep 20 & wait; exit 1 ;; esac\nexec "%s" "$@"\n' "$real_git" > "$sandbox/bin/git"
+t0=$(date +%s)
+PATH="$sandbox/bin:$PATH" KRU_STORE_REPO="$sandbox/store.git" KRU_HOME="$sandbox/store-home" KRU_STORE_SYNC_TIMEOUT=3 fire stop "$(stop hung2 0)"
+t1=$(date +%s)
+check "store-sync: a hung push, pull and push end inside one budget" test $((t1 - t0)) -lt 6
+check "…and the note is committed locally" test "$(git -C "$sandbox/store-home" rev-list --count '@{u}..HEAD')" = 1
 
 # --- adapter hardening --------------------------------------------------------------------------------
 { printf 'Build the `exportCommand` handler in src/cli.ts. '; head -c 160000 /dev/zero | tr '\0' 'a'; } > "$sandbox/big.txt"

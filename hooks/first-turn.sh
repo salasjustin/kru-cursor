@@ -23,6 +23,15 @@ state=$(kru_cursor_state "$conv") || exit 0
 # concurrently, and only the one that creates the mark runs the work
 mkdir "$state/started" 2>/dev/null || exit 0
 
+# the store's first pull gets the budget of the hook it runs in: sessionStart
+# waits up to 60s, the first tool call 15s (hooks.json), and the setup nudge
+# runs after it. an explicit KRU_STORE_SYNC_TIMEOUT wins
+if [ -z "${KRU_STORE_SYNC_TIMEOUT:-}" ]; then
+  case "$(printf '%s' "$input" | jq -r '.hook_event_name // empty' 2>/dev/null)" in
+    sessionStart) export KRU_STORE_SYNC_TIMEOUT=45 ;;
+    *) export KRU_STORE_SYNC_TIMEOUT=10 ;;
+  esac
+fi
 sync=$(printf '%s' "$input" | bash "$plugin_root/hooks/store-sync.sh" start "$plugin_root" 2>/dev/null)
 nudge=$(printf '%s' "$input" | bash "$plugin_root/hooks/setup-nudge.sh" "$plugin_root" 2>/dev/null)
 

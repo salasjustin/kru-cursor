@@ -136,6 +136,7 @@ const FORK_OWNED = new Set([
   "hooks/cursor-hook.sh",
   "hooks/require-lead.sh",
   "hooks/require-lead.test.sh",
+  "hooks/readonly-bash.test.sh",
   "hooks/brainstorm-guard.sh",
   "hooks/brainstorm-guard.test.sh",
   "hooks/prompt-state.sh",
@@ -216,6 +217,123 @@ const RULES = [
     "# package.json + lockfile into every cached plugin version — 65 MB a version for\n# two seats that rarely run. cursor has no plugin data dir, so on cursor they live\n# in the user's data dir (KRU_PLUGIN_DATA overrides) — outside the store, which a\n# store repo would sync — where a plugin update leaves them.", { sh: true, files: /^scripts\/asset\/run\.sh$/ }),
   // the read-only listings a triage turn reaches for, cursor's cli
   R(/'claude mcp list'\*\|'claude plugin list'\*\|'claude plugin details'\*\)/g, "'agent mcp list'*|'agent status'*|'agent models'*|'cursor-agent mcp list'*|'cursor-agent status'*)", { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /'agent mcp list'/ }),
+  // verbs that read by default and write on a flag or an operand. every raw
+  // newline splits, even inside a quote, a comment or a heredoc (fail closed);
+  // | ; & split only outside quotes (kru_segments). every flag check reads the
+  // segment's words with quotes resolved
+  // (kru_words, from scripts/cursor/readonly-words.sh), so a quoted flag is the
+  // flag. awk's system(), getline, @include, @load and an indirect @name() run
+  // code — on the raw line when awk is on it, so grep or rg for the words still
+  // reads, and again on the quote-resolved words, because sys''tem and
+  // $'\x73ystem' are system. a | other than || or a > in that program pipes or
+  // writes. awk -f/--file or any flag but -F/-v loads a program the line can't
+  // show. sed is an allowlist (kru_sed_reads): its w/W/e need no separator, so
+  // only read flags, addresses, p d D q = G g h H N P x l y and s///[gpIiMm0-9]* read,
+  // and -f/--file/-i are writes. sort -o (GNU takes any unambiguous prefix:
+  // --o, --out) writes a file and --compress-program runs one, --output writes
+  // (--output-separator doesn't), rg --pre runs a program per file, yq
+  // -i/--inplace and --split-exp write, date -s/--set or a clock operand sets
+  // the clock (-I takes a format), `command` runs whatever follows it bar
+  // -v/-V, uniq's second operand and file -C write, macOS base64 -o writes,
+  // xxd's second operand writes so it leaves the list, and <( runs a command.
+  // find's -exec/-execdir/-ok/-okdir/-delete/-fprint/-fprint0/-fprintf/-fls run
+  // or write, and quoting hides them (-ex''ec), so find is checked on the
+  // quote-resolved words. git --output writes its file the same way
+  // (--out''put=); --output-separator does not. $$' is a pid plus a single
+  // quote, not $'…', and any other unquoted $ fails closed (kru_segments_line)
+  // (tests: hooks/readonly-bash.test.sh)
+  R(/(refusal costs one message\.\n)\n(?=# kru_readonly_bash <command>)/, (_m, a) => `${a}\n${block("readonly-words.sh")}\n`,
+    { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^kru_sed_reads\(\) \{$/m }),
+  R(/\|\*'-exec'\*\|(.*)\|\*'xargs'\*\) return 1 ;;/g, "|*'-exec'*|*'-ok'*|$1|*'xargs'*|*'<('*) return 1 ;;", { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /\*'-ok'\*\|.*\|\*'xargs'\*\|\*'<\('\*\) return 1 ;;/ }),
+  R(/^(kru_readonly_bash\(\) \{\n)( +)case "\$1" in\n/m, (_m, f, a) => f + [
+    "# awk's system() and getline run commands, system with any space before its",
+    "# paren, and so does gawk's indirect @name(). quoting can hide them, so the",
+    "# awk branch below checks the quote-resolved words too. the raw line still",
+    "# answers whenever awk is on it, so grep or rg for the words still reads",
+    String.raw`case $1 in *awk*) [[ $1 =~ system[[:space:]]*\(|getline|@include|@load|@[[:space:]]*[A-Za-z_][A-Za-z0-9_:]*[[:space:]]*\( ]] && return 1 ;; esac`,
+    "# any --output writes its file (git diff --output=x); --output-separator and",
+    "# the other --output-* names don't",
+    String.raw`[[ $1 =~ --output([=[:space:]\'\"]|$) ]] && return 1`,
+    'case "$1" in',
+  ].map((l) => a + l + "\n").join(""),
+    { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /case \$1 in \*awk\*\) \[\[ \$1 =~ system\[\[:space:\]\]\*\\\(\|getline\|@include\|@load\|@\[\[:space:\]\]/ }),
+  R(/( +)ls\|cat\|head\|tail\|wc\|grep\|egrep\|fgrep\|rg\|find\|file\|(.*)\n( +)which\|command\|type\|echo\|printf\|jq\|yq\|sort\|uniq\|cut\|tr\|column\|date\|test\|true\|diff\) continue ;;\n( +)# safe only because the write-tell case above already took sed -i and any redirect\n( +)sed\|awk\|nl\|tac\|comm\|xxd\|base64\) continue ;;\n/g,
+    (_m, a, rest) => [
+      `ls|cat|head|tail|wc|grep|egrep|fgrep|${rest}`,
+      "which|type|echo|printf|jq|cut|tr|column|test|true|diff) continue ;;",
+      "# the verbs that read until a flag or an operand says otherwise.",
+      "# find's -exec/-ok/-delete/-fprint/-fls and git's --output are read off",
+      "# the quote-resolved words; a git segment with neither falls through to",
+      "# the read-only subcommand list below",
+      String.raw`find) kru_words "$seg" && ! kru_any '^-(exec|ok|delete|fls|fprint)' && continue; return 1 ;;`,
+      String.raw`git) kru_words "$seg" || return 1; kru_any '^--output(=|$)' && return 1 ;;`,
+      String.raw`sort) kru_words "$seg" && ! kru_any '^(-[^-]*o|--o|--co)' && continue; return 1 ;;`,
+      String.raw`rg) kru_words "$seg" && ! kru_any '^--pre(=|$)' && continue; return 1 ;;`,
+      String.raw`sed) kru_words "$seg" && kru_sed_reads "${"$"}{KRU_W[@]:1}" && continue; return 1 ;;`,
+      String.raw`awk) kru_words "$seg" && ! [[ ${"$"}{KRU_W[*]} =~ $kru_awk_runs ]] && kru_awk_reads "${"$"}{KRU_W[@]:1}" && continue; return 1 ;;`,
+      String.raw`yq) kru_words "$seg" && ! kru_any '^(-[a-zA-Z]*[is]|--inplace|--split-exp)' && continue; return 1 ;;`,
+      String.raw`date) kru_words "$seg" && ! kru_any '^(-[^-dfrI]*s|--s|[0-9.]{4,}$)' && continue; return 1 ;;`,
+      String.raw`command) kru_words "$seg" && [[ ${"$"}{KRU_W[1]:-} == -[vV] ]] && continue; return 1 ;;`,
+      String.raw`uniq) kru_words "$seg" && kru_operands 1 '^-[fsw]$' "${"$"}{KRU_W[@]:1}" && continue; return 1 ;;`,
+      String.raw`file) kru_words "$seg" && ! kru_any '^(-[^-]*C|--co)' && continue; return 1 ;;`,
+      String.raw`base64) kru_words "$seg" && ! kru_any '^(-[^-]*o|--o)' && continue; return 1 ;;`,
+      "# safe only because the write-tell case above already took any redirect",
+      "nl|tac|comm) continue ;;",
+    ].map((l) => a + l + "\n").join(""),
+    { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /find\) kru_words "\$seg" && ! kru_any '\^-\(exec\|ok\|delete\|fls\|fprint\)'[\s\S]*git\) kru_words "\$seg" \|\| return 1; kru_any '\^--output\(=\|\$\)'/ }),
+  // | ; & inside sed '/x/{p;q}' or awk '{print $1; print $2}' stay in the
+  // program; a raw newline always splits (kru_segments, inserted above)
+  R(/^( +)while IFS= read -r seg; do\n +seg=\$\(printf '%s' "\$seg" \| sed 's\/\^\[\[:space:\]\]\*\/\/; s\/\[\[:space:\]\]\*\$\/\/'\)\n([\s\S]*?)\n( +)done < <\(printf '%s\\n' "\$1" \| tr '\|;&' '\\n'\)\n/m,
+    (_m, a, mid, a2) => [
+      `${a}kru_segments "$1" || return 1`,
+      `${a}for seg in "\${KRU_S[@]}"; do`,
+      `${a}  seg=\${seg#"\${seg%%[![:space:]]*}"}; seg=\${seg%"\${seg##*[![:space:]]}"}`,
+      mid,
+      `${a2}done`,
+    ].join("\n") + "\n",
+    { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^ +kru_segments "\$1" \|\| return 1$/m }),
+  // a hung remote must not hold the hook: the first preToolUse has 15s and the
+  // stop hook 30s, and the stop path's push, pull, push would take three
+  // separate timeouts past that. every call shares one budget, and a watchdog
+  // ends the call's whole process group — coreutils timeout signals only its
+  // child, leaving an ssh in connect holding the output open, and macOS ships
+  // none (tests: scripts/cursor-hooks.test.sh, store-sync on a hung remote)
+  R(/^g\(\) \{ git -C "\$home" "\$@"; \}\n(?!# a remote that hangs)/m, () => [
+    'g() { git -C "$home" "$@"; }',
+    "# a remote that hangs must not hold the hook: every network call this run",
+    "# makes shares one budget (KRU_STORE_SYNC_TIMEOUT; 10s at start, 20s at stop),",
+    "# and the watchdog kills the call's process group, so the ssh or remote helper",
+    "# git spawned ends with it. git's low-speed abort ends a stalled transfer sooner",
+    "# a value that isn't a positive count of seconds gets the default; 0 falls back, 08 is eight",
+    "budget=${KRU_STORE_SYNC_TIMEOUT:-}",
+    '[[ $budget =~ ^[0-9]+$ ]] && [ "$((10#$budget))" -gt 0 ] && budget=$((10#$budget)) || budget=$([ "$mode" = stop ] && echo 20 || echo 10)',
+    "deadline=$((SECONDS + budget))",
+    "net() {",
+    "  local left=$((deadline - SECONDS)) pid dog rc",
+    '  [ "$left" -gt 0 ] || { echo "no answer from the remote in time" >&2; return 124; }',
+    "  set -m",
+    '  git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime="$left" "$@" &',
+    "  pid=$!",
+    "  set +m",
+    '  ( trap \'kill "$s"; exit\' TERM; sleep "$left" & s=$!; wait "$s"; kill -TERM -- "-$pid" ) >/dev/null 2>&1 &',
+    "  dog=$!",
+    '  wait "$pid"; rc=$?',
+    '  kill "$dog" 2>/dev/null; wait "$dog" 2>/dev/null',
+    '  [ "$rc" -gt 128 ] && echo "no answer from the remote in ${left}s" >&2',
+    '  return "$rc"',
+    "}",
+    "",
+  ].join("\n"), { sh: true, files: /^hooks\/store-sync\.sh$/, required: /\[\[ \$budget =~ \^\[0-9\]\+\$ \]\] && \[ "\$\(\(10#\$budget\)\)" -gt 0 \]/ }),
+  // a budget that ran out says so, keeping what still holds, instead of the
+  // sign-in hint its failure line carries (tests: scripts/cursor-hooks.test.sh)
+  R(/^(  local msg="kru store: \$1" raw=\$\{2:-\}\n)(?!  # a budget)/m, (_m, a) => a + [
+    "  # a budget that ran out says so, not the sign-in hint the failure line carries.",
+    "  # the clock decides, not git's words: ssh or a helper may print before the kill",
+    '  [ -n "$raw" ] && [ "$SECONDS" -ge "$deadline" ] && msg="kru store: ${1%%; sync failed*}; sync timed out after ${budget}s. A large store needs a higher KRU_STORE_SYNC_TIMEOUT"',
+    "",
+  ].join("\n"), { sh: true, files: /^hooks\/store-sync\.sh$/, required: /^  # a budget that ran out says so/m }),
+  R(/\$\(git clone -q "\$url"/g, '$(net clone -q "$url"', { sh: true, files: /^hooks\/store-sync\.sh$/, required: /\$\(net clone -q "\$url"/ }),
+  R(/\bg (pull|push) -q\b/g, 'net -C "$home" $1 -q', { sh: true, files: /^hooks\/store-sync\.sh$/, required: /net -C "\$home" pull -q --rebase --autostash/ }),
   // a cloud vm: cursor's managed vms expose the agent metadata socket
   R(/kru_is_cloud\(\) \{ \[ "\$\{CLAUDE_CODE_REMOTE:-\}" = "true" \]; \}/g,
     'kru_is_cloud() { [ "${KRU_CLOUD:-}" = "0" ] && return 1; [ "${KRU_CLOUD:-}" = "1" ] || [ -n "${CURSOR_AGENT_SOCKET:-}" ] || [ -S /run/cursor/api.sock ]; }', { sh: true, files: /^scripts\/kru-store\.sh$/, required: /CURSOR_AGENT_SOCKET/ }),
@@ -808,14 +926,19 @@ function portHooks(noEdit) {
       sessionStart: [h("sessionStart", "first-turn.sh", { timeout: 60 })],
       beforeSubmitPrompt: [h("beforeSubmitPrompt", "prompt-state.sh", { timeout: 10 })],
       preToolUse: [
-        h("preToolUse", "first-turn.sh", { matcher: "*", timeout: 60 }),
+        // the first tool call of a conversation waits on this one; store-sync
+        // bounds its network calls to fit (KRU_STORE_SYNC_TIMEOUT)
+        h("preToolUse", "first-turn.sh", { matcher: "*", timeout: 15 }),
         h("preToolUse", "require-lead.sh", { matcher: "*", timeout: 10 }),
-        h("preToolUse", "check-handoff.sh", { matcher: "Task", timeout: 10 }),
-        h("preToolUse", "brainstorm-guard.sh", { matcher: "Shell|Write|Delete", timeout: 10 }),
-        h("preToolUse", "seat-guard.sh", { matcher: "Write|Delete", timeout: 10 }, noEdit),
+        // cursor tests a matcher as an unanchored regex (new RegExp(m).test(tool)
+        // in cursor-agent 2026.10.01), so every name is anchored: `Write` alone
+        // would also match a tool named WriteShellStdin
+        h("preToolUse", "check-handoff.sh", { matcher: "^Task$", timeout: 10 }),
+        h("preToolUse", "brainstorm-guard.sh", { matcher: "^(Shell|Write|Delete)$", timeout: 10 }),
+        h("preToolUse", "seat-guard.sh", { matcher: "^(Write|Delete)$", timeout: 10 }, noEdit),
       ],
       subagentStart: [h("subagentStart", "seat-guard.sh", { timeout: 10 }, noEdit)],
-      postToolUse: [h("postToolUse", "log-dispatch.sh", { matcher: "Task", timeout: 10 })],
+      postToolUse: [h("postToolUse", "log-dispatch.sh", { matcher: "^Task$", timeout: 10 })],
       // a hook past its loop_limit is skipped outright. log-return asks once
       // (loop_count 0) and logs the second miss (loop_count 1), so it must still
       // run at 1; nudge-audit bounds itself by the dispatch count it already
