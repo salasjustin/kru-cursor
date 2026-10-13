@@ -55,9 +55,9 @@ g() { git -C "$home" "$@"; }
 # makes shares one budget (KRU_STORE_SYNC_TIMEOUT; 10s at start, 20s at stop),
 # and the watchdog kills the call's process group, so the ssh or remote helper
 # git spawned ends with it. git's low-speed abort ends a stalled transfer sooner
-# a value that isn't a count of seconds gets the default; 08 is eight, not an octal error
+# a value that isn't a positive count of seconds gets the default; 0 falls back, 08 is eight
 budget=${KRU_STORE_SYNC_TIMEOUT:-}
-[[ $budget =~ ^[0-9]+$ ]] && budget=$((10#$budget)) || budget=$([ "$mode" = stop ] && echo 20 || echo 10)
+[[ $budget =~ ^[0-9]+$ ]] && [ "$((10#$budget))" -gt 0 ] && budget=$((10#$budget)) || budget=$([ "$mode" = stop ] && echo 20 || echo 10)
 deadline=$((SECONDS + budget))
 net() {
   local left=$((deadline - SECONDS)) pid dog rc

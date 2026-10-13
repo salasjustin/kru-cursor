@@ -76,8 +76,7 @@ done
 # and find -ok/-okdir writes
 for c in "sed -n '/x/{p;q}' a" "sed -n '1!G;h;\$p' a" "sed -n '\$!N;P;D' a" "awk '{print \$1; print \$2}' a" \
   "awk '{print \$1; print \$2}' a | sort -u" "grep -n 'a|b' f" "grep -E 'x;y' f | head -3" "echo 'a & b'" \
-  "grep system f | awk '{print \$1}'" 'cat a && ls' "awk 'a || b' f" "find . -name 'a;b'" \
-  $'grep -n foo \\\nbar'; do
+  "grep system f | awk '{print \$1}'" 'cat a && ls' "awk 'a || b' f" "find . -name 'a;b'"; do
   expect read "$c"
 done
 
@@ -87,7 +86,9 @@ for c in "awk 'BEGIN{sys''tem(\"touch /tmp/pwn\")}'" "awk \$'BEGIN{\\x73ystem(\"
   "awk \$'BEGIN{@\\x66(\"id\")}'" "awk '{print | \"sh\"}' a" "awk '{print > \"out\"}' a" \
   'find . -ok rm {} \;' 'find . -okdir rm {} \;' "find . '-ok' rm {} \;" \
   'ls; rm -rf build' 'cat a | sh' 'cat a & rm b' $'grep a f\nrm -rf build' \
-  $'sort \\\n-o out a' "ls 'unclosed"; do
+  $'sort \\\n-o out a' $'grep -n foo \\\nbar' "ls 'unclosed" \
+  $'ls #\'\ntouch /tmp/x #\'' \
+  $'cat <<ls\necho \'\nls\ntouch /tmp/x\ncat <<ls\necho \'\nls'; do
   expect write "$c"
 done
 

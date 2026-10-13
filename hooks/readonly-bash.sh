@@ -6,17 +6,26 @@
 # anything unparsed counts as one, because a miss is a silent write and a false
 # refusal costs one message.
 
-# kru_segments <command> — the command's simple commands in KRU_S, split on the
-# | ; & and newlines bash splits on, and not on one a quote or a backslash
-# holds, so sed -n '/x/{p;q}' or awk '{print $1; print $2}' stays one segment.
-# non-zero on an unclosed quote
+# kru_segments <command> — the command's simple commands in KRU_S. every raw
+# newline splits, even inside a quote, a # comment or a heredoc, so a ' there
+# cannot hide the next line (fail closed). | ; & split only outside quotes, so
+# sed -n '/x/{p;q}' stays one segment. non-zero on an unclosed quote
 kru_segments() {
-  local s=$1 i=0 c seg="" part
+  local s=$1 line
   KRU_S=()
+  while IFS= read -r line || [ -n "$line" ]; do
+    kru_segments_line "$line" || return 1
+  done <<< "$s"
+  return 0
+}
+
+# one physical line of kru_segments: split on | ; & outside quotes
+kru_segments_line() {
+  local s=$1 i=0 c seg="" part
   while [ "$i" -lt "${#s}" ]; do
     c=${s:i:1}; i=$((i + 1))
     case $c in
-      [\|\;\&$'\n']) KRU_S+=("$seg"); seg=""; continue ;;
+      [\|\;\&]) KRU_S+=("$seg"); seg=""; continue ;;
       \\) c+=${s:i:1}; i=$((i + 1)) ;;
       \') part=${s:i}; [[ $part == *\'* ]] || return 1; part=${part%%\'*}; c+="$part'"; i=$((i + ${#part} + 1)) ;;
       \"|\$)

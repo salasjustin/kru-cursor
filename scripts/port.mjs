@@ -170,9 +170,10 @@ const RULES = [
     "# package.json + lockfile into every cached plugin version — 65 MB a version for\n# two seats that rarely run. cursor has no plugin data dir, so on cursor they live\n# in the user's data dir (KRU_PLUGIN_DATA overrides) — outside the store, which a\n# store repo would sync — where a plugin update leaves them.", { sh: true, files: /^scripts\/asset\/run\.sh$/ }),
   // the read-only listings a triage turn reaches for, cursor's cli
   R(/'claude mcp list'\*\|'claude plugin list'\*\|'claude plugin details'\*\)/g, "'agent mcp list'*|'agent status'*|'agent models'*|'cursor-agent mcp list'*|'cursor-agent status'*)", { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /'agent mcp list'/ }),
-  // verbs that read by default and write on a flag or an operand. segments
-  // split where bash splits them (kru_segments: | ; & and newline, not inside
-  // quotes). every flag check reads the segment's words with quotes resolved
+  // verbs that read by default and write on a flag or an operand. every raw
+  // newline splits, even inside a quote, a comment or a heredoc (fail closed);
+  // | ; & split only outside quotes (kru_segments). every flag check reads the
+  // segment's words with quotes resolved
   // (kru_words, from scripts/cursor/readonly-words.sh), so a quoted flag is the
   // flag. awk's system(), getline, @include, @load and an indirect @name() run
   // code — on the raw line when awk is on it, so grep or rg for the words still
@@ -223,8 +224,8 @@ const RULES = [
       "nl|tac|comm) continue ;;",
     ].map((l) => a + l + "\n").join(""),
     { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^ +awk\) kru_words "\$seg" && ! \[\[ \$\{KRU_W\[\*\]\} =~ \$kru_awk_runs \]\]/m }),
-  // the chain/pipe split is quote-aware (kru_segments, inserted above): a ; or
-  // | inside sed '/x/{p;q}' or awk '{print $1; print $2}' is part of the program
+  // | ; & inside sed '/x/{p;q}' or awk '{print $1; print $2}' stay in the
+  // program; a raw newline always splits (kru_segments, inserted above)
   R(/^( +)while IFS= read -r seg; do\n +seg=\$\(printf '%s' "\$seg" \| sed 's\/\^\[\[:space:\]\]\*\/\/; s\/\[\[:space:\]\]\*\$\/\/'\)\n([\s\S]*?)\n( +)done < <\(printf '%s\\n' "\$1" \| tr '\|;&' '\\n'\)\n/m,
     (_m, a, mid, a2) => [
       `${a}kru_segments "$1" || return 1`,
@@ -246,9 +247,9 @@ const RULES = [
     "# makes shares one budget (KRU_STORE_SYNC_TIMEOUT; 10s at start, 20s at stop),",
     "# and the watchdog kills the call's process group, so the ssh or remote helper",
     "# git spawned ends with it. git's low-speed abort ends a stalled transfer sooner",
-    "# a value that isn't a count of seconds gets the default; 08 is eight, not an octal error",
+    "# a value that isn't a positive count of seconds gets the default; 0 falls back, 08 is eight",
     "budget=${KRU_STORE_SYNC_TIMEOUT:-}",
-    '[[ $budget =~ ^[0-9]+$ ]] && budget=$((10#$budget)) || budget=$([ "$mode" = stop ] && echo 20 || echo 10)',
+    '[[ $budget =~ ^[0-9]+$ ]] && [ "$((10#$budget))" -gt 0 ] && budget=$((10#$budget)) || budget=$([ "$mode" = stop ] && echo 20 || echo 10)',
     "deadline=$((SECONDS + budget))",
     "net() {",
     "  local left=$((deadline - SECONDS)) pid dog rc",
@@ -265,7 +266,7 @@ const RULES = [
     '  return "$rc"',
     "}",
     "",
-  ].join("\n"), { sh: true, files: /^hooks\/store-sync\.sh$/, required: /\[\[ \$budget =~ \^\[0-9\]\+\$ \]\]/ }),
+  ].join("\n"), { sh: true, files: /^hooks\/store-sync\.sh$/, required: /\[\[ \$budget =~ \^\[0-9\]\+\$ \]\] && \[ "\$\(\(10#\$budget\)\)" -gt 0 \]/ }),
   // a budget that ran out says so, keeping what still holds, instead of the
   // sign-in hint its failure line carries (tests: scripts/cursor-hooks.test.sh)
   R(/^(  local msg="kru store: \$1" raw=\$\{2:-\}\n)(?!  # a budget)/m, (_m, a) => a + [
