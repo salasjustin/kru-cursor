@@ -704,3 +704,23 @@ EDITS.push(E(
   "so the lead can ask the PM to start it.",
   "t10: the requester is the PM; end-user lines untouched",
 ))
+
+// --- t11: small ownership fixes ----------------------------------------------
+EDITS.push(E(
+  "skills/kru-update/SKILL.md",
+  "- **Consider** — the only verdict the user is asked about; the action verdicts run through `/kru-roster` without a question. Real value at a cost the user decides:",
+  "- **Consider** — the only verdict that goes to Kai (kru's PM bot) first; the action verdicts run through `/kru-roster` without a question. Real value at a cost someone has to decide — Kai does, and takes it on to Justin when it is on the escalation list (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md`, first section):",
+  "t11: Consider goes to Kai first",
+))
+EDITS.push(E(
+  "TRACKER.md",
+  "It's the one artifact with no capture rule: the user writes it, and the lead only when asked to keep something they thought out loud.",
+  "It's the one artifact with no capture rule: the PM bot and Justin write it, and the lead only when asked to keep something one of them thought out loud.",
+  "t11: notes/ writers are the PM bot and Justin",
+))
+EDITS.push(E(
+  "TRACKER.md",
+  "Who writes it: the **user**, mostly, and the lead when the user thinks out loud and asks for it to be kept.",
+  "Who writes it: the **PM bot and Justin**, mostly, and the lead when either thinks out loud and asks for it to be kept.",
+  "t11: notes/ writers are the PM bot and Justin",
+))

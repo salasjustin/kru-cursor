@@ -88,7 +88,7 @@ The store only stays truthful if the plan moves **with** the code. There is no g
 - **Todo capture** → a pitched want (the PM's) out of scope for the current slice becomes a GitHub issue on the product repo; a discovered one (the team's scratch) appends **one line** to `TODOS.md` (*Where each thing is tracked*). Zero-friction and pre-triage: no brief, no evidence, no ranking — just the line, plus the `value`/`effort` pair you can answer from what's already loaded and a `?` where you can't — and never derail the task to build it.
 - **Defect capture** → a bug that isn't being fixed in this slice becomes a GitHub issue on the product repo; a security finding gets **its own file** under `issues/` (below) — never a public issue. Fixed it in the slice instead? The pull request closes the issue (`Fixes #n`), or the same change **deletes** its file.
 - **Todo closeout** → a slice that satisfies a parked want **deletes its line** from `TODOS.md` (or closes its GitHub issue with `Fixes #n`), same as a fix deletes its `issues/` file. The parking lot is what's still open.
-- **`notes/` is not swept** → nothing here writes to it. It's the one artifact with no capture rule: the user writes it, and the lead only when asked to keep something they thought out loud.
+- **`notes/` is not swept** → nothing here writes to it. It's the one artifact with no capture rule: the PM bot and Justin write it, and the lead only when asked to keep something one of them thought out loud.
 
 **`TODOS.md` — captured, untriaged.** A single flat file at the **store root**, deliberately outside `plan/` so it survives both a `brief.md` rewrite and the effort dir being archived. It is a lossless parking lot: raw wants don't pollute the current change's brief, and nothing is lost mid-task. Entry format:
 
@@ -119,7 +119,7 @@ The headline stays one line regardless. The rule is **cost, not usefulness**: co
 
 **A note is input, never authority.** This is the one rule the dir carries, and it is what keeps it safe to write in freely. Decisions live in `brief.md` (the current change) and in the working repo's own docs (the product); a note is a draft of thinking that may have been abandoned five minutes later. So: read `notes/` during a grill for material, cite it to the user as *"there's a note that says…"* rather than as settled, and never let a note override the brief, the repo's docs, or the user. An agent that treats stale brainstorming as a decision is the exact drift this store exists to prevent.
 
-Who writes it: the **user**, mostly, and the lead when the user thinks out loud and asks for it to be kept. Unlike `TODOS.md` and `issues/`, **there is no capture rule and no Step 4.5 sweep** — nothing writes here automatically. Store root, not `plan/`, so notes survive a brief rewrite and the effort dir being archived.
+Who writes it: the **PM bot and Justin**, mostly, and the lead when either thinks out loud and asks for it to be kept. Unlike `TODOS.md` and `issues/`, **there is no capture rule and no Step 4.5 sweep** — nothing writes here automatically. Store root, not `plan/`, so notes survive a brief rewrite and the effort dir being archived.
 
 It also answers a recurring question: *where do I put private project notes?* Not the working repo — a gitignored `notes/` there is one `git add -f` or one forked `.gitignore` from being published, and it splits private thinking across two homes. The store is already outside every repo and every worktree.
 
