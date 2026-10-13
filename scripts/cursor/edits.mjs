@@ -588,3 +588,119 @@ EDITS.push(E(
   "Product wants live on the product repo's GitHub issues (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*); when the repo has them, the open ones labelled `enhancement` (`gh issue list --label enhancement --state open --json number,title,body`) run through the same steps beside the file's lines — a landed one closed by `Fixes #n` in its commit, a verified-done one named for the PM bot to close. This is the one verb where a filed want meets the codebase:",
   "t7: the want verb reads GitHub issues too",
 ))
+
+// --- t10: seat prompts say PM where they mean the requester ------------------
+EDITS.push(E(
+  "agents/ui-designer.md",
+  "Claude Design decides the look inside the frame you draft; the user decides whether it's any good.",
+  "Claude Design decides the look inside the frame you draft; the PM decides whether it's any good.",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/ui-designer.md",
+  "and the user judging a canvas drawn in its happy state.",
+  "and the PM judging a canvas drawn in its happy state.",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/ui-designer.md",
+  "You are one of them: paid in the direction the user picks,",
+  "You are one of them: paid in the direction the PM picks,",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/ui-designer.md",
+  "**2–4 genuinely different directions** for the user to pick one they can see",
+  "**2–4 genuinely different directions** for the PM to pick one it can see",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/ui-designer.md",
+  "- **You have no user channel.** The `design` skill asks one design question",
+  "- **You have no channel to the PM.** The `design` skill asks one design question",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/ui-designer.md",
+  "and hand the question up in your return for the lead to put to the user.",
+  "and hand the question up in your return for the lead to put to the PM.",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/ui-designer.md",
+  "The look is settled and it's the user's —",
+  "The look is settled and it's the PM's —",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/ui-designer.md",
+  "- **The look is Claude Design's and the verdict is the user's.**",
+  "- **The look is Claude Design's and the verdict is the PM's.**",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/ui-designer.md",
+  "the design question for the user;",
+  "the design question for the PM;",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/ux-designer.md",
+  "(`/design`, or the user's own claude.ai/design session)",
+  "(`/design`, or the PM's own claude.ai/design session)",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/ux-designer.md",
+  "you have no Bash, no Write and no user channel, and the look was never yours.",
+  "you have no Bash, no Write and no channel to the PM, and the look was never yours.",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/ux-designer.md",
+  "Whether it looks good is the user's call",
+  "Whether it looks good is the PM's call",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/ux-designer.md",
+  "- You run as a subagent and have no user channel.",
+  "- You run as a subagent and have no channel to the PM.",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/web-components-builder.md",
+  "the lead carries it to the user.",
+  "the lead carries it to the PM.",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/web-components-builder.md",
+  "not from asking the user — you have no user channel, so the **`tdd`** skill's",
+  "not from asking the PM — you have no channel to it, so the **`tdd`** skill's",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/web-components-builder.md",
+  "the rendered design gate is the user's look,",
+  "the rendered design gate is the PM's look,",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/visual-reviewer.md",
+  "that's the **user's** `/kru-visual-review` front door,",
+  "that's the **PM's** `/kru-visual-review` front door,",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/visual-reviewer.md",
+  "- **You have no user channel, so report-only is absolute.**",
+  "- **You have no channel to the PM, so report-only is absolute.**",
+  "t10: the requester is the PM; end-user lines untouched",
+))
+EDITS.push(E(
+  "agents/visual-reviewer.md",
+  "so the lead can ask the user to start it.",
+  "so the lead can ask the PM to start it.",
+  "t10: the requester is the PM; end-user lines untouched",
+))
