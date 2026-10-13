@@ -48,13 +48,24 @@ case "$KRU_STORE_REPO" in
 esac
 
 g() { git -C "$home" "$@"; }
-# a remote that hangs must not hold the tool call this runs on: timeout
-# bounds the call, git's low-speed abort a stalled transfer where it's missing
+# a remote that hangs must not hold the hook: every network call this run
+# makes shares one budget (KRU_STORE_SYNC_TIMEOUT; 10s at start, 20s at stop),
+# and the watchdog kills the call's process group, so the ssh or remote helper
+# git spawned ends with it. git's low-speed abort ends a stalled transfer sooner
+deadline=$((SECONDS + ${KRU_STORE_SYNC_TIMEOUT:-$([ "$mode" = stop ] && echo 20 || echo 10)}))
 net() {
-  local t=${KRU_STORE_SYNC_TIMEOUT:-10} run=()
-  if command -v timeout >/dev/null 2>&1; then run=(timeout "$t")
-  elif command -v gtimeout >/dev/null 2>&1; then run=(gtimeout "$t"); fi
-  "${run[@]}" git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime="$t" "$@"
+  local left=$((deadline - SECONDS)) pid dog rc
+  [ "$left" -gt 0 ] || { echo "no answer from the remote in time" >&2; return 124; }
+  set -m
+  git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime="$left" "$@" &
+  pid=$!
+  set +m
+  ( trap 'kill "$s"; exit' TERM; sleep "$left" & s=$!; wait "$s"; kill -TERM -- "-$pid" ) >/dev/null 2>&1 &
+  dog=$!
+  wait "$pid"; rc=$?
+  kill "$dog" 2>/dev/null; wait "$dog" 2>/dev/null
+  [ "$rc" -gt 128 ] && echo "no answer from the remote in ${left}s" >&2
+  return "$rc"
 }
 first_line() { printf '%s' "$1" | head -n 1 | cut -c1-160; }
 

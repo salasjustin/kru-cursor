@@ -8,9 +8,11 @@
 
 # kru_readonly_bash <command> — 0 when every segment only reads
 kru_readonly_bash() {
+  # awk's system() runs a command, with any space before its paren
+  [[ $1 =~ system[[:space:]]*\( ]] && return 1
   case "$1" in
     # a redirect, a substitution or an in-place edit writes whatever the verb is
-    *'>'*|*'$('*|*'`'*|*'sed -i'*|*'perl -i'*|*'--in-place'*|*'-exec'*|*'-delete'*|*'-fprint'*|*'-fls'*|*'xargs'*|*'system('*|*'getline'*|*'--output'*) return 1 ;;
+    *'>'*|*'$('*|*'`'*|*'sed -i'*|*'perl -i'*|*'--in-place'*|*'-exec'*|*'-delete'*|*'-fprint'*|*'-fls'*|*'xargs'*|*'getline'*|*'--output'*) return 1 ;;
     *)
       # every segment of a chain or pipe answers for itself — a read-only head
       # says nothing about what follows it
@@ -20,9 +22,11 @@ kru_readonly_bash() {
         verb=${seg%% *}
         case "${verb##*/}" in
           ls|cat|head|tail|wc|grep|egrep|fgrep|find|file|stat|pwd|realpath|basename|dirname) continue ;;
-          which|command|type|echo|printf|jq|yq|uniq|cut|tr|column|test|true|diff) continue ;;
-          sort) [[ " $seg" =~ [[:space:]](-[a-zA-Z]*o|--output) ]] && return 1; continue ;;
+          which|command|type|echo|printf|jq|uniq|cut|tr|column|test|true|diff) continue ;;
+          sort) local re="[[:space:]]['\"]?(-[^-[:space:]]*o|--o|--co)"; [[ " $seg" =~ $re ]] && return 1; continue ;;
           rg) [[ " $seg " =~ [[:space:]]--pre([[:space:]=]) ]] && return 1; continue ;;
+          sed) local re="[/;{}[:space:]'\"0-9\$!,][gpIiMm0-9]*[wWe]([[:space:]'\";}]|\$)"; [[ " $seg" =~ $re ]] && return 1; continue ;;
+          yq) local re="[[:space:]]['\"]?(-[a-zA-Z]*[is]|--inplace|--split-exp)"; [[ " $seg" =~ $re ]] && return 1; continue ;;
           date) [ "$seg" = date ] && continue; return 1 ;;
           # safe only because the write-tell case above already took sed -i and any redirect
           sed|awk|nl|tac|comm|xxd|base64) continue ;;

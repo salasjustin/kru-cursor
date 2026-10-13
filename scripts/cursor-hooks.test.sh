@@ -212,7 +212,15 @@ fire preToolUse "$(tool sa-plan Shell '{"command":"mkdir -p /tmp/x"}' '{"parent_
 check "seat-guard: planner keeps the shell" has '.permission == "allow"'
 fire preToolUse "$(tool sa-plan WriteShellStdin '{"shellId":"s1","chars":"y"}' '{"parent_tool_call_id":"tc-plan"}')"
 check "seat-guard: WriteShellStdin is not the Write tool" has '.permission == "allow"'
-check "every tool matcher is anchored (or *)" jq -e '[.hooks[][] | select(has("matcher")) | .matcher | . == "*" or test("^\\^.*\\$$")] | all' "$hooks_json"
+check "every tool matcher is anchored (or *)" jq -e '[.hooks[][] | select(has("matcher")) | .matcher | . == "*" or test("^\\^([A-Za-z][A-Za-z0-9:_-]*|\\([A-Za-z][A-Za-z0-9:_-]*(\\|[A-Za-z][A-Za-z0-9:_-]*)*\\))\\$$")] | all' "$hooks_json"
+# verify-tree's anchoring check: a name list is exact only as ^Name$ or
+# ^(A|B)$, and a matcher that doesn't compile matches every tool in cursor
+for m in '*' '^Task$' '^(Shell|Write|Delete)$' '^MCP:acme$'; do
+  check "verify-tree takes matcher $m" node "$repo/scripts/verify-tree.mjs" --matcher "$m"
+done
+for m in 'Write' 'Write$' '^Write' '^Write|Delete$' '^(Write$' '^Write)$' '^(Write|Delete' '^((Write)$' '^(|Write)$' '^(Write||Delete)$'; do
+  check "verify-tree refuses matcher $m" not node "$repo/scripts/verify-tree.mjs" --matcher "$m"
+done
 fire preToolUse "$(tool sa-node Write '{"path":"src/a.ts"}' '{"parent_tool_call_id":"tc-node"}')"
 check "seat-guard: a builder writes" has '.permission == "allow"'
 
@@ -228,6 +236,21 @@ PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=2 fir
 t1=$(date +%s)
 check "store-sync: a hung clone gives up inside the first-turn budget" test $((t1 - t0)) -lt 12
 check "…and the tool call is allowed" has '.permission == "allow"'
+# the stop path's push, pull and push share one budget (30s stop hook), and a
+# call that hangs in a child — ssh, a remote helper — still ends on time:
+# the child holds the output pipe, so killing git alone would leave it waiting
+git init -q --bare "$sandbox/store.git"
+git clone -q "$sandbox/store.git" "$sandbox/store-home" 2>/dev/null
+git -C "$sandbox/store-home" -c user.name=t -c user.email=t@example.com commit -q --allow-empty -m seed
+git -C "$sandbox/store-home" push -q origin HEAD 2>/dev/null
+git -C "$sandbox/store-home" config user.name t && git -C "$sandbox/store-home" config user.email t@example.com
+echo note > "$sandbox/store-home/inbox.md"
+printf '#!/bin/bash\ncase " $* " in *" push "*|*" pull "*) sleep 20 & wait; exit 1 ;; esac\nexec "%s" "$@"\n' "$real_git" > "$sandbox/bin/git"
+t0=$(date +%s)
+PATH="$sandbox/bin:$PATH" KRU_STORE_REPO="$sandbox/store.git" KRU_HOME="$sandbox/store-home" KRU_STORE_SYNC_TIMEOUT=3 fire stop "$(stop hung2 0)"
+t1=$(date +%s)
+check "store-sync: a hung push, pull and push end inside one budget" test $((t1 - t0)) -lt 6
+check "…and the note is committed locally" test "$(git -C "$sandbox/store-home" rev-list --count '@{u}..HEAD')" = 1
 
 # --- adapter hardening --------------------------------------------------------------------------------
 { printf 'Build the `exportCommand` handler in src/cli.ts. '; head -c 160000 /dev/zero | tr '\0' 'a'; } > "$sandbox/big.txt"

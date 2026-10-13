@@ -20,6 +20,20 @@ const rel = (p) => relative(ROOT, p)
 const results = []
 const notes = []
 const fail = (check, msg) => results.push([check, msg])
+// a tool matcher's names, or null when it isn't one. cursor tests a matcher as
+// an unanchored regex, so a tool name is only matched exactly when anchored:
+// `^Name$` or `^(A|B)$` ("*" matches all). one that doesn't compile matches
+// every tool (`catch{return!0}` in cursor-agent 2026.10.01)
+const TOOL_NAME = "[A-Za-z][A-Za-z0-9:_-]*"
+const ANCHORED = new RegExp(`^\\^(?:(${TOOL_NAME})|\\((${TOOL_NAME}(?:\\|${TOOL_NAME})*)\\))\\$$`)
+function matcherNames(m) {
+  if (m === "*") return ["*"]
+  try { new RegExp(m) } catch { return null }
+  const a = ANCHORED.exec(m)
+  return a ? (a[1] ?? a[2]).split("|") : null
+}
+// `--matcher <m>`: exit 0 when the check takes m (scripts/cursor-hooks.test.sh)
+if (process.argv[2] === "--matcher") process.exit(matcherNames(String(process.argv[3])) ? 0 : 1)
 const git = (...a) => execFileSync("git", a, { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim()
 const files = git("ls-files", "-co", "--exclude-standard").split("\n").filter(Boolean).filter((f) => existsSync(join(ROOT, f)))
 
@@ -210,10 +224,8 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
     for (const k of Object.keys(e)) if (!["command", "type", "timeout", "matcher", "loop_limit", "failClosed"].includes(k)) fail("hooks", `${event}: unknown key ${k}`)
     if (["preToolUse", "postToolUse", "postToolUseFailure"].includes(event) && e.matcher !== undefined)
     {
-      // cursor tests a matcher as an unanchored regex, so a tool name is only
-      // matched exactly when anchored: `^Name$` or `^(A|B)$` ("*" matches all)
       const m = String(e.matcher)
-      const names = m === "*" ? ["*"] : m.match(/^\^\(?([A-Za-z:|_-]+?)\)?\$$/)?.[1].split("|")
+      const names = matcherNames(m)
       if (!names) fail("hooks", `${event}: matcher ${m} is not anchored (^Name$ or ^(A|B)$) — cursor reads it as an unanchored regex`)
       else for (const n of names) if (!TOOL_MATCHERS.has(n) && !/^MCP:/.test(n)) fail("hooks", `${event}: matcher ${n} is not a cursor tool (claude's Bash/Edit/Agent?)`)
     }

@@ -171,28 +171,48 @@ const RULES = [
   // the read-only listings a triage turn reaches for, cursor's cli
   R(/'claude mcp list'\*\|'claude plugin list'\*\|'claude plugin details'\*\)/g, "'agent mcp list'*|'agent status'*|'agent models'*|'cursor-agent mcp list'*|'cursor-agent status'*)", { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /'agent mcp list'/ }),
   // verbs that read by default and write on a flag: awk's system() and getline
-  // run commands, sort -o and any --output write a file, rg --pre runs a
-  // program per file, date with an argument can set the clock (tests:
-  // hooks/readonly-bash.test.sh)
-  R(/\|\*'xargs'\*\) return 1 ;;/g, "|*'xargs'*|*'system('*|*'getline'*|*'--output'*) return 1 ;;", { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /\*'getline'\*\|\*'--output'\*\) return 1 ;;/ }),
+  // run commands, sort -o (GNU takes any unambiguous prefix: --o, --out) writes
+  // a file and --compress-program runs one, any --output writes, rg --pre runs
+  // a program per file, sed's w/W commands and s///w write and its e runs a
+  // command, yq -i/--inplace and --split-exp write, date with an argument can
+  // set the clock (tests: hooks/readonly-bash.test.sh)
+  R(/\|\*'xargs'\*\) return 1 ;;/g, "|*'xargs'*|*'getline'*|*'--output'*) return 1 ;;", { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /\*'getline'\*\|\*'--output'\*\) return 1 ;;/ }),
+  R(/(?<!&& return 1\n)^( +)case "\$1" in\n/m, (_m, a) => `${a}# awk's system() runs a command, with any space before its paren\n${a}[[ $1 =~ system[[:space:]]*\\( ]] && return 1\n${a}case "$1" in\n`,
+    { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^ +\[\[ \$1 =~ system\[\[:space:\]\]\*\\\( \]\] && return 1$/m }),
   R(/( +)ls\|cat\|head\|tail\|wc\|grep\|egrep\|fgrep\|rg\|find\|(.*)\n( +)which\|command\|type\|echo\|printf\|jq\|yq\|sort\|uniq\|cut\|tr\|column\|date\|test\|true\|diff\) continue ;;\n/g,
-    (_m, a, rest, b) => `${a}ls|cat|head|tail|wc|grep|egrep|fgrep|find|${rest}\n${b}which|command|type|echo|printf|jq|yq|uniq|cut|tr|column|test|true|diff) continue ;;\n` +
-      `${b}sort) [[ " $seg" =~ [[:space:]](-[a-zA-Z]*o|--output) ]] && return 1; continue ;;\n` +
+    (_m, a, rest, b) => `${a}ls|cat|head|tail|wc|grep|egrep|fgrep|find|${rest}\n${b}which|command|type|echo|printf|jq|uniq|cut|tr|column|test|true|diff) continue ;;\n` +
+      String.raw`${b}sort) local re="[[:space:]]['\"]?(-[^-[:space:]]*o|--o|--co)"; [[ " $seg" =~ $re ]] && return 1; continue ;;` + "\n" +
       `${b}rg) [[ " $seg " =~ [[:space:]]--pre([[:space:]=]) ]] && return 1; continue ;;\n` +
+      String.raw`${b}sed) local re="[/;{}[:space:]'\"0-9\$!,][gpIiMm0-9]*[wWe]([[:space:]'\";}]|\$)"; [[ " $seg" =~ $re ]] && return 1; continue ;;` + "\n" +
+      String.raw`${b}yq) local re="[[:space:]]['\"]?(-[a-zA-Z]*[is]|--inplace|--split-exp)"; [[ " $seg" =~ $re ]] && return 1; continue ;;` + "\n" +
       `${b}date) [ "$seg" = date ] && continue; return 1 ;;\n`,
     { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^ +date\) \[ "\$seg" = date \] && continue; return 1 ;;$/m }),
-  // a hung remote must not hold the tool call that runs the store's first
-  // pull (the first preToolUse has 15s): coreutils timeout bounds the call,
-  // and git's low-speed abort ends a stalled transfer where there is none
+  // a hung remote must not hold the hook: the first preToolUse has 15s and the
+  // stop hook 30s, and the stop path's push, pull, push would take three
+  // separate timeouts past that. every call shares one budget, and a watchdog
+  // ends the call's whole process group — coreutils timeout signals only its
+  // child, leaving an ssh in connect holding the output open, and macOS ships
+  // none (tests: scripts/cursor-hooks.test.sh, store-sync on a hung remote)
   R(/^g\(\) \{ git -C "\$home" "\$@"; \}\n(?!# a remote that hangs)/m, () => [
     'g() { git -C "$home" "$@"; }',
-    "# a remote that hangs must not hold the tool call this runs on: timeout",
-    "# bounds the call, git's low-speed abort a stalled transfer where it's missing",
+    "# a remote that hangs must not hold the hook: every network call this run",
+    "# makes shares one budget (KRU_STORE_SYNC_TIMEOUT; 10s at start, 20s at stop),",
+    "# and the watchdog kills the call's process group, so the ssh or remote helper",
+    "# git spawned ends with it. git's low-speed abort ends a stalled transfer sooner",
+    'deadline=$((SECONDS + ${KRU_STORE_SYNC_TIMEOUT:-$([ "$mode" = stop ] && echo 20 || echo 10)}))',
     "net() {",
-    '  local t=${KRU_STORE_SYNC_TIMEOUT:-10} run=()',
-    '  if command -v timeout >/dev/null 2>&1; then run=(timeout "$t")',
-    '  elif command -v gtimeout >/dev/null 2>&1; then run=(gtimeout "$t"); fi',
-    '  "${run[@]}" git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime="$t" "$@"',
+    "  local left=$((deadline - SECONDS)) pid dog rc",
+    '  [ "$left" -gt 0 ] || { echo "no answer from the remote in time" >&2; return 124; }',
+    "  set -m",
+    '  git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime="$left" "$@" &',
+    "  pid=$!",
+    "  set +m",
+    '  ( trap \'kill "$s"; exit\' TERM; sleep "$left" & s=$!; wait "$s"; kill -TERM -- "-$pid" ) >/dev/null 2>&1 &',
+    "  dog=$!",
+    '  wait "$pid"; rc=$?',
+    '  kill "$dog" 2>/dev/null; wait "$dog" 2>/dev/null',
+    '  [ "$rc" -gt 128 ] && echo "no answer from the remote in ${left}s" >&2',
+    '  return "$rc"',
     "}",
     "",
   ].join("\n"), { sh: true, files: /^hooks\/store-sync\.sh$/, required: /^net\(\) \{$/m }),
