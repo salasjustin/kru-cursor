@@ -86,6 +86,10 @@ const FORK_OWNED = new Set([
   "scripts/privacy-scan.mjs",
   "scripts/cursor-hooks.test.sh",
   "scripts/cursor-smoke.sh",
+  "scripts/sync-upstream.sh",
+  "scripts/sync-upstream.test.sh",
+  "skills/kru-roster/release.md",
+  "skills/kru-roster/fork-sync.md",
   "hooks/cursor-hook.sh",
   "hooks/require-lead.sh",
   "hooks/require-lead.test.sh",
@@ -255,6 +259,8 @@ const RULES = [
   R(/A cloud session pushes its own `claude\/\*` branch/g, "A cloud agent pushes its own branch", { md: true }),
   // the model tiers stay upstream's; how cursor reads them is MODELS.md's
   R(/^## Model tiers\n(?!In kru-cursor)/m, "## Model tiers\nIn kru-cursor the pins below land as `MODELS.md` says: `effort` becomes the model id's `[effort=…]` parameter, `experimental.cacheTtl` has no Cursor equivalent, and `scripts/port.mjs` writes every seat's `model:` line.\n\n", { md: true, files: /^ROSTER\.md$/, required: /^In kru-cursor the pins below land as `MODELS\.md` says/m }),
+  // the fork's release and sync runbooks are hand-owned files beside the roster skill
+  R(/(?<!follow `release\.md`\.\n\n)^## Wiring map — the single source of truth$/m, "**This fork's release and upstream sync** are `release.md` (version, tag, Cursor's marketplace) and `fork-sync.md` (the weekly upstream pull request), beside this file. The version and git rows below follow `release.md`.\n\n## Wiring map — the single source of truth", { md: true, files: /^skills\/kru-roster\/SKILL\.md$/, required: /^\*\*This fork's release and upstream sync\*\*/m }),
   // the store's cloud surface
   R(/cloud session \(`CLAUDE_CODE_REMOTE=true`\)/g, "cloud agent (`CURSOR_AGENT_SOCKET` set, or `KRU_CLOUD=1`)", { md: true }),
   // the harness itself. "Claude Code channel(s)" is a product extension-builder
@@ -400,6 +406,21 @@ function relayout() {
   for (const d of readdirSync(skillsDir)) {
     if (d.startsWith(PREFIX) || !statSync(join(skillsDir, d)).isDirectory()) continue
     const to = join(skillsDir, PREFIX + d)
+    // a fork-owned file inside a ported skill dir (skills/kru-roster/release.md)
+    // is laid over a fresh upstream tree before the port runs, so the ported dir
+    // exists holding only those files: upstream's dir moves in beside them
+    const overlayOnly = existsSync(to) && !existsSync(join(to, "SKILL.md")) && walk(to).every((p) => FORK_OWNED.has(relative(ROOT, p)))
+    if (overlayOnly) {
+      changed.push(`skills/${d} → skills/${PREFIX}${d} (beside its fork-owned files)`)
+      if (!CHECK) {
+        for (const e of readdirSync(join(skillsDir, d))) {
+          if (existsSync(join(to, e))) problems.push(`skills/${d}/${e}: upstream added a file this fork owns at skills/${PREFIX}${d}/${e} — rename the fork's copy`)
+          else renameSync(join(skillsDir, d, e), join(to, e))
+        }
+        rmSync(join(skillsDir, d), { recursive: true, force: true })
+      }
+      continue
+    }
     if (existsSync(to)) {
       problems.push(`skills/${d} and skills/${PREFIX}${d} both exist — a merge brought an upstream edit in beside the ported copy; move its change across and delete skills/${d}`)
       continue
