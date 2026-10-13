@@ -3,16 +3,16 @@
 # dispatch to the session ledger dispatch-auditor reads. fail open everywhere —
 # a logging miss must never break the session.
 command -v jq >/dev/null 2>&1 || exit 0
-# plugin root arrives as $1 (substituted in hooks.json) — it is not a
+# plugin root arrives as $1 (passed by hooks/cursor-hook.sh) — it is not a
 # guaranteed env var here, and an empty root would silence logging forever
-plugin_root="${1:-$CLAUDE_PLUGIN_ROOT}"
+plugin_root="${1:-$CURSOR_PLUGIN_ROOT}"
 [ -d "$plugin_root/agents" ] || exit 0
 # unreadable only on a broken install, and every guard here fails open on those
 . "$plugin_root/scripts/kru-store.sh" 2>/dev/null || exit 0
 input=$(cat) || exit 0
 
 seat=$(printf '%s' "$input" | jq -r '.tool_input.subagent_type // empty' 2>/dev/null)
-seat="${seat#kru:}"
+seat="${seat#kru-}"
 [ -z "$seat" ] && exit 0
 # the auditor's own dispatch would re-create the ledger it just deleted
 [ "$seat" = "dispatch-auditor" ] && exit 0

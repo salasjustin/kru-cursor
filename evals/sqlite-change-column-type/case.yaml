@@ -1,4 +1,0 @@
-schema_version: "1.1"
-name: sqlite-change-column-type
-context:
-  scaffold_script: scaffold.sh

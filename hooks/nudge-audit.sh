@@ -9,7 +9,7 @@ input=$(cat) || exit 0
 active=$(printf '%s' "$input" | jq -r '.stop_hook_active // false' 2>/dev/null)
 [ "$active" = "true" ] && exit 0
 
-plugin_root="${1:-$CLAUDE_PLUGIN_ROOT}"
+plugin_root="${1:-$CURSOR_PLUGIN_ROOT}"
 # unreadable only on a broken install, and every guard here fails open on those
 . "$plugin_root/scripts/kru-store.sh" 2>/dev/null || exit 0
 
@@ -35,8 +35,8 @@ prev=$(cat "$mark" 2>/dev/null)
 case "$prev" in ''|*[!0-9]*) prev=0 ;; esac
 [ "$n" -le "$prev" ] && exit 0
 printf '%s' "$n" > "$mark" 2>/dev/null
-jq -n --arg ledger "$ledger" --arg n "$n" --arg contract "$plugin_root/skills/lead/SKILL.md" '{
+jq -n --arg ledger "$ledger" --arg n "$n" --arg contract "$plugin_root/skills/kru-lead/SKILL.md" '{
   decision: "block",
-  reason: "kru dispatch audit pending: \($n) team-seat dispatch(es) this session, logged at \($ledger). Dispatch the kru:dispatch-auditor subagent exactly once, with the prompt: Audit the dispatch ledger at \($ledger). Lead contract (for exact wording only): \($contract), Step 3. The seat carries its own rulebook; it files durable orchestration learnings to the preference inbox and deletes the ledger. Its one-line return is yours: relay it only when it names something the user must act on, then stop."
+  reason: "kru dispatch audit pending: \($n) team-seat dispatch(es) this session, logged at \($ledger). Dispatch the kru-dispatch-auditor subagent exactly once, with the prompt: Audit the dispatch ledger at \($ledger). Lead contract (for exact wording only): \($contract), Step 3. The seat carries its own rulebook; it files durable orchestration learnings to the preference inbox and deletes the ledger. Its one-line return is yours: relay it only when it names something the user must act on, then stop."
 }'
 exit 0

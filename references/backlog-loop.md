@@ -1,6 +1,6 @@
 # Backlog loop — the shared mechanics
 
-`/kru:issues-loop` and `/kru:todos-loop` run one loop over two artifacts. Each skill owns its artifact's half — what reconciles, what is **eligible**, what an outcome is called, what the branch is named. This file owns the loop: the branch, the **cap**, one entry per pass, the report.
+`/kru-issues-loop` and `/kru-todos-loop` run one loop over two artifacts. Each skill owns its artifact's half — what reconciles, what is **eligible**, what an outcome is called, what the branch is named. This file owns the loop: the branch, the **cap**, one entry per pass, the report.
 
 Typing either command is the user's pick, made in advance, for every eligible entry. A **product call** or a **one-way door** — both defined in `lead` → *Talk to a PM, not to an engineer* — is still the user's, so it is **held** for the end of the run and the run never stops to ask. The cap is `$ARGUMENTS` as a number, else `80`: the count of files changed against the default branch's merge-base never passes it at a commit, so the branch the run leaves stays reviewable.
 
@@ -29,6 +29,6 @@ Take the top queued entry and:
 
 ## 4. Report
 
-One message, `lead`'s *report when work lands* shape: the branch and the count against the cap, then what's different for users. Held entries get the numbered list, each with a recommendation; everything else is one counted clause under the skill's own outcome names. An *uncommitted* change is named in one line with the count it would have reached. Nothing is pushed — the branch is the user's to review and open.
+One message, `lead`'s *report when work lands* shape: the branch and the count against the cap, then what's different for users. Held entries go under *Questions for the PM*, numbered, each with a recommendation; everything else is one counted clause under the skill's own outcome names. An *uncommitted* change is named in one line with the count it would have reached. Nothing is pushed — the PM bot reviews the branch, pushes it and opens the pull request.
 
 **Completion criterion: every queued entry has a named outcome — one of the skill's, held, uncommitted, or not reached — and the count at the last commit is at or under the cap.**

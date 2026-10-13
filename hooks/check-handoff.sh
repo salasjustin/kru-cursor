@@ -14,7 +14,7 @@
 # the dispatch goes through, until /roster learn reads them clean across repos
 # and moves the scan into reasons.
 command -v jq >/dev/null 2>&1 || exit 0
-plugin_root="${1:-$CLAUDE_PLUGIN_ROOT}"
+plugin_root="${1:-$CURSOR_PLUGIN_ROOT}"
 [ -d "$plugin_root/agents" ] || exit 0
 # unreadable only on a broken install, and every guard here fails open on those
 . "$plugin_root/scripts/kru-store.sh" 2>/dev/null || exit 0
@@ -22,7 +22,7 @@ plugin_root="${1:-$CLAUDE_PLUGIN_ROOT}"
 input=$(cat) || exit 0
 
 seat=$(printf '%s' "$input" | jq -r '.tool_input.subagent_type // empty' 2>/dev/null)
-seat="${seat#kru:}"
+seat="${seat#kru-}"
 [ -z "$seat" ] && exit 0
 # the auditor's brief is the stop nudge's own template, not a handoff
 [ "$seat" = "dispatch-auditor" ] && exit 0
@@ -159,7 +159,7 @@ inject_report=""
 dslug=$(printf '%s' "$input" | jq -r '.tool_input.description // empty' 2>/dev/null |
   tr '[:upper:]' '[:lower:]' | tr -cs '[:alnum:]' '-' | sed 's/^-*//;s/-*$//' | cut -c1-40 | sed 's/-*$//')
 case "$seat" in
-  code-reviewer|architecture-reviewer|accessibility-reviewer|visual-reviewer|ux-auditor)
+  __readonly_seats_return_inline__)
     printf '%s' "$prompt" | grep -q 'kru-review' ||
       inject_report="\n\nkru hook — report: \${TMPDIR:-/tmp}/kru-review/${cwd_slug:-repo}/${seat}${dslug:+-$dslug}.md. Write the long half of your return there; hand back the capped fix list plus that path (item 7, gates.md)." ;;
 esac
@@ -177,10 +177,10 @@ SHINGLE_REPO=6
 SHINGLE_USER=5
 canon=""
 repo_canon=""
-for f in "$cwd/CLAUDE.md" "$cwd/.claude/CLAUDE.md" "$cwd/AGENTS.md" "$cwd"/.claude/rules/*.md; do
+for f in "$cwd/CLAUDE.md" "$cwd/AGENTS.md" "$cwd"/.cursor/rules/*.mdc; do
   [ -f "$f" ] && canon="$canon $f" && repo_canon="$repo_canon $f"
 done
-for f in "$USER_CANON" "$plugin_root/skills/roster/shared-blocks.md"; do
+for f in "$USER_CANON" "$plugin_root/skills/kru-roster/shared-blocks.md"; do
   [ -f "$f" ] && canon="$canon $f"
 done
 # the plan store's contract is the file a planner brief re-types (lead step 2.6)
@@ -231,7 +231,7 @@ fi
 
 # planner reads a written brief.md (lead step 2.6)
 if [ "$seat" = "planner" ] && ! printf '%s' "$prompt" | grep -q 'brief\.md'; then
-  reasons="${reasons}planner brief names no brief.md: run /kru:brief first and point the seat at the written file (step 2.6). "
+  reasons="${reasons}planner brief names no brief.md: run /kru-brief first and point the seat at the written file (step 2.6). "
 fi
 
 # shadow scans — logged, never refused.
@@ -246,7 +246,7 @@ fi
 # source of that line (scan 2). a sentence moving the version — an upgrade, a
 # bump, an old→new — names the pin as slice content.
 pin=""
-for f in "$cwd/.claude/CLAUDE.md" "$cwd/CLAUDE.md"; do
+for f in "$cwd/AGENTS.md" "$cwd/CLAUDE.md"; do
   [ -f "$f" ] || continue
   pins=$(grep -oE '\b[0-9]+\.[0-9]+\.[0-9]+\b' "$f" | sort -u)
   [ -z "$pins" ] && continue
@@ -266,9 +266,9 @@ done
 # a sheet line names skills as kru:<skill> too, and a skill owns no directory,
 # so an owner counts only when it is a seat.
 lanes=""
-for f in "$cwd/.claude/CLAUDE.md" "$cwd/CLAUDE.md"; do
-  [ -f "$f" ] && lanes="$lanes$(grep -E 'kru:[a-z-]+' "$f" | awk '{
-    if (!match($0, /kru:[a-z-]+/)) next
+for f in "$cwd/AGENTS.md" "$cwd/CLAUDE.md"; do
+  [ -f "$f" ] && lanes="$lanes$(grep -E 'kru-[a-z-]+' "$f" | awk '{
+    if (!match($0, /kru-[a-z-]+/)) next
     owner = substr($0, RSTART + 4, RLENGTH - 4); rest = $0
     while (match(rest, /`[^` ]+\/[^` ]*`/)) {
       d = substr(rest, RSTART + 1, RLENGTH - 2); sub(/\/+$/, "", d)
@@ -278,7 +278,7 @@ for f in "$cwd/.claude/CLAUDE.md" "$cwd/CLAUDE.md"; do
 "
 done
 readonly_seat=false
-grep -m1 '^tools:' "$plugin_root/agents/$seat.md" | grep -qvE '\b(Edit|Write)\b' && readonly_seat=true
+{ grep -q '^readonly: true' "$plugin_root/agents/$seat.md" || case "$seat" in planner|dispatch-auditor) true ;; *) false ;; esac; } && readonly_seat=true
 if [ -n "$lanes" ] && ! $readonly_seat && printf '%s' "$lanes" | awk -v s="$seat" '$2 == s { f = 1 } END { exit !f }'; then
   misroute=$(printf '%s' "$prompt" | grep -oE '[A-Za-z0-9_.@-]+(/[][A-Za-z0-9_.@()-]+)+' | sort -u | head -40 |
     awk -v s="$seat" 'NR == FNR { if (NF == 2) { dir[++n] = $1; own[n] = $2 }; next }
@@ -354,7 +354,7 @@ fi
 # text names itself so the auditor reading the stored prompt can tell the hook's
 # paragraph from the lead's own.
 add=""
-[ "$inject_channel" = true ] && add="\n\nkru hook — learnings channel: a durable, cross-project preference you hit mid-task (the user rejected X twice and chose Y), or what moving a library to a new major broke or needed (naming its kru skill), goes as one line to $(kru_path inbox), format at ${plugin_root}/PREFERENCES.md. Journaling, not derailing."
+[ "$inject_channel" = true ] && add="\n\nkru hook — learnings channel: a durable, cross-project preference you hit mid-task (the PM or the owner rejected X twice and chose Y), or what moving a library to a new major broke or needed (naming its kru skill), goes as one line to $(kru_path inbox), format at ${plugin_root}/PREFERENCES.md. Journaling, not derailing."
 add="${add}${inject_report}"
 [ -z "$add" ] && exit 0
 printf '%s' "$input" | jq -c --arg add "$add" '{

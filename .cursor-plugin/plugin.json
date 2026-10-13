@@ -1,0 +1,21 @@
+{
+  "name": "kru-cursor",
+  "displayName": "kru for Cursor",
+  "version": "0.1.0+kru0.150.0",
+  "description": "kru, ported to Cursor: an engineering lead plus 41 specialist subagents, the skills they load, and the hooks that keep handoffs honest. A port of github.com/ap-justin/kru.",
+  "author": {
+    "name": "ap-justin"
+  },
+  "homepage": "https://github.com/salasjustin/kru-cursor",
+  "repository": "https://github.com/salasjustin/kru-cursor",
+  "license": "MIT",
+  "keywords": [
+    "subagents",
+    "orchestration",
+    "engineering-team",
+    "skills",
+    "hooks",
+    "kru"
+  ],
+  "logo": "brand/kru-mark-512.png"
+}

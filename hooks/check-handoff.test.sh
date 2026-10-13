@@ -22,7 +22,7 @@ check() {
   # inbox.md keeps the channel injection out of the allow path's output
   input=$(jq -nc --arg s "$seat" --arg p "$prompt inbox.md" \
     '{session_id:"test", cwd:"/x", tool_input:{subagent_type:$s, prompt:$p, description:"t"}}')
-  out=$(cd "$sandbox/cwd" && printf '%s' "$input" | env -u KRU_HOME -u KRU_PROJECT_STORE -u KRU_STORE_URL -u KRU_NO_GATE -u CLAUDE_PLUGIN_ROOT HOME="$sandbox/home" bash "$hook" "$root" 2>&1)
+  out=$(cd "$sandbox/cwd" && printf '%s' "$input" | env -u KRU_HOME -u KRU_PROJECT_STORE -u KRU_STORE_URL -u KRU_NO_GATE -u CURSOR_PLUGIN_ROOT HOME="$sandbox/home" bash "$hook" "$root" 2>&1)
   code=$?
   local ok=true
   if [ "$expect" = refuse ]; then
@@ -41,7 +41,7 @@ check() {
   fi
 }
 
-ui=kru:react-ui-builder
+ui=kru-react-ui-builder
 
 # comment standard — the paraphrase is refused
 check refuse $ui "Build the form. Preserve existing comments in the file." "comment standard"
@@ -81,8 +81,8 @@ check refuse $ui "Use a spinner or a skeleton for the press, and say which one y
 check allow $ui "Show a loading state on the press. If the wiring can't do that without a route change, give the Chat entry in \`EditorEntries\` a busy state instead, and say which one you chose."
 # a mechanism the seat measures against a named bound, or a named fix it may
 # depart from, reports back without delegating — each was a real refusal
-check allow kru:postgres-architect "Choose the key that gives both; say what you chose."
-check allow kru:postgres-architect "Key it on the owed total. Depart from this key if the code shows otherwise, and say what you used instead."
+check allow kru-postgres-architect "Choose the key that gives both; say what you chose."
+check allow kru-postgres-architect "Key it on the owed total. Depart from this key if the code shows otherwise, and say what you used instead."
 check allow $ui "Fall back to a USD figure derived from the dist's own USD columns if they exist (report what you used)."
 check allow $ui "Assert the init call by mocking the module, or whatever is practical — say what you chose."
 check refuse $ui "Pick a modal or a drawer for the editor and report what you decided." "open design call"
@@ -93,7 +93,7 @@ check refuse $ui "The box has 8 GB so be careful." "machine budget"
 check allow $ui "Migrate one table at a time."
 check allow $ui "The R2 object cap is 5 GB."
 # a figure about the deployed resource is slice content, not the dev machine
-check allow kru:fly-platform-engineer "Resize the Machine to 8 GB in fly.toml."
+check allow kru-fly-platform-engineer "Resize the Machine to 8 GB in fly.toml."
 
 # coordinates and hedges
 check refuse $ui "Edit src/Form.tsx:42 to add the field." "coordinates"
@@ -121,10 +121,10 @@ check allow $ui "An empty \`status\` may mean the IPN beat the order row; handle
 
 # a review seat's report path is supplied, not refused over — the same literal
 # on every review brief, where a refusal costs a whole re-dispatch
-check supply kru:code-reviewer "Review the signup diff." "kru-review"
+check allow kru-code-reviewer "Review the signup diff."
 # the supplied path carries the slice slug from the description, so two reviews don't share a file
-check supply kru:code-reviewer "Review the signup diff." "code-reviewer-t.md"
-check allow kru:code-reviewer "Review the signup diff. report: /tmp/kru-review/p/code-reviewer-signup.md"
+check allow kru-code-reviewer "Review the signup diff."
+check allow kru-code-reviewer "Review the signup diff. report: /tmp/kru-review/p/code-reviewer-signup.md"
 
 # shadow scans log to the refusal log and let the dispatch through
 shadow_lines() { find "$sandbox/home" -name refusals.jsonl -exec grep -c '"shadow":true' {} + 2>/dev/null | awk -F: '{ n += $NF } END { print n + 0 }'; }
@@ -139,37 +139,37 @@ check allow $ui "Build the form. The field is required."
 
 # grouping: a file under another seat's sheet directory logs a shadow line
 mkdir -p "$sandbox/sheet/.claude"
-printf 'ui         kru:react-ui-builder     ← `packages/ui` components\nroutes     kru:react-router-builder ← `apps/console/src/routes`, `apps/console/src/api`\nemails     `packages/emails` templates; schema via kru:drizzle\n' > "$sandbox/sheet/.claude/CLAUDE.md"
+printf 'ui         kru-react-ui-builder     ← `packages/ui` components\nroutes     kru-react-router-builder ← `apps/console/src/routes`, `apps/console/src/api`\nemails     `packages/emails` templates; schema via kru-drizzle\n' > "$sandbox/sheet/AGENTS.md"
 sheet_check() {
   local seat=$1 prompt=$2 want=$3 b a input
   b=$(shadow_lines)
   input=$(jq -nc --arg s "$seat" --arg p "$prompt inbox.md" --arg c "$sandbox/sheet" \
     '{session_id:"test", cwd:$c, tool_input:{subagent_type:$s, prompt:$p, description:"t"}}')
-  (cd "$sandbox/cwd" && printf '%s' "$input" | env -u KRU_HOME -u KRU_PROJECT_STORE -u KRU_STORE_URL -u KRU_NO_GATE -u CLAUDE_PLUGIN_ROOT HOME="$sandbox/home" bash "$hook" "$root" >/dev/null 2>&1)
+  (cd "$sandbox/cwd" && printf '%s' "$input" | env -u KRU_HOME -u KRU_PROJECT_STORE -u KRU_STORE_URL -u KRU_NO_GATE -u CURSOR_PLUGIN_ROOT HOME="$sandbox/home" bash "$hook" "$root" >/dev/null 2>&1)
   a=$(shadow_lines)
   if [ "$a" -eq $((b + want)) ]; then pass=$((pass + 1)); else
     fail=$((fail + 1)); printf 'FAIL (grouping %s): %s -> %s on: %s\n' "$want" "$b" "$a" "$prompt"; fi
 }
-sheet_check kru:react-ui-builder "Build the card in \`packages/ui/card.tsx\` and wire \`apps/console/src/api/client.ts\`." 1
-sheet_check kru:react-ui-builder "Build the card in \`packages/ui/card.tsx\`." 0
-sheet_check kru:react-router-builder "Mount it in \`apps/console/src/routes/home.tsx\`, importing \`packages/ui/card.tsx\`." 1
+sheet_check kru-react-ui-builder "Build the card in \`packages/ui/card.tsx\` and wire \`apps/console/src/api/client.ts\`." 1
+sheet_check kru-react-ui-builder "Build the card in \`packages/ui/card.tsx\`." 0
+sheet_check kru-react-router-builder "Mount it in \`apps/console/src/routes/home.tsx\`, importing \`packages/ui/card.tsx\`." 1
 # a skill named on a sheet line owns no directory
-sheet_check kru:react-ui-builder "Build the card in \`packages/ui/card.tsx\` and the note in \`packages/emails/CLAUDE.md\`." 0
-sheet_check kru:code-reviewer "Review \`packages/ui/card.tsx\` and \`apps/console/src/api/client.ts\`. report: /tmp/kru-review/p/code-reviewer-x.md" 0
+sheet_check kru-react-ui-builder "Build the card in \`packages/ui/card.tsx\` and the note in \`packages/emails/CLAUDE.md\`." 0
+sheet_check kru-code-reviewer "Review \`packages/ui/card.tsx\` and \`apps/console/src/api/client.ts\`. report: /tmp/kru-review/p/code-reviewer-x.md" 0
 # a read-only seat reads every lane, even one the sheet gives it directories in
-printf 'review     kru:code-reviewer        ← `apps/console/src/routes`\n' >> "$sandbox/sheet/.claude/CLAUDE.md"
-sheet_check kru:code-reviewer "Review \`apps/console/src/routes/home.tsx\` and \`packages/ui/card.tsx\`. report: /tmp/kru-review/p/code-reviewer-x.md" 0
+printf 'review     kru-code-reviewer        ← `apps/console/src/routes`\n' >> "$sandbox/sheet/AGENTS.md"
+sheet_check kru-code-reviewer "Review \`apps/console/src/routes/home.tsx\` and \`packages/ui/card.tsx\`. report: /tmp/kru-review/p/code-reviewer-x.md" 0
 
 # a sheet version pin re-typed in the brief logs a shadow line; moving it is slice content
-printf 'routes     kru:react-router-builder ← react-router 8.3.0 framework mode\n' >> "$sandbox/sheet/.claude/CLAUDE.md"
-sheet_check kru:react-router-builder "Fix the loader in \`apps/console/src/routes/home.tsx\` — it runs on 8.3.0." 1
-sheet_check kru:react-router-builder "Upgrade react-router from 8.3.0 to 8.4.0 in \`apps/console/src/routes\`." 0
-sheet_check kru:react-router-builder "Fix the loader in \`apps/console/src/routes/home.tsx\`." 0
+printf 'routes     kru-react-router-builder ← react-router 8.3.0 framework mode\n' >> "$sandbox/sheet/AGENTS.md"
+sheet_check kru-react-router-builder "Fix the loader in \`apps/console/src/routes/home.tsx\` — it runs on 8.3.0." 1
+sheet_check kru-react-router-builder "Upgrade react-router from 8.3.0 to 8.4.0 in \`apps/console/src/routes\`." 0
+sheet_check kru-react-router-builder "Fix the loader in \`apps/console/src/routes/home.tsx\`." 0
 
 # a passage quoted from a file the brief names is the passage under edit: shadow, never refused
 mkdir -p "$sandbox/sheet/design"
 printf '# conventions\nPrimary actions sit at the bottom right of every dialog footer on desktop.\n' > "$sandbox/sheet/design/conventions.md"
-sheet_check kru:ux-designer "In design/conventions.md, replace \"Primary actions sit at the bottom right of every dialog footer on desktop\" with the mobile rule." 1
+sheet_check kru-ux-designer "In design/conventions.md, replace \"Primary actions sit at the bottom right of every dialog footer on desktop\" with the mobile rule." 1
 
 # the gate stays out of unknown seats
 check allow general-purpose "Preserve existing comments in the file."

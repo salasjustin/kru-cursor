@@ -39,7 +39,7 @@ run() {
   local home=$1 mode=$2; shift 2
   local in=${stdin:-$(printf '{"session_id":"sess-%s"}' "$RANDOM")}
   out=$(cd "$repo" && printf '%s' "$in" | env -u KRU_HOME -u KRU_PROJECT_STORE \
-    -u KRU_STORE_URL -u KRU_STORE_REPO -u CLAUDE_CODE_REMOTE -u CLAUDE_PROJECT_DIR -u KRU_NO_STORE_SYNC \
+    -u KRU_STORE_URL -u KRU_STORE_REPO -u KRU_CLOUD -u CURSOR_AGENT_SOCKET -u CLAUDE_PROJECT_DIR -u KRU_NO_STORE_SYNC \
     HOME="$home" KRU_STORE_REPO="$remote" "$@" bash "$hook" "$mode" "$root" 2>&1)
   code=$?
 }

@@ -1,0 +1,25 @@
+---
+name: kru-api-design
+description: API design for a surface code you don't own calls — a versioned public or API-key surface, key minting and auth, the webhooks your app sends, pagination and incremental sync, idempotent writes. Use when building or reviewing one. Sending webhooks only; receiving a provider's is that provider's seat.
+---
+
+**A public API fails in a stranger's code, not in yours.** The integrator wrote against what you shipped, and you can't make them change it. So three rules shape everything below. The wire shape is **permanent**: you can add to it, but a rename, a removed field or a changed type is a new version. Delivery is **at-least-once and unordered**, whether it's a webhook retry or a client resending after a timeout. And every credential **leaks** eventually, so the design question is how quickly a leak is spotted and revoked.
+
+Claims were checked against the sources they cite on 2026-09-21. The Standard Webhooks signing claims were also run through `standardwebhooks` 1.1.1, its reference JS verifier. A rule with no citation is a recipe: the reason stands beside it.
+
+## The wire contract
+The shapes below — the list envelope, string ids, problem-details errors — are for a new surface. On an existing one its shape wins, since the shape is permanent: a new endpoint matches its siblings, and moving to these shapes is a new version.
+- **Every response is built by a serializer, never by passing a DB row through.** The row type belongs to the app and changes with each migration; the wire shape doesn't. Give each resource one function with an explicit return type, and a spec that pins its exact key set, so a schema change that would reach the wire fails a test before it ships.
+- **A list is an object, never a bare array.** `[...]` can never grow `next_cursor`, `has_more` or a count without a new version. Return `{ "data": [...], "next_cursor": null }` from the first release, even when there is one page.
+- **Ids are strings on the wire.** RFC 8259 promises interoperability only for integers within ±(2^53 − 1) ([§6](https://www.rfc-editor.org/rfc/rfc8259#section-6)). Beyond that, `JSON.parse` turns the integer into a different number without an error. An integer primary key goes out as a string, or better, as a prefixed public id (`ord_…`) that lets someone tell the resource from the id alone.
+- **A calendar date is `YYYY-MM-DD`, never an instant at midnight UTC.** An instant at midnight UTC shows up as the previous day west of Greenwich.
+- **Adding an enum value or an event type breaks strict clients unless v1 said it wouldn't.** Write it in the docs at birth: unknown enum values and unknown event types are to be ignored, not thrown on. Without that sentence, every new status is a breaking change. Google's rules say response enums expected to grow **should** document it ([AIP-180](https://google.aip.dev/180)). Stripe counts new event types as compatible only because its docs tell listeners to handle unfamiliar ones ([Stripe](https://docs.stripe.com/upgrades)).
+- **Some breaking changes don't look like one**: a field that was always present becoming nullable, tighter validation on an input, and a changed default ([AIP-180](https://google.aip.dev/180): field presence, semantic changes, "default values must not change").
+- **Errors are RFC 9457 problem details** (`application/problem+json`: `type`, `title`, `status`, `detail`), with a stable machine code as an extension member. The RFC says consumers SHOULD NOT parse `detail`, so every refusal an integrator has to branch on needs a code they can switch on. Write the refusal text for an agent to act on: what was refused, and what to change. ([RFC 9457 §3.1](https://www.rfc-editor.org/rfc/rfc9457.html#section-3.1))
+- **A surface you call with a key sends no CORS headers and answers no `OPTIONS`.** A key that runs in a browser has already leaked. Leaving CORS off means a page can't read the response even if someone pastes a key into it. The `Access-Control-Allow-Origin: *` line copied from the anonymous public surface next door is the usual way this goes wrong.
+
+## Disclosed
+- `reference/keys.md`: minting API keys, their format (the separator trap), storing only a hash, lookup and constant-time compare, scopes declared per route, revocation that takes effect immediately, and rate limiting in front of the lookup.
+- `reference/webhooks.md`: sending webhooks with the Standard Webhooks wire format. Covers signing and the key-bytes trap, secret rotation, the outbox committed with the change, ordering and payload choice, how to classify each response, retries and auto-disable, SSRF on a URL a user supplies, and the limits that bound a background delivery loop.
+- `reference/pagination.md`: keyset cursors (the mechanics live in the `sql` skill) and incremental sync — why filtering on business time misses changes, and the overlap window a sync by updated time needs.
+- `reference/writes.md`: an `Idempotency-Key` on POST and PATCH, and the two ways its record goes wrong.

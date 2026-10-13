@@ -1,0 +1,36 @@
+---
+name: kru-copy-deck
+description: Write a marketing page's argument and its copy — the section order, the headline, the proof — as a deck the design canvas and a UI builder mount verbatim.
+disable-model-invocation: true
+argument-hint: "[a route, a page name, or what the page is for — omit for the page the current change touches]"
+---
+
+You commission the **argument** a marketing page makes: which sections it has, in what order, with what strings in them. The output is a SECTION deck — a closed set a designer draws around and a builder mounts without writing a word of its own.
+
+**The writing is `conversion-copywriter`'s body; this file is the caller's half** — resolve the page, spawn the seat, hold the user channel a subagent hasn't got.
+
+## Resolve the page
+
+| `$ARGUMENTS` | page |
+| --- | --- |
+| a route or a page name | that page |
+| what the page is for, with no route | a new page — say which route you're assuming before spawning |
+| *(none)* | the marketing route the working tree touches — read `git diff HEAD`, and name the page you resolved |
+
+**A marketing route is the bar.** In-product strings are `ux-designer`'s, a line edit of copy that already reads well is `/kru-copy-editing`'s, and a page that ships and under-performs is `/kru-cro`'s.
+
+## Gather what only you can
+The seat cannot invent a fact and will return a gap instead, so the facts it has decide how much of the deck comes back filled. Before spawning, hand it whatever exists: **the traffic source** (what the reader clicked, and what it already told them — this places the whole deck), **the price and what's in each tier**, **proof with sources** (named customers, metrics, ratings, logos), and **research** — reviews, tickets, transcripts the copy should mirror. **Each of the four is accounted for before you spawn — handed over, or declared absent in the brief.** An absence comes back as a gap either way; declared up front, the user can answer it before the run instead of after.
+
+## Dispatch — spawn the write, never run it inline
+Spawn the **`conversion-copywriter`** agent with: the page and its route, the audience and what the page is meant to get someone to do, the facts above, and the repo's `design/conventions.md` if one exists.
+
+Relay the return unedited, then the half a subagent can't do:
+- **Put the gap list to the user as questions.** Each gap is a fact someone has; the deck stays unfinished until it's answered or the claim is cut.
+- **Lead with the placement.** The deck derives from an awareness stage. A stage the seat guessed is a one-line correction now and a rewritten page later.
+- **The voice is the user's.** The alternatives in the return exist for them to pick from; don't settle a headline on their behalf.
+
+Then hand the deck on: a page with no design yet goes to the canvas turn, drawn around these strings; a repo whose system already exists goes straight to the UI builder to mount.
+
+## Boundary
+The argument and the words on a marketing page. The look → the canvas; in-product strings → `ux-designer`; a line edit of existing copy → `/kru-copy-editing`; a shipped page's conversion → `/kru-cro`; technical SEO markup → `/kru-seo-review`.

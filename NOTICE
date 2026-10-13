@@ -1,27 +1,36 @@
 # NOTICE
 
-team-justin is MIT-licensed (`LICENSE`). It redistributes skills copied from the
-projects below, each under its own license. Where an upstream ships a license file
-it is kept verbatim inside the vendored directory.
+kru-cursor is a port of kru (https://github.com/ap-justin/kru, MIT, Copyright (c) 2026
+ap-justin) to the Cursor plugin format. The port — `scripts/port.mjs` and the files it
+generates, the Cursor hooks (`hooks/cursor-hook.sh` and the hooks it names), `PORTING.md`,
+`MODELS.md` and the checks under `scripts/` — is released under the same MIT license
+(`LICENSE`).
 
-Full provenance — upstream ref, sha, what was excluded, how to re-sync, and which
-copies deviate from upstream — is in `SOURCES.md` → *Vendored resources*.
+kru redistributes skills copied from the projects below, each under its own license, and so
+does this port. Where an upstream ships a license file it is kept verbatim inside the vendored
+directory. The port renames every skill directory to carry the `kru-` prefix
+(`skills/<name>/` → `skills/kru-<name>/`) and rewrites the harness vocabulary in place; it
+changes no license file.
+
+Full provenance — upstream ref, sha, what was excluded, how to re-sync, and which copies
+deviate from upstream — is in `SOURCES.md` → *Vendored resources*.
 
 | Upstream | License | Vendored as |
 |---|---|---|
-| `anthropics/skills` | Apache-2.0 (`skills/algorithmic-art/LICENSE.txt`) | `skills/algorithmic-art/` |
-| `anthropics/knowledge-work-plugins` (`design` plugin) | Apache-2.0 | `skills/accessibility-review/`, `skills/user-research/`, `skills/research-synthesis/`, `skills/ux-copy/` — team-adapted, not verbatim |
-| `remix-run/react-router` | MIT | `skills/react-router/` |
-| `mattpocock/skills` | MIT | `skills/to-spec/`, `skills/to-tickets/`, `skills/wayfinder/`, `skills/codebase-design/`, `skills/tdd/`, `skills/diagnosing-bugs/`, `skills/domain-modeling/`, `skills/grilling/`, `skills/writing-for-agents/` |
-| `emilkowalski/skills` | MIT (`LICENSE` per directory) | `skills/find-animation-opportunities/`, `skills/emil-design-eng/`, `skills/animation-vocabulary/`, `skills/review-animations/`, `skills/improve-animations/` |
-| `coreyhaines31/marketingskills` | MIT | `skills/copywriting/`, `skills/copy-editing/`, `skills/cro/` |
-| `vercel/turborepo` | MIT (`skills/turborepo/LICENSE`) | `skills/turborepo/` |
-| `shadcn-ui/ui` | MIT | `skills/shadcn/` |
-| `cloudflare/skills` | Apache-2.0 (`LICENSE` per directory) | `skills/cloudflare/`, `skills/wrangler/` |
-| `honojs/skills` | MIT (`skills/hono/LICENSE`) | `skills/hono/` |
-| `tursodatabase/agent-skills` | MIT (`LICENSE` per directory) | `skills/turso-db/`, `skills/turso-cloud/` |
-| `dgreenheck/webgpu-claude-skill` | MIT per the upstream README; no license file upstream | `skills/webgpu-threejs-tsl/` |
+| `anthropics/skills` | Apache-2.0 (`skills/kru-algorithmic-art/LICENSE.txt`) | `skills/kru-algorithmic-art/` |
+| `anthropics/knowledge-work-plugins` (`design` plugin) | Apache-2.0 | `skills/kru-accessibility-review/`, `skills/kru-user-research/`, `skills/kru-research-synthesis/`, `skills/kru-ux-copy/` — team-adapted, not verbatim |
+| `remix-run/react-router` | MIT | `skills/kru-react-router/` |
+| `mattpocock/skills` | MIT | `skills/kru-to-spec/`, `skills/kru-to-tickets/`, `skills/kru-wayfinder/`, `skills/kru-codebase-design/`, `skills/kru-tdd/`, `skills/kru-diagnosing-bugs/`, `skills/kru-domain-modeling/`, `skills/kru-grilling/`, `skills/kru-writing-for-agents/` |
+| `cursor/plugins` (`pstack`, Copyright (c) 2026 Lauren Tan) | MIT | one subsection of `skills/kru-diagnosing-bugs/SKILL.md` — *Two fixes failed — attack the premise*, adapted from `pstack/skills/principle-attack-the-premise` |
+| `emilkowalski/skills` | MIT (`LICENSE` per directory) | `skills/kru-find-animation-opportunities/`, `skills/kru-emil-design-eng/`, `skills/kru-animation-vocabulary/`, `skills/kru-review-animations/`, `skills/kru-improve-animations/` |
+| `coreyhaines31/marketingskills` | MIT | `skills/kru-copywriting/`, `skills/kru-copy-editing/`, `skills/kru-cro/` |
+| `vercel/turborepo` | MIT (`skills/kru-turborepo/LICENSE`) | `skills/kru-turborepo/` |
+| `shadcn-ui/ui` | MIT | `skills/kru-shadcn/` |
+| `cloudflare/skills` | Apache-2.0 (`LICENSE` per directory) | `skills/kru-cloudflare/`, `skills/kru-wrangler/`, `skills/kru-workers-best-practices/`, `skills/kru-durable-objects/`, `skills/kru-agents-sdk/`, `skills/kru-nextjs-on-cloudflare/` |
+| `honojs/skills` | MIT (`skills/kru-hono/LICENSE`) | `skills/kru-hono/` |
+| `tursodatabase/agent-skills` | MIT (`LICENSE` per directory) | `skills/kru-turso-db/`, `skills/kru-turso-cloud/` |
+| `dgreenheck/webgpu-claude-skill` | MIT per the upstream README; no license file upstream | `skills/kru-webgpu-threejs-tsl/` |
 
-Everything else in this repository — the lead skill, the seat definitions under
-`agents/`, the hooks, the first-party skills, and the reference documents — is
-original work under the MIT license above.
+Everything else in this repository — the lead skill, the seat definitions under `agents/`, the
+hooks, the first-party skills, the reference documents and the brand assets under `brand/` — is
+original work of the kru project under the MIT license above.

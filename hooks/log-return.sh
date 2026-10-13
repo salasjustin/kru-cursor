@@ -6,13 +6,13 @@
 # line is kept running once and asked for it; one that still stops without it
 # is logged to the session ledger for dispatch-auditor. fail open everywhere.
 command -v jq >/dev/null 2>&1 || exit 0
-plugin_root="${1:-$CLAUDE_PLUGIN_ROOT}"
+plugin_root="${1:-$CURSOR_PLUGIN_ROOT}"
 [ -d "$plugin_root/agents" ] || exit 0
 . "$plugin_root/scripts/kru-store.sh" 2>/dev/null || exit 0
 input=$(cat) || exit 0
 
 seat=$(printf '%s' "$input" | jq -r '.agent_type // empty' 2>/dev/null)
-seat="${seat#kru:}"
+seat="${seat#kru-}"
 [ -z "$seat" ] && exit 0
 [ "$seat" = "dispatch-auditor" ] && exit 0
 [ -f "$plugin_root/agents/${seat}.md" ] || exit 0

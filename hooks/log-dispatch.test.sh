@@ -32,7 +32,7 @@ dispatch() {
     '{session_id:$s, cwd:"/work/myrepo", tool_name:"Agent",
       tool_input:{subagent_type:$seat, prompt:$p, description:"form"},
       tool_response:$r}')
-  out=$(printf '%s' "$input" | env -u KRU_HOME -u KRU_PROJECT_STORE -u KRU_STORE_URL -u CLAUDE_PLUGIN_ROOT HOME="$home" bash "$hook" "${5:-$root}" 2>&1)
+  out=$(printf '%s' "$input" | env -u KRU_HOME -u KRU_PROJECT_STORE -u KRU_STORE_URL -u CURSOR_PLUGIN_ROOT HOME="$home" bash "$hook" "${5:-$root}" 2>&1)
   code=$?
 }
 
@@ -46,7 +46,7 @@ expect_nothing() {
 }
 
 # a team seat writes one record carrying every field the auditor reads
-dispatch a1 "kru:$plain"
+dispatch a1 "kru-$plain"
 rec=$(tail -1 "$audit/a1.jsonl" 2>/dev/null)
 ok=true
 [ "$code" -eq 0 ] && [ -z "$out" ] && [ "$(lines a1)" = 1 ] || ok=false
@@ -66,13 +66,13 @@ dispatch b1 general-purpose
 expect_nothing "non-team seat writes nothing" b1
 dispatch b2 ""
 expect_nothing "empty seat writes nothing" b2
-dispatch b3 kru:dispatch-auditor
+dispatch b3 kru-dispatch-auditor
 expect_nothing "the auditor's own dispatch writes nothing" b3
 dispatch b4 "$plain" "p" "r" "$sandbox/noagents"
 expect_nothing "root without agents/ writes nothing" b4
 
 input=$(jq -nc --arg seat "$plain" '{tool_input:{subagent_type:$seat, prompt:"p"}}')
-out=$(printf '%s' "$input" | env -u KRU_HOME -u KRU_PROJECT_STORE -u KRU_STORE_URL -u CLAUDE_PLUGIN_ROOT HOME="$home" bash "$hook" "$root" 2>&1); code=$?
+out=$(printf '%s' "$input" | env -u KRU_HOME -u KRU_PROJECT_STORE -u KRU_STORE_URL -u CURSOR_PLUGIN_ROOT HOME="$home" bash "$hook" "$root" 2>&1); code=$?
 ok=true
 # with no session id the hook would otherwise write the nameless ledger .jsonl
 [ "$code" -eq 0 ] && [ -z "$out" ] && [ ! -e "$audit/.jsonl" ] || ok=false
@@ -88,7 +88,7 @@ report "long prompt truncated to 32000 and flagged" "$ok" "$(tail -1 "$audit/c1.
 # a block o seat is flagged, and a background launch's ack reads no warning
 input=$(jq -nc --arg seat "$blocko" '{session_id:"d1", tool_input:{subagent_type:$seat, prompt:"p"},
   tool_response:{status:"async_launched", agentId:"a1"}}')
-out=$(printf '%s' "$input" | env -u KRU_HOME -u KRU_PROJECT_STORE -u KRU_STORE_URL -u CLAUDE_PLUGIN_ROOT HOME="$home" bash "$hook" "$root" 2>&1); code=$?
+out=$(printf '%s' "$input" | env -u KRU_HOME -u KRU_PROJECT_STORE -u KRU_STORE_URL -u CURSOR_PLUGIN_ROOT HOME="$home" bash "$hook" "$root" 2>&1); code=$?
 ok=true
 [ "$code" -eq 0 ] && [ -z "$out" ] || ok=false
 tail -1 "$audit/d1.jsonl" 2>/dev/null | jq -e '.block_o == true and (has("return_pass") | not)' >/dev/null 2>&1 || ok=false
