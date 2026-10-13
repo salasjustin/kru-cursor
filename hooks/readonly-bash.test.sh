@@ -19,7 +19,9 @@ for c in 'ls -la' 'git status' 'grep -rn foo src | head -5' 'git log --oneline -
   'rg -n foo src' 'rg --pretty foo' 'rg --pre-glob "*.gz" foo' 'date' 'cat x | jq .a' \
   'sort --check a.txt' 'sort -r -t, -k2 a.txt' \
   "sed -n '1,5p' a.txt" "sed 's/a/b/' a.txt" "sed -e 's/x/y/g' a.txt" "sed -E 's/we/x/' a.txt" "sed -n '/code/p' some.txt" \
-  "yq '.a' f.yaml" 'yq -o json f.yaml' 'yq --indent 4 . f.yaml'; do
+  "yq '.a' f.yaml" 'yq -o json f.yaml' 'yq --indent 4 . f.yaml' \
+  'date +%s' 'date +%F' 'date -u' 'date -d yesterday +%F' 'grep -rn getline src' "rg 'system(' src" 'yq -P e .a f.yaml' \
+  'command -v jq' 'command -V git'; do
   expect read "$c"
 done
 
@@ -36,7 +38,9 @@ for c in \
   "yq -i '.a = 1' f.yaml" "yq --inplace '.a = 1' f.yaml" "yq -Pi '.a = 1' f.yaml" "yq -s '.name' f.yaml" "yq --split-exp '.name' f.yaml" \
   'git diff --output=patch.diff' 'git log -p --output x' \
   'rg --pre ./run.sh foo' 'rg --pre=./run.sh foo' 'ls | rg --pre sh foo' \
-  'date -s "2020-01-01"' 'date --set=tomorrow' 'date +%s' \
+  'date -s "2020-01-01"' 'date --set=tomorrow' 'date --se=tomorrow' "date '-s' x" 'date -us 12:00' 'date -s12:00' 'date 01011200' \
+  "awk 'BEGIN { print 1; echo system(\"rm -rf build\") }'" "grep -c x f | awk '{ \"date\" | getline d }'" \
+  'command rm -rf build' 'command -p rm x' \
   'rm -rf build' 'echo hi > notes.md' 'sed -i s/a/b/ f' 'git branch -D main'; do
   expect write "$c"
 done

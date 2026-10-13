@@ -236,6 +236,14 @@ PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=2 fir
 t1=$(date +%s)
 check "store-sync: a hung clone gives up inside the first-turn budget" test $((t1 - t0)) -lt 12
 check "…and the tool call is allowed" has '.permission == "allow"'
+resp=$(cd "$work" && printf '{}' | PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=1 bash "$plugin/hooks/store-sync.sh" start "$plugin" 2>/dev/null)
+check "…and says it timed out, not that the repo or sign-in is wrong" has '.systemMessage | test("not loaded; sync timed out after 1s")'
+# the first pull gets the budget of the hook it runs in, unless the variable is set
+printf '#!/bin/bash\ncase " $* " in *" clone "*) echo "$KRU_STORE_SYNC_TIMEOUT" >> "%s"; exit 1 ;; esac\nexec "%s" "$@"\n' "$sandbox/budget" "$real_git" > "$sandbox/bin/git"
+PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store fire sessionStart "$(jq -nc '{session_id: "bud1", conversation_id: "bud1"}')"
+PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store fire preToolUse "$(tool bud2 Read '{"path":"README.md"}')"
+PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=7 fire preToolUse "$(tool bud3 Read '{"path":"README.md"}')"
+check "first-turn: 45s from sessionStart, 10s from the first tool call, an explicit value wins" test "$(tr '\n' ' ' < "$sandbox/budget")" = "45 10 7 "
 # the stop path's push, pull and push share one budget (30s stop hook), and a
 # call that hangs in a child — ssh, a remote helper — still ends on time:
 # the child holds the output pipe, so killing git alone would leave it waiting
