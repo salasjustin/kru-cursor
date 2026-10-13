@@ -334,3 +334,91 @@ EDITS.push(E(
   "- **Queued** — anything the PM says while a builder is out.",
   "t5",
 ))
+
+// --- t6: two preference channels, one each -----------------------------------
+EDITS.push(E(
+  "PREFERENCES.md",
+  "1. **The user, explicitly** — `/kru-remember <what they liked>`. Never inferred from approval; the team does not guess.",
+  "1. **Justin or the PM bot, explicitly** — `/kru-remember <what they liked>`, sourced `user:justin` or `pm:<bot>` (`pm:kai`). **Two channels, one each:** how the PM bots themselves operate goes to the PM bots' own `remember` skill, which Vera files into their policies, never here; the engineering practice the seats should carry comes here. Only the PM-to-lead loop counts as input, kept within the escalation rule (`skills/kru-lead/SKILL.md`, first section): a `pm:<bot>` line is a proposal, and Justin's words outrank it. Never inferred from approval; the team does not guess.",
+  "t6: two preference channels, one each; PM-bot lines are proposals",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
+  "- [design] prefers bento-grid hero over centered-stack — _user · acme-site · 2026-07-21_\n- [code] approved Result<T,E> returns over throwing at call boundaries — _agent:sveltekit-builder · acme-site · 2026-07-21_\n- [workflow] wants the plan grilled before any build, always — _user · acme-site · 2026-07-21_\n- [design] liked this pricing table → patterns/pricing-3col.md — _user · acme-site · 2026-07-21_",
+  "- [design] prefers bento-grid hero over centered-stack — _user:justin · acme-site · 2026-07-21_\n- [code] approved Result<T,E> returns over throwing at call boundaries — _agent:sveltekit-builder · acme-site · 2026-07-21_\n- [workflow] wants the plan grilled before any build, always — _pm:kai · acme-site · 2026-07-21_\n- [design] liked this pricing table → patterns/pricing-3col.md — _user:justin · acme-site · 2026-07-21_",
+  "t6: the source tags",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
+  "- **source** `user`, `agent:<seat-slug>`, or `setup` — who captured it",
+  "- **source** `user:justin`, `pm:<bot>`, `agent:<seat-slug>`, or `setup` — who captured it (a bare `user` from before the split reads as `user:justin`)",
+  "t6",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
+  "Nothing is committed, so the uncommitted diff is the user's review.",
+  "Nothing is committed: Kai reviews the uncommitted diff from its kru checkout, then commits, pushes, opens the pull request, merges and tags (Kai owns kru releases).",
+  "t6: learn's review and release are Kai's",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
+  "(run from the plugin source repo; decides, user reviews the diff)",
+  "(run from Kai's kru checkout; decides, Kai reviews the diff)",
+  "t6",
+))
+EDITS.push(E(
+  "skills/kru-remember/SKILL.md",
+  "   - [<lane>] <the preference, tightly worded> — _user · <project-slug> · <YYYY-MM-DD>_",
+  "   - [<lane>] <the preference, tightly worded> — _<source> · <project-slug> · <YYYY-MM-DD>_",
+  "t6: the source tag accepts pm:<bot>",
+))
+EDITS.push(E(
+  "skills/kru-remember/SKILL.md",
+  "Source is always `user` for this command (agents append their own lines directly, per the lead's handoff).",
+  "Source is `user:justin` for Justin's words and `pm:<bot>` (`pm:kai`) for a PM bot's — a PM bot's line is a proposal, and Justin's words outrank it at the sweep. Agents append their own lines directly, per the lead's handoff.",
+  "t6: the source tag accepts pm:<bot>",
+))
+EDITS.push(E(
+  "skills/kru-remember/SKILL.md",
+  "- Don't promote it now — capture is lossless and untriaged; the sweep is the gated step that edits the team.",
+  "- Don't promote it now — capture is lossless and untriaged; the sweep is the gated step that edits the team.\n- How the PM bots themselves operate is not a team preference: it goes to the PM bots' own `remember` skill (`${CURSOR_PLUGIN_ROOT}/PREFERENCES.md` → Tier 1, writer 1). This inbox takes what the seats should carry.",
+  "t6: two channels",
+))
+EDITS.push(E(
+  "skills/kru-roster/learn.md",
+  "The review is the uncommitted diff — commit stays the user's, so an edit they disagree with is reverted before it ships.\n\nRun this **from the plugin source repo** (it commits the plugin), not a product repo.",
+  "The review is the uncommitted diff — Kai's, so an edit it disagrees with is reverted before it ships.\n\nRun this **from Kai's kru checkout** (it changes the plugin), not a product repo. Kai reviews the diff, commits, pushes, opens the pull request, merges and tags — Kai owns kru releases. Justin's words (`user:justin`) outrank a PM bot's (`pm:<bot>`) in every verdict below.",
+  "t6: learn runs from Kai's checkout; Kai reviews and releases; Justin outranks",
+))
+EDITS.push(E(
+  "skills/kru-roster/learn.md",
+  "- **Put it to the user** when a `user`-sourced line contradicts a rule the plugin states — the conflict is resolved at its source, not won by the standing text. It becomes a numbered question in the report (keep the rule, or change it to the line) and stays in the inbox, deferred, until the user answers.",
+  "- **Put it to the source** when a `user:justin`-sourced line contradicts a rule the plugin states — the conflict is resolved at its source, not won by the standing text. It becomes a numbered question in the report for Kai to carry to Justin (keep the rule, or change it to the line) and stays in the inbox, deferred, until Justin answers. A `pm:<bot>` line contradicting a stated rule or a `user:justin` line is a proposal that lost: drop it with the reason.",
+  "t6: Justin's lines outrank PM-bot lines",
+))
+EDITS.push(E(
+  "skills/kru-roster/learn.md",
+  "Leave `commit`+`tag` to the user (git rule).",
+  "`commit`, push, pull request, merge and `tag` are Kai's (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "t6",
+))
+EDITS.push(E(
+  "hooks/check-handoff.sh",
+  "(the user rejected X twice and chose Y)",
+  "(the PM or Justin rejected X twice and chose Y)",
+  "t6",
+))
+EDITS.push(E(
+  "references/store.md",
+  "the half that is supposed to follow the user rather",
+  "the half that is supposed to follow Justin and the PM bots rather",
+  "t6",
+))
+
+// --- t6: (cont.) learn's report ----------------------------------------------
+EDITS.push(E(
+  "skills/kru-roster/learn.md",
+  "questions (each user line against the rule it contradicts), deferred — as a list numbered 1, 2, 3 the user can answer by item.",
+  "questions (each `user:justin` line against the rule it contradicts), deferred — as a list numbered 1, 2, 3 Kai can answer, or carry to Justin, by item.",
+  "t6",
+))

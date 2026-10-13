@@ -80,7 +80,7 @@ The **project** root is always files. The **cross-project** root has two backend
 | `fs` | default | files under the cross-project root |
 | `artifact` | `KRU_STORE_URL` is set | the `ArtifactData` store on that artifact |
 
-`artifact` exists because the preference loop is the half that is supposed to follow the user rather
+`artifact` exists because the preference loop is the half that is supposed to follow Justin and the PM bots rather
 than a machine — and today a laptop's `inbox.md` reaches neither the user's other machine nor a cloud
 session. An artifact's database is account-scoped, so both read the same store.
 
