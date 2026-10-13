@@ -95,9 +95,9 @@ guard allows — and the seven readonly seats don't depend on it.
 | `README.md`, `PORTING.md`, `MODELS.md`, `NOTICE` | the fork's own documents |
 | `hooks/cursor-hook.sh`, `first-turn.sh`, `prompt-state.sh`, `seat-guard.sh`, `cursor-state.sh` | the Cursor seam. Per-conversation state lives under `${TMPDIR:-/tmp}/kru-cursor-<uid>/`, both levels `0700` and refused unless a real directory this user owns |
 | `hooks/require-lead.sh`, `hooks/brainstorm-guard.sh` and their tests | Cursor-native rewrites of upstream's transcript-reading gates; an upstream change to their *rules* (what counts as a go, which tools are reads) needs mirroring by hand. Both still call upstream's `hooks/readonly-bash.sh` |
-| `scripts/asset/xai.mjs`, `xai.test.mjs` | the asset generator's xAI backend and its tests; port rules hook it into upstream's `gen-asset.ts` and copy it in `run.sh` (`MODELS.md`) |
 | `scripts/cursor/setup-1d.md` | `/kru-setup` §1d (grants, store repo, cloud environment), pulled in by a port rule |
 | `scripts/cursor/gates-report-path.md` | the review-report paragraph of `gates.md` |
+| `scripts/asset/xai.mjs`, `xai.test.mjs` | the asset generator's xAI backend and its tests; port rules hook it into upstream's `gen-asset.ts` and copy it in `run.sh` (`MODELS.md`) |
 | `scripts/cursor/sources-harness-row.md` | `SOURCES.md` → *Orchestration / harness mechanics* |
 | `skills/kru-update/claude.md`, `reviewed.md` | the sweep of claude code releases; layout rules only (below) |
 | `skills/kru-eval-review/SKILL.md` | audits a claude plugin eval suite; layout rules only |

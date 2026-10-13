@@ -60,7 +60,8 @@ export function buildRequest({ apiKey, model, prompt, aspect, resolution, qualit
 
 // a rejection that names the model is worth one retry on the next model; any
 // other failure (auth, quota, a refused prompt) would fail the same way again
-const modelRejected = (status, text) => status === 404 || ((status === 400 || status === 422) && /model/i.test(text))
+const modelRejected = (status, text) =>
+  status === 404 || ((status === 400 || status === 422) && /model/i.test(text) && /not found|does not exist|unknown|not available|no access/i.test(text))
 
 // generate returns the image bytes, trying each model in XAI_IMAGE_MODELS order
 // (or just `model` when one is named) until one is accepted
