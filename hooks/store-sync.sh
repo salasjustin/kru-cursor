@@ -48,6 +48,14 @@ case "$KRU_STORE_REPO" in
 esac
 
 g() { git -C "$home" "$@"; }
+# a remote that hangs must not hold the tool call this runs on: timeout
+# bounds the call, git's low-speed abort a stalled transfer where it's missing
+net() {
+  local t=${KRU_STORE_SYNC_TIMEOUT:-10} run=()
+  if command -v timeout >/dev/null 2>&1; then run=(timeout "$t")
+  elif command -v gtimeout >/dev/null 2>&1; then run=(gtimeout "$t"); fi
+  "${run[@]}" git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime="$t" "$@"
+}
 first_line() { printf '%s' "$1" | head -n 1 | cut -c1-160; }
 
 # newer file wins, both directions; a dir that doesn't exist yet is skipped
@@ -86,7 +94,7 @@ case "$mode" in
   start)
     if [ ! -d "$home/.git" ]; then
       tmp=$(mktemp -d) || say "not loaded; sync failed. Free some disk space and restart the session"
-      err=$(git clone -q "$url" "$tmp/store" 2>&1) || { rm -rf "$tmp"; say "not loaded; sync failed. Check that $KRU_STORE_REPO exists and you're signed in to GitHub (gh auth status)" "$(first_line "$err")"; }
+      err=$(net clone -q "$url" "$tmp/store" 2>&1) || { rm -rf "$tmp"; say "not loaded; sync failed. Check that $KRU_STORE_REPO exists and you're signed in to GitHub (gh auth status)" "$(first_line "$err")"; }
       mkdir -p "$home"
       # a home that already holds files — hook state from this session — keeps
       # them; the checkout only fills in what the remote tracks
@@ -94,7 +102,7 @@ case "$mode" in
       g checkout -q -- . 2>/dev/null
     else
       register_driver
-      err=$(g pull -q --rebase --autostash 2>&1) || say "using the local copy; sync failed. Check your network or GitHub sign-in (gh auth status)" "$(first_line "$err")"
+      err=$(net -C "$home" pull -q --rebase --autostash 2>&1) || say "using the local copy; sync failed. Check your network or GitHub sign-in (gh auth status)" "$(first_line "$err")"
     fi
     register_driver
     seed_defaults
@@ -113,9 +121,9 @@ case "$mode" in
     # a push that failed on an earlier turn left commits ahead of the remote
     ahead=$(g rev-list --count '@{u}..HEAD' 2>/dev/null)
     [ "${ahead:-0}" = 0 ] && exit 0
-    if ! g push -q 2>/dev/null; then
-      err=$(g pull -q --rebase 2>&1) || { g rebase --abort >/dev/null 2>&1; say "saved locally; sync failed. Another machine's changes conflict: run git -C $home pull --rebase to merge them" "$(first_line "$err")"; }
-      err=$(g push -q 2>&1) || say "saved locally; sync failed. Check your network or GitHub sign-in (gh auth status)" "$(first_line "$err")"
+    if ! net -C "$home" push -q 2>/dev/null; then
+      err=$(net -C "$home" pull -q --rebase 2>&1) || { g rebase --abort >/dev/null 2>&1; say "saved locally; sync failed. Another machine's changes conflict: run git -C $home pull --rebase to merge them" "$(first_line "$err")"; }
+      err=$(net -C "$home" push -q 2>&1) || say "saved locally; sync failed. Check your network or GitHub sign-in (gh auth status)" "$(first_line "$err")"
     fi
     ;;
 esac

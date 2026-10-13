@@ -209,7 +209,14 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
     if (e.type !== undefined && e.type !== "command") fail("hooks", `${event}: type ${e.type} — cloud agents run command hooks only`)
     for (const k of Object.keys(e)) if (!["command", "type", "timeout", "matcher", "loop_limit", "failClosed"].includes(k)) fail("hooks", `${event}: unknown key ${k}`)
     if (["preToolUse", "postToolUse", "postToolUseFailure"].includes(event) && e.matcher !== undefined)
-      for (const m of String(e.matcher).split("|")) if (!TOOL_MATCHERS.has(m) && !/^MCP:/.test(m)) fail("hooks", `${event}: matcher ${m} is not a cursor tool (claude's Bash/Edit/Agent?)`)
+    {
+      // cursor tests a matcher as an unanchored regex, so a tool name is only
+      // matched exactly when anchored: `^Name$` or `^(A|B)$` ("*" matches all)
+      const m = String(e.matcher)
+      const names = m === "*" ? ["*"] : m.match(/^\^\(?([A-Za-z:|_-]+?)\)?\$$/)?.[1].split("|")
+      if (!names) fail("hooks", `${event}: matcher ${m} is not anchored (^Name$ or ^(A|B)$) — cursor reads it as an unanchored regex`)
+      else for (const n of names) if (!TOOL_MATCHERS.has(n) && !/^MCP:/.test(n)) fail("hooks", `${event}: matcher ${n} is not a cursor tool (claude's Bash/Edit/Agent?)`)
+    }
     for (const s of String(e.command).match(/[a-z0-9-]+\.sh/g) ?? []) if (!existsSync(join(ROOT, "hooks", s))) fail("hooks", `${event}: ${s} is not in hooks/`)
     if (!/^bash "\$\{CURSOR_PLUGIN_ROOT\}\/hooks\/cursor-hook\.sh" /.test(e.command)) fail("hooks", `${event}: ${e.command} skips the adapter`)
   }

@@ -17,7 +17,7 @@
       {
         "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" preToolUse first-turn.sh",
         "matcher": "*",
-        "timeout": 60
+        "timeout": 15
       },
       {
         "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" preToolUse require-lead.sh",
@@ -26,17 +26,17 @@
       },
       {
         "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" preToolUse check-handoff.sh",
-        "matcher": "Task",
+        "matcher": "^Task$",
         "timeout": 10
       },
       {
         "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" preToolUse brainstorm-guard.sh",
-        "matcher": "Shell|Write|Delete",
+        "matcher": "^(Shell|Write|Delete)$",
         "timeout": 10
       },
       {
         "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" preToolUse seat-guard.sh accessibility-reviewer architecture-reviewer code-reviewer conversion-copywriter dispatch-auditor planner ux-auditor ux-designer visual-reviewer",
-        "matcher": "Write|Delete",
+        "matcher": "^(Write|Delete)$",
         "timeout": 10
       }
     ],
@@ -49,7 +49,7 @@
     "postToolUse": [
       {
         "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" postToolUse log-dispatch.sh",
-        "matcher": "Task",
+        "matcher": "^Task$",
         "timeout": 10
       }
     ],

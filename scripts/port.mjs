@@ -89,6 +89,7 @@ const FORK_OWNED = new Set([
   "hooks/cursor-hook.sh",
   "hooks/require-lead.sh",
   "hooks/require-lead.test.sh",
+  "hooks/readonly-bash.test.sh",
   "hooks/brainstorm-guard.sh",
   "hooks/brainstorm-guard.test.sh",
   "hooks/prompt-state.sh",
@@ -169,6 +170,34 @@ const RULES = [
     "# package.json + lockfile into every cached plugin version — 65 MB a version for\n# two seats that rarely run. cursor has no plugin data dir, so on cursor they live\n# in the user's data dir (KRU_PLUGIN_DATA overrides) — outside the store, which a\n# store repo would sync — where a plugin update leaves them.", { sh: true, files: /^scripts\/asset\/run\.sh$/ }),
   // the read-only listings a triage turn reaches for, cursor's cli
   R(/'claude mcp list'\*\|'claude plugin list'\*\|'claude plugin details'\*\)/g, "'agent mcp list'*|'agent status'*|'agent models'*|'cursor-agent mcp list'*|'cursor-agent status'*)", { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /'agent mcp list'/ }),
+  // verbs that read by default and write on a flag: awk's system() and getline
+  // run commands, sort -o and any --output write a file, rg --pre runs a
+  // program per file, date with an argument can set the clock (tests:
+  // hooks/readonly-bash.test.sh)
+  R(/\|\*'xargs'\*\) return 1 ;;/g, "|*'xargs'*|*'system('*|*'getline'*|*'--output'*) return 1 ;;", { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /\*'getline'\*\|\*'--output'\*\) return 1 ;;/ }),
+  R(/( +)ls\|cat\|head\|tail\|wc\|grep\|egrep\|fgrep\|rg\|find\|(.*)\n( +)which\|command\|type\|echo\|printf\|jq\|yq\|sort\|uniq\|cut\|tr\|column\|date\|test\|true\|diff\) continue ;;\n/g,
+    (_m, a, rest, b) => `${a}ls|cat|head|tail|wc|grep|egrep|fgrep|find|${rest}\n${b}which|command|type|echo|printf|jq|yq|uniq|cut|tr|column|test|true|diff) continue ;;\n` +
+      `${b}sort) [[ " $seg" =~ [[:space:]](-[a-zA-Z]*o|--output) ]] && return 1; continue ;;\n` +
+      `${b}rg) [[ " $seg " =~ [[:space:]]--pre([[:space:]=]) ]] && return 1; continue ;;\n` +
+      `${b}date) [ "$seg" = date ] && continue; return 1 ;;\n`,
+    { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^ +date\) \[ "\$seg" = date \] && continue; return 1 ;;$/m }),
+  // a hung remote must not hold the tool call that runs the store's first
+  // pull (the first preToolUse has 15s): coreutils timeout bounds the call,
+  // and git's low-speed abort ends a stalled transfer where there is none
+  R(/^g\(\) \{ git -C "\$home" "\$@"; \}\n(?!# a remote that hangs)/m, () => [
+    'g() { git -C "$home" "$@"; }',
+    "# a remote that hangs must not hold the tool call this runs on: timeout",
+    "# bounds the call, git's low-speed abort a stalled transfer where it's missing",
+    "net() {",
+    '  local t=${KRU_STORE_SYNC_TIMEOUT:-10} run=()',
+    '  if command -v timeout >/dev/null 2>&1; then run=(timeout "$t")',
+    '  elif command -v gtimeout >/dev/null 2>&1; then run=(gtimeout "$t"); fi',
+    '  "${run[@]}" git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime="$t" "$@"',
+    "}",
+    "",
+  ].join("\n"), { sh: true, files: /^hooks\/store-sync\.sh$/, required: /^net\(\) \{$/m }),
+  R(/\$\(git clone -q "\$url"/g, '$(net clone -q "$url"', { sh: true, files: /^hooks\/store-sync\.sh$/, required: /\$\(net clone -q "\$url"/ }),
+  R(/\bg (pull|push) -q\b/g, 'net -C "$home" $1 -q', { sh: true, files: /^hooks\/store-sync\.sh$/, required: /net -C "\$home" pull -q --rebase --autostash/ }),
   // a cloud vm: cursor's managed vms expose the agent metadata socket
   R(/kru_is_cloud\(\) \{ \[ "\$\{CLAUDE_CODE_REMOTE:-\}" = "true" \]; \}/g,
     'kru_is_cloud() { [ "${KRU_CLOUD:-}" = "1" ] || [ -n "${CURSOR_AGENT_SOCKET:-}" ] || [ -S /run/cursor/api.sock ]; }', { sh: true, files: /^scripts\/kru-store\.sh$/, required: /CURSOR_AGENT_SOCKET/ }),
@@ -627,14 +656,19 @@ function portHooks(noEdit) {
       sessionStart: [h("sessionStart", "first-turn.sh", { timeout: 60 })],
       beforeSubmitPrompt: [h("beforeSubmitPrompt", "prompt-state.sh", { timeout: 10 })],
       preToolUse: [
-        h("preToolUse", "first-turn.sh", { matcher: "*", timeout: 60 }),
+        // the first tool call of a conversation waits on this one; store-sync
+        // bounds its network calls to fit (KRU_STORE_SYNC_TIMEOUT)
+        h("preToolUse", "first-turn.sh", { matcher: "*", timeout: 15 }),
         h("preToolUse", "require-lead.sh", { matcher: "*", timeout: 10 }),
-        h("preToolUse", "check-handoff.sh", { matcher: "Task", timeout: 10 }),
-        h("preToolUse", "brainstorm-guard.sh", { matcher: "Shell|Write|Delete", timeout: 10 }),
-        h("preToolUse", "seat-guard.sh", { matcher: "Write|Delete", timeout: 10 }, noEdit),
+        // cursor tests a matcher as an unanchored regex (new RegExp(m).test(tool)
+        // in cursor-agent 2026.10.01), so every name is anchored: `Write` alone
+        // would also match a tool named WriteShellStdin
+        h("preToolUse", "check-handoff.sh", { matcher: "^Task$", timeout: 10 }),
+        h("preToolUse", "brainstorm-guard.sh", { matcher: "^(Shell|Write|Delete)$", timeout: 10 }),
+        h("preToolUse", "seat-guard.sh", { matcher: "^(Write|Delete)$", timeout: 10 }, noEdit),
       ],
       subagentStart: [h("subagentStart", "seat-guard.sh", { timeout: 10 }, noEdit)],
-      postToolUse: [h("postToolUse", "log-dispatch.sh", { matcher: "Task", timeout: 10 })],
+      postToolUse: [h("postToolUse", "log-dispatch.sh", { matcher: "^Task$", timeout: 10 })],
       // a hook past its loop_limit is skipped outright. log-return asks once
       // (loop_count 0) and logs the second miss (loop_count 1), so it must still
       // run at 1; nudge-audit bounds itself by the dispatch count it already

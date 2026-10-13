@@ -10,7 +10,7 @@
 kru_readonly_bash() {
   case "$1" in
     # a redirect, a substitution or an in-place edit writes whatever the verb is
-    *'>'*|*'$('*|*'`'*|*'sed -i'*|*'perl -i'*|*'--in-place'*|*'-exec'*|*'-delete'*|*'-fprint'*|*'-fls'*|*'xargs'*) return 1 ;;
+    *'>'*|*'$('*|*'`'*|*'sed -i'*|*'perl -i'*|*'--in-place'*|*'-exec'*|*'-delete'*|*'-fprint'*|*'-fls'*|*'xargs'*|*'system('*|*'getline'*|*'--output'*) return 1 ;;
     *)
       # every segment of a chain or pipe answers for itself — a read-only head
       # says nothing about what follows it
@@ -19,8 +19,11 @@ kru_readonly_bash() {
         [ -z "$seg" ] && continue
         verb=${seg%% *}
         case "${verb##*/}" in
-          ls|cat|head|tail|wc|grep|egrep|fgrep|rg|find|file|stat|pwd|realpath|basename|dirname) continue ;;
-          which|command|type|echo|printf|jq|yq|sort|uniq|cut|tr|column|date|test|true|diff) continue ;;
+          ls|cat|head|tail|wc|grep|egrep|fgrep|find|file|stat|pwd|realpath|basename|dirname) continue ;;
+          which|command|type|echo|printf|jq|yq|uniq|cut|tr|column|test|true|diff) continue ;;
+          sort) [[ " $seg" =~ [[:space:]](-[a-zA-Z]*o|--output) ]] && return 1; continue ;;
+          rg) [[ " $seg " =~ [[:space:]]--pre([[:space:]=]) ]] && return 1; continue ;;
+          date) [ "$seg" = date ] && continue; return 1 ;;
           # safe only because the write-tell case above already took sed -i and any redirect
           sed|awk|nl|tac|comm|xxd|base64) continue ;;
         esac

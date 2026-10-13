@@ -189,6 +189,10 @@ fire preToolUse "$(tool bs1 Shell '{"command":"echo hi > notes.md"}')"
 check "brainstorm-guard: a shell write is refused" has '.permission == "deny"'
 fire preToolUse "$(tool bs1 Delete '{"path":"notes.md"}')"
 check "brainstorm-guard: a delete is refused" has '.permission == "deny"'
+# cursor tests a matcher as an unanchored regex: an unanchored `Write` would
+# put the guards on any tool whose name contains it
+fire preToolUse "$(tool bs1 WriteShellStdin '{"shellId":"s1","chars":"y"}')"
+check "brainstorm-guard: WriteShellStdin is not the Write tool" has '.permission == "allow"'
 fire beforeSubmitPrompt "$(prompt bs1 'go')"
 fire preToolUse "$(tool bs1 Write '{"path":"notes.md"}')"
 check "brainstorm-guard: the user's go lifts it" has '.permission == "allow"'
@@ -206,8 +210,24 @@ fire preToolUse "$(tool sa-plan Write '{"path":"plan.md"}' '{"parent_tool_call_i
 check "seat-guard: planner is refused the Write tool" has '.permission == "deny" and (.agent_message | test("planner"))'
 fire preToolUse "$(tool sa-plan Shell '{"command":"mkdir -p /tmp/x"}' '{"parent_tool_call_id":"tc-plan"}')"
 check "seat-guard: planner keeps the shell" has '.permission == "allow"'
+fire preToolUse "$(tool sa-plan WriteShellStdin '{"shellId":"s1","chars":"y"}' '{"parent_tool_call_id":"tc-plan"}')"
+check "seat-guard: WriteShellStdin is not the Write tool" has '.permission == "allow"'
+check "every tool matcher is anchored (or *)" jq -e '[.hooks[][] | select(has("matcher")) | .matcher | . == "*" or test("^\\^.*\\$$")] | all' "$hooks_json"
 fire preToolUse "$(tool sa-node Write '{"path":"src/a.ts"}' '{"parent_tool_call_id":"tc-node"}')"
 check "seat-guard: a builder writes" has '.permission == "allow"'
+
+# --- store-sync on a hung remote ------------------------------------------------------------------
+# the first preToolUse waits on the store's clone; a remote that never answers
+# has to give up inside the hook's 15s, and the call still goes through
+mkdir -p "$sandbox/bin"
+real_git=$(command -v git)
+printf '#!/bin/bash\ncase " $* " in *" clone "*|*" pull "*) exec sleep 60 ;; esac\nexec "%s" "$@"\n' "$real_git" > "$sandbox/bin/git"
+chmod +x "$sandbox/bin/git"
+t0=$(date +%s)
+PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=2 fire preToolUse "$(tool hung1 Read '{"path":"README.md"}')"
+t1=$(date +%s)
+check "store-sync: a hung clone gives up inside the first-turn budget" test $((t1 - t0)) -lt 12
+check "…and the tool call is allowed" has '.permission == "allow"'
 
 # --- adapter hardening --------------------------------------------------------------------------------
 { printf 'Build the `exportCommand` handler in src/cli.ts. '; head -c 160000 /dev/zero | tr '\0' 'a'; } > "$sandbox/big.txt"
