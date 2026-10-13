@@ -6,8 +6,10 @@
 # so the state they need is recorded here, per conversation, from the prompt
 # itself — a hook cloud agents run too.
 #
-#   /kru-brainstorm …            → the brainstorm lock (writes refused)
-#   go | brief it | /kru-brief   → the user's go: the lock lifts
+#   /kru-brainstorm …            → the brainstorm lock (writes refused) — unless
+#                                  the same prompt carries a line of its own
+#                                  reading `go`: a headless brief's go, given up front
+#   go | brief it | /kru-brief   → the PM's go: the lock lifts
 #   /kru-lead …                  → the lead contract is loaded
 #   /kru-<any> …                 → a kru command is the latest word (require-lead exempts it)
 #   anything else                → an ordinary turn again
@@ -29,8 +31,12 @@ cmd=$(printf '%s' "$prompt" | sed -n '1s/^[[:space:]]*\/\(kru-[a-z0-9-]*\).*/\1/
 [ -z "$cmd" ] && cmd=$(printf '%s' "$input" | jq -r '[.attachments[]?.file_path // empty
   | capture("/(skills/(?<s>kru-[a-z0-9-]+)/SKILL\\.md|commands/(?<c>kru-[a-z0-9-]+)\\.md)$")? | (.s // .c)] | first // empty' 2>/dev/null)
 
+# a headless run (the PM bot's brief, nobody answering mid-run) can't say go on
+# a later turn, so a `go` line inside the brainstorm prompt itself is the go
+headless_go() { printf '%s' "$prompt" | sed 1d | grep -qiE '^[[:space:]]*(go|brief it)[[:space:].!]*$'; }
+
 case "$cmd" in
-  kru-brainstorm) : > "$state/brainstorm.lock" ;;
+  kru-brainstorm) if headless_go; then rm -f "$state/brainstorm.lock"; else : > "$state/brainstorm.lock"; fi ;;
   kru-brief) rm -f "$state/brainstorm.lock" ;;
   kru-lead) : > "$state/lead.loaded" ;;
 esac

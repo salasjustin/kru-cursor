@@ -72,16 +72,17 @@ function hashedHits(line) {
 }
 
 // reserved for documentation (rfc 2606 / 6761), github's and anthropic's
-// no-reply senders, and the placeholder addresses the vendored and first-party
-// docs use in examples — each one a made-up mailbox, listed exactly. the cursor
-// cloud agent's commit mailbox is allowed too: those commits are this fork's
+// no-reply senders, the placeholder addresses the vendored and first-party
+// docs use in examples — each one a made-up mailbox, listed exactly — and
+// known bot identities that author commits on this fork.
 const EMAIL_OK = (e) =>
   /@([a-z0-9-]+\.)*example(\.(com|org|net))?$/i.test(e) ||
   /\.(invalid|test|localhost)$/i.test(e) ||
   /@users\.noreply\.github\.com$/i.test(e) ||
   /^noreply@(github|anthropic)\.com$/i.test(e) ||
-  e.toLowerCase() === "cursoragent@cursor.com" ||
-  PLACEHOLDER_EMAILS.has(e.toLowerCase())
+  PLACEHOLDER_EMAILS.has(e.toLowerCase()) ||
+  BOT_EMAILS.has(e.toLowerCase())
+const BOT_EMAILS = new Set(["cursoragent@cursor.com"])
 const PLACEHOLDER_EMAILS = new Set(
   ("+@mcp.tool a@a.com a@ex.com b@ex.com noreply@ex.com alice@company.com name@company.com you@company.com " +
     "alice@sender.com bounce@sender.com archive@corp.com billing@corp.com general@corp.com inbox@corp.com " +

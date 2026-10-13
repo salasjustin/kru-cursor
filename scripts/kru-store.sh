@@ -53,7 +53,7 @@ kru_repo_root() {
 # it reaches every surface.
 kru_slug() { printf '%s' "${KRU_PROJECT:-$(basename "$(kru_repo_root)")}"; }
 
-kru_is_cloud() { [ "${KRU_CLOUD:-}" = "1" ] || [ -n "${CURSOR_AGENT_SOCKET:-}" ] || [ -S /run/cursor/api.sock ]; }
+kru_is_cloud() { [ "${KRU_CLOUD:-}" = "0" ] && return 1; [ "${KRU_CLOUD:-}" = "1" ] || [ -n "${CURSOR_AGENT_SOCKET:-}" ] || [ -S /run/cursor/api.sock ]; }
 
 kru_home() { printf '%s' "${KRU_HOME:-$HOME/.kru}"; }
 

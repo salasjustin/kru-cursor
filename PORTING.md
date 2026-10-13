@@ -5,11 +5,14 @@ remote (`upstream`). Nothing is vendored twice: upstream's files, normalized int
 place by one script, plus a small set of fork-owned files.
 
 ```
-git fetch upstream && git merge upstream/main
-node scripts/port.mjs            # re-normalize what the merge brought in
+bash scripts/sync-upstream.sh    # merge upstream/main and regenerate the tree (or: git merge upstream/main && node scripts/port.mjs)
 bash scripts/verify.sh           # every static check (CI runs it on each pull request and push to main)
 bash scripts/cursor-smoke.sh     # local, spends a request: a signed-in cursor-agent loads the plugin
 ```
+
+`.github/workflows/sync-upstream.yml` runs the first two weekly and opens the result as a pull
+request (an issue when the port can't take the new upstream); `skills/kru-roster/fork-sync.md` is
+the runbook and `skills/kru-roster/release.md` the release steps.
 
 `scripts/port.mjs` is **idempotent**, which is the whole design: a merge that reintroduces Claude Code
 vocabulary gets rewritten again instead of hand-patched. `--check` exits non-zero when the tree is
@@ -40,7 +43,7 @@ this tree byte for byte — so no ported file carries a hand edit the next merge
 | `userConfig` (`/plugin` → Configure: `KRU_STORE_REPO`, the `KRU_NO_*` switches) | dropped — env vars only (shell profile locally, cloud agent **Secrets** in the cloud) | Cursor's `variables` fill `${VAR}` placeholders in a plugin's config and are set by team admins; they don't reach a hook's environment, and kru ships no MCP config to substitute into. `scripts/kru-store.sh` still maps `CLAUDE_PLUGIN_OPTION_*` for a claude install of the same tree |
 | `kru:<name>`, `/kru:<name>`, a bare `/<name>` command | `kru-<name>`, `/kru-<name>` | one rule for seats, skills and commands; the bare form is re-pointed from the skill set on disk |
 | agent `tools:` allowlist | dropped; the 9 seats with no `Edit`/`Write` become `readonly: true` + `permissionMode: readonly` (7) or are refused the Write/Delete tools by `hooks/seat-guard.sh` (`planner`, `dispatch-auditor`) | `readonly` is Cursor's documented read-only field ("no file edits, no state-changing shell commands") — the strongest control Cursor offers. The installed CLI strips `tools` from a plugin's agents and reads read-only from `permissionMode`, so both keys are written. The planner and the auditor write the store through the shell, which `readonly` would refuse, so their line is the hook — the same line upstream's allowlist drew (no edit tool, shell kept) |
-| agent `model:` | same id | Cursor serves `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` under the same ids — `MODELS.md` |
+| agent `model:` | upstream's id, or the fork's pick from `SEAT_MODELS` in `scripts/port.mjs` (8 seats on Kimi K3, Grok 4.7, Composer 2.5); every id must be in `CONFIRMED_MODELS` | Cursor serves the Claude ids under the same slugs; the map, fallbacks and sources are `MODELS.md` |
 | agent `effort:` | the model id's parameter: `claude-opus-5-5[effort=high]` | Cursor's documented syntax for reasoning effort on a subagent's model |
 | agent `memory: local` | a line in the seat's Block Q naming `.claude/agent-memory-local/<seat>/MEMORY.md`, read and kept by the seat | Cursor has no agent memory; the path stays claude's so both forks of the team share it and `store-sync`/`/kru-setup` cover it (same as kru-opencode) |
 | agent `experimental.cacheTtl` | dropped | no Cursor equivalent |
@@ -90,6 +93,20 @@ guard allows — and the seven readonly seats don't depend on it.
 
 ## Hand-owned — what a merge will not normalize
 
+Every change this fork makes lives in one of three places, never in a ported file — a hand edit to
+one is overwritten by the next port, and `scripts/verify.sh`'s fresh-port check fails on it:
+
+1. **A rewrite rule** in `scripts/port.mjs` (`RULES`): vocabulary and layout, applied everywhere a
+   pattern matches. `required` makes the port fail when upstream rewords the line a rule exists for.
+2. **A fork edit** in `scripts/cursor/edits.mjs` (`EDITS`): a decision this fork makes that upstream
+   doesn't share (who the PM is, who pushes, where a bug goes), written as an exact passage of the
+   ported file and what it becomes, applied after every rule. An edit whose passage upstream
+   rewords fails the port by name; the fix is the new passage copied in. `scripts/port-edits.test.sh`
+   runs them against a fresh upstream tree, idempotence and the rewording failure included.
+3. **A hand-owned file** — listed in `FORK_OWNED` (or under `scripts/cursor/`, `.github/`), skipped by
+   the port and laid over upstream by the fresh-port check. A whole section is a hand-owned block
+   pulled in by a rule (`scripts/cursor/*.md`).
+
 | file | why |
 |---|---|
 | `README.md`, `PORTING.md`, `MODELS.md`, `NOTICE` | the fork's own documents |
@@ -97,8 +114,12 @@ guard allows — and the seven readonly seats don't depend on it.
 | `hooks/readonly-bash.test.sh` | tests the ported `hooks/readonly-bash.sh`, whose flag-writers port rules add: every flag is read off the segment's words with quotes resolved, so `'-o'` is `-o`. sed reads only on an allowlist (`-n -E -r -s -z -u`, `-e`, addresses, `p d D q = G g h H N P x l y { }`, `s///[gpIiMm0-9]*`), since its `w`/`W`/`e` need no separator; every raw newline splits, and `|;&` split only outside quotes; `$$'` is a pid plus a single quote, not `$'…'`, and any other unquoted `$` (and an unescaped `$` or `` ` `` inside `"…"`) fails closed; awk's `system (`/`getline`/`@include`/`@load` and an indirect `@name(` are checked on the raw line when awk is on it and again on the quote-resolved words, and awk `-f` or any flag but `-F`/`-v` is a write; find's `-exec`/`-ok`/`-delete`/`-fprint`/`-fls` and git's `--output` (not `--output-*`) are refused on the quote-resolved words; plus `sort -o` and its GNU prefixes `--o…`, `sort --compress-program`, `rg --pre`, `yq -i`/`--inplace`/`--split-exp`, `date -s`/`--set` or a clock operand, `command` but `-v`/`-V`, `uniq`'s second operand, `file -C`, `base64 -o`, `<(`; `xxd` leaves the read list |
 | `scripts/cursor/readonly-words.sh` | the word splitter and the sed and awk allowlists the port inserts into `hooks/readonly-bash.sh` |
 | `hooks/require-lead.sh`, `hooks/brainstorm-guard.sh` and their tests | Cursor-native rewrites of upstream's transcript-reading gates; an upstream change to their *rules* (what counts as a go, which tools are reads) needs mirroring by hand. Both still call upstream's `hooks/readonly-bash.sh` |
+| `scripts/sync-upstream.sh` (+ test), `.github/workflows/sync-upstream.yml`, `scripts/workflows.test.sh` | the weekly upstream sync: upstream recorded as a merge parent, the tree regenerated by the port, so no text conflict; a pull request, or an issue when the port fails or the push is refused; `sync-upstream.sh` never commits on the default branch. The fork owns `.github/` outright: upstream's is dropped before the overlay, here and in `verify.sh`'s fresh-port check. The verify job that runs upstream's code holds `contents: read` only, no stored credentials, and outputs nothing but an ok flag; the sync job records the bundle's sha256 and the artifact id before that job runs; the one that pushes downloads by that id, checks the sha256, and runs no repo code (`skills/kru-roster/fork-sync.md`). `workflows.test.sh` holds those rules for every workflow: per-job permissions, no `${{ }}` inside `run:`, no token beside a repo script, `persist-credentials: false`, actions pinned to commit SHAs |
+| `skills/kru-roster/release.md`, `skills/kru-roster/fork-sync.md` | the fork's release (version `0.N.0+kruX.Y.Z`, tag, Cursor's marketplace) and sync runbooks. A new file inside a ported directory is hand-owned by listing it in `FORK_OWNED` (`scripts/port.mjs`): the port skips it and the fresh-port check lays it over upstream; the roster skill points at both through a port rule |
+| `scripts/cursor/edits.mjs`, `scripts/port-edits.test.sh` | the fork edits and their test (above) |
 | `scripts/cursor/setup-1d.md` | `/kru-setup` §1d (grants, store repo, cloud environment), pulled in by a port rule |
 | `scripts/cursor/gates-report-path.md` | the review-report paragraph of `gates.md` |
+| `scripts/asset/xai.mjs`, `xai.test.mjs` | the asset generator's xAI backend and its tests; port rules hook it into upstream's `gen-asset.ts` and copy it in `run.sh` (`MODELS.md`) |
 | `scripts/cursor/sources-harness-row.md` | `SOURCES.md` → *Orchestration / harness mechanics* |
 | `skills/kru-update/claude.md`, `reviewed.md` | the sweep of claude code releases; layout rules only (below) |
 | `skills/kru-eval-review/SKILL.md` | audits a claude plugin eval suite; layout rules only |
@@ -129,8 +150,9 @@ guard allows — and the seven readonly seats don't depend on it.
 `scripts/privacy-scan.mjs` runs in `verify.sh` over the tree and over every commit (`git log -p
 --all --diff-merges=first-parent`, so a merge's conflict resolution counts; added lines and
 author/committer emails), plus gitleaks when installed (CI installs a pinned,
-checksum-verified copy). It fails on tokens and keys, emails outside the reserved example domains and
-an exact list of placeholder addresses the vendored docs use, paths off the author's machine, and
+checksum-verified copy). It fails on tokens and keys, emails outside the reserved example domains, an
+exact list of placeholder addresses the vendored docs use, and the known bot identity
+`cursoragent@cursor.com`, paths off the author's machine, and
 client or private-repo names — those matched by hash, so the scanner doesn't publish them.
 
 - **Tree:** clean. One client repo name in `references/lossless-doc-compaction.md` is rewritten by a

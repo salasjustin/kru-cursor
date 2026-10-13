@@ -12,6 +12,8 @@ You run in the **main thread** (like `lead`) — minting a seat edits the orches
 ## The standard (every branch)
 Everything authored here meets **`writing-for-agents`** (context pointers · the two loads · information hierarchy · single source of truth · aggressive pruning; `SKILL-MECHANICS.md` for frontmatter/invocation/router skills) and the team's **official-sources-first** floor — under which a *skill* is the earned-recipe layer over a source, never a restatement of it (entry bar: `author.md`). **Present tense only — no archeology.** A seat prompt states what is true now. What a rule replaced, what a seat used to own, which pass was retired, "no longer", "predates", "the team dropped X" — none of it changes what the agent does, and all of it goes stale on its own schedule. The *reason* behind a live choice earns its place (it's what no config confesses); the *history* of arriving at it belongs in the commit body. A correction to a vendored file is live text, not archeology — state the correction, not the chronology. **Positive framing**: document where a responsibility lives, in the flow where it lives — an ambient skill is "carried by seat X", a user-invoked seat is "spawned directly by the user" in its `ROSTER.md` row; a capability outside a flow is simply absent from that flow's text ("X isn't routed / not a seat / never dispatch" lines are drift magnets and noise). Don't restate the repo's conventions — **copy the shape of the nearest existing peer** (a builder for a builder, a reviewer for a reviewer) and diff against it. **Exception: the shared blocks come from `shared-blocks.md`, never from the peer** — an unpinned "nearest peer" reference is how a dropped clause propagates into every seat hired after it.
 
+**This fork's release and upstream sync** are `release.md` (version, tag, Cursor's marketplace) and `fork-sync.md` (the weekly upstream pull request), beside this file. The version and git rows below follow `release.md`.
+
 ## Wiring map — the single source of truth
 Every place a **seat (agent)** is registered. `hire` writes all of them, `retire` removes all of them, `audit` asserts all of them agree. This table is the authority; the verb files point back here rather than restating it.
 
@@ -25,7 +27,7 @@ Every place a **seat (agent)** is registered. `hire` writes all of them, `retire
 | 6 | `.cursor-plugin/plugin.json` | `version` bump |
 | 7 | `.cursor-plugin/marketplace.json` | the plugin entry's `version`, equal to `VERSION` |
 | 8 | `VERSION` · `ROSTER.md` header | version — minor for a new seat: `VERSION` and the `# Roster — vX.Y.Z` header, equal |
-| 9 | git | `commit` + `tag vX.Y.Z` — **only when the user asks** (team git rule) |
+| 9 | git | `commit` locally when the PM asks; the PM bot pushes and opens the pull request; merging and `tag vX.Y.Z` are Kai's — kru's PM bot owns kru releases (`skills/kru-lead/SKILL.md` → *Who acts at the door*) |
 
 A **skill** touches a smaller map: `skills/<name>/SKILL.md` (+ any disclosed sibling files), a note in `ROSTER.md` → *Reused, not owned* (and `SOURCES.md` if it backs a seat), `VERSION`/header, git. A skill gated on a **library the repo may or may not have** takes one more row — `references/routing.md` → *Conditional skills*, which is what puts it into a repo's sheet and is the whole of its wiring — the brief and the sheet both carry the answer down, so the seat files hold still; a skill its seats load unconditionally stays out of that table. **No agent-count bump** (#6–#7 count is agents only). A *vendored* skill also needs the provenance HTML comment + a `SOURCES.md` → *Vendored resources* note — copy the shape at the top of `skills/kru-writing-for-agents/SKILL.md`.
 
@@ -44,4 +46,4 @@ Read the one file for the requested verb, then execute it against the wiring map
 
 Plus one shared reference, read by `hire` and `audit` rather than dispatched to: **`shared-blocks.md`** — the canonical text of the blocks every seat carries (`Context hygiene`, `TypeScript`, the return contract), with its invariant clauses and its per-seat tailored slots marked.
 
-No verb given → run `audit` and report, then ask which of the others they want.
+No verb given → run `audit` and report, then ask which of the others they want (headless: report the audit and stop).

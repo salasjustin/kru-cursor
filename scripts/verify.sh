@@ -54,6 +54,8 @@ fresh_port() {
   [ -n "$base" ] || { echo "no upstream commit in this clone's history (CI: checkout with fetch-depth 0)"; return 1; }
   tmp=$(mktemp -d)
   git archive "$base" | tar -x -C "$tmp" || { rm -rf "$tmp"; return 1; }
+  # the fork owns .github/ outright; upstream's is not taken (scripts/sync-upstream.sh)
+  rm -rf "$tmp/.github"
   while IFS= read -r f; do
     mkdir -p "$tmp/$(dirname "$f")" && cp -p "$f" "$tmp/$f"
   done < <(node scripts/port.mjs --list-fork-owned)
@@ -66,6 +68,20 @@ fresh_port() {
   done < <(git ls-files -co --exclude-standard)
   echo "fresh port of upstream ${base:0:8} + $(node scripts/port.mjs --list-fork-owned | wc -l | tr -d ' ') fork-owned files reproduces the tree"
   rm -rf "$tmp" "$tmp.list"
+  return $rc
+}
+
+# every seat runs on an id port.mjs confirmed off cursor's docs (MODELS.md);
+# a pick that lost its confirmation falls back in the port, never silently here
+seat_models() {
+  local f m confirmed rc=0 all=""
+  confirmed=$(node scripts/port.mjs --list-models) || return 1
+  for f in agents/*.md; do
+    m=$(sed -n '2,/^---$/s/^model: *//p' "$f")
+    all="$all${m%%\[*}"$'\n'
+    grep -qxF "${m%%\[*}" <<<"$confirmed" || { echo "$f: model '$m' is not in scripts/port.mjs CONFIRMED_MODELS"; rc=1; }
+  done
+  printf '%s' "$all" | sort | uniq -c | sort -rn | awk '{ printf "%s%s×%s", s, $1, $2; s = " · " } END { print "" }'
   return $rc
 }
 
@@ -83,7 +99,9 @@ step "port normalized (port.mjs --check)" node scripts/port.mjs --check --quiet
 step "fresh port of upstream reproduces the tree" fresh_port
 step "script syntax (bash -n, node --check)" syntax
 step "roster audit (scripts/audit.sh)" bash scripts/audit.sh
+step "seat models are confirmed cursor ids (port.mjs CONFIRMED_MODELS)" seat_models
 step "hook + script tests (*.test.sh, cursor-shaped)" run_tests
+step "asset generator: xai backend (node --test, mocked fetch)" node --test scripts/asset/xai.test.mjs
 step "tree: manifest, frontmatter, hooks.json, versions, seats, leftovers" node scripts/verify-tree.mjs
 step "privacy: tree" node scripts/privacy-scan.mjs
 step "privacy: history (git log -p --all)" node scripts/privacy-scan.mjs --history

@@ -5,7 +5,7 @@ disable-model-invocation: true
 argument-hint: "[n | substring]"
 ---
 
-Take the parking lot to the user as a decision, not a listing. The artifact is `TODOS.md` at the plan store root; `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *`TODOS.md`* holds its lifecycle. This is the one verb where a filed want meets the codebase: `TODOS.md` only ever grows otherwise — `issues/` is emptied by the fix that closes a file, and a want has no other exit.
+Take the parking lot to the user as a decision, not a listing. The artifact is `TODOS.md` at the plan store root; `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *`TODOS.md`* holds its lifecycle. Product wants live on the product repo's GitHub issues (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*); when the repo has them, the open ones labelled `enhancement` (`gh issue list --label enhancement --state open --json number,title,body`) run through the same steps beside the file's lines — a landed one closed by `Fixes #n` in its commit, a verified-done one named for the PM bot to close. This is the one verb where a filed want meets the codebase: `TODOS.md` only ever grows otherwise — `issues/` is emptied by the fix that closes a file, and a want has no other exit.
 
 **The gate is the verb.** Steps 1–3 compute a proposal; the only writes before §4 are bookkeeping, and bookkeeping is the team's — a line §1 verified done is deleted, and `effort` is sized and revised on the team's own read. The order is arithmetic, the batch is a proposal, *what gets built* and *what a want is worth* are the user's call. Building off the ranking alone is the autonomous triage the parking lot exists to prevent, which is why this skill is user-invoked.
 
@@ -55,6 +55,8 @@ Plus 3 already done and cleared, 6 more parked, 84 not looked at yet.
 ```
 
 Only the batch gets a line — **numbered by capture position**, each written as what someone using the product would get, with its `value` and `urgency` in words — needed now · soon · within weeks · later · someday for `5`…`1` — each to confirm when it wears a `~` (a bare one is the user's already). Everything else — cleared done lines, the rest of the ranking, archived-plan and aged lines, the unread count — is one counted clause. No `file:line`, no effort, no scoring notation. **Nothing past the bookkeeping is written before they answer.** No answer → say so in one line and return to whatever was in flight.
+
+Headless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), return the batch under *Questions for the PM*; `/kru-todos-loop` pays this gate in advance.
 
 ## 5. Land what they picked
 

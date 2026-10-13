@@ -45,7 +45,10 @@ const READ_ONLY = ["accessibility-reviewer", "architecture-reviewer", "code-revi
 const STORE_WRITERS = ["dispatch-auditor", "planner"]
 const PREFIX = "kru-"
 const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/
-const MODEL = /^(inherit|claude-(opus|sonnet|haiku)-\d+-\d+|claude-fable-\d+-\d+)(\[effort=(low|medium|high|xhigh|max)\])?$/
+// the shape of a model line: an id plus cursor's optional `[key=value,…]`
+// parameters. which ids are allowed is verify.sh's seat-models check
+// (scripts/port.mjs → CONFIRMED_MODELS)
+const MODEL = /^[a-z0-9][a-z0-9.-]*(\[(effort=(low|medium|high|xhigh|max)|fast=(true|false)|context=\d+k)(,(effort=(low|medium|high|xhigh|max)|fast=(true|false)|context=\d+k))*\])?$/
 
 // --- yaml, via python ------------------------------------------------------------
 function pyYaml(paths) {

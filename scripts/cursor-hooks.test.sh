@@ -204,6 +204,10 @@ fire beforeSubmitPrompt "$(prompt bs1 '/kru-brainstorm round two')"
 fire beforeSubmitPrompt "$(prompt bs1 '/kru-brief')"
 fire preToolUse "$(tool bs1 Write '{"path":"notes.md"}')"
 check "brainstorm-guard: /kru-brief lifts it too" has '.permission == "allow"'
+fire beforeSubmitPrompt "$(prompt bs2 $'/kru-brainstorm a referral program\nDecisions resolved: monthly payouts.\ngo')"
+fire preToolUse "$(tool bs2 Read "{\"path\":\"$plugin/skills/kru-lead/SKILL.md\"}")"
+fire preToolUse "$(tool bs2 Write '{"path":"notes.md"}')"
+check "brainstorm-guard: a headless brief's go line lifts the lock up front" has '.permission == "allow"'
 
 # --- seat-guard (subagentStart + preToolUse on Write|Delete) -----------------------------------
 sub() { jq -nc --arg c "$1" --arg t "$2" --arg id "$3" '{conversation_id: $c, session_id: $c, subagent_id: ("sa-" + $id), subagent_type: $t, task: "t", parent_conversation_id: $c, tool_call_id: $id, subagent_model: "m", is_parallel_worker: false}'; }
