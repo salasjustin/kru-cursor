@@ -91,7 +91,10 @@ plugin skill lacks has an inbox line; every package a major behind its skill's p
 every other outdated one is on the catch-up line or its own major's.
 
 ### 1b. Blank repo — grill, then deploy — *full run*
-Nothing on disk answers step 1, so the user does, and the sheet is written from the **decision**. Load
+Nothing on disk answers step 1, so the user does, and the sheet is written from the **decision**. Headless
+(`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), the brief's answers
+are the rounds: take the subject and the lanes it settles, deploy on those, and put each lane it left
+open under **Questions for the PM** with your recommendation instead of a round. Otherwise load
 **`grilling`**; its rounds are these three:
 
 1. **What we are building** — the subject, who it is for, and the one job it has to do. Completion: one
@@ -354,6 +357,8 @@ plugin included, and the hand that wrote whatever you are proposing to cut. The 
 pass's edits that cut a copy another file answers are the team's: write them. Ask first only before
 cutting a rule the user (or a teammate) authored whose only copy is here — one question, in their
 words, with what dropping it would cost. Everything the answer can't touch is written already.
+Headless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), keep the
+rule and return the question under **Questions for the PM**.
 
 Completion: the file holds the pass and the sheet, and no rule the user authored left it without
 their yes.
@@ -362,7 +367,9 @@ their yes.
 A short paragraph, in the user's vocabulary: what the team now knows about this project and what it
 will do differently for it — the seats this repo runs, anything the derivation turned up that the
 repo had never written down, what the team may now do without asking (step 1d) in one line. The pass's edits, filed lint slices and inbox lines ride as one counted
-clause ("plus 6 cleanups to the project notes"); the diff is there if asked.
+clause ("plus 6 cleanups to the project notes"); the diff is there if asked. Setup commits at most
+locally: the PM bot reviews the diff, pushes it and opens the pull request, and Justin merges it
+(`skills/kru-lead/SKILL.md` → *Who acts at the door*).
 
 Completion: before you send it, check yourself — every line that went in traces to a derivation, and
 every line that came out to the file that answers it. That accounting is your check, not the report's
