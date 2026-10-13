@@ -56,6 +56,8 @@ Plus 1 planned but not started, 3 not looked at yet.
 
 Each line names the effort and what's next or what happened, in what someone using the product would notice — no PR or commit numbers, SHAs, paths, tick counts or bucket names. Only resume, archive and re-grill are asked; *brief only* efforts and the unread count are one counted clause. The user picks by number and names at most one effort to resume — execution is sequential. No answer → say so in one line and return to whatever was in flight.
 
+Headless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), return the batch under *Questions for the PM*. `/kru-todos-loop` and `/kru-issues-loop` pay their own gates in advance; this pick stays in that return.
+
 ## 3. Apply what they picked
 
 In this order:

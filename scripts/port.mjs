@@ -10,12 +10,15 @@
 // what it owns: the layout (skills/kru-<name>/, the claude-only files dropped),
 // agent and skill frontmatter, the generated pieces (.cursor-plugin/, rules/,
 // commands/, hooks/hooks.json), the version pin, and the harness-vocabulary
-// rewrites. what it never touches: prose judgment. a rewrite that needs judgment
-// is a hand-owned block (scripts/cursor/*.md) or a known gap in PORTING.md.
+// rewrites. what it never decides: prose judgment. a rewrite that needs judgment
+// is a fork edit (scripts/cursor/edits.mjs — an exact passage and what it
+// becomes, applied last), a hand-owned block (scripts/cursor/*.md) or a known
+// gap in PORTING.md.
 
 import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync, rmSync, renameSync, statSync } from "node:fs"
 import { join, dirname, basename, relative } from "node:path"
 import { fileURLToPath } from "node:url"
+import { EDITS } from "./cursor/edits.mjs"
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
 const CHECK = process.argv.includes("--check")
@@ -124,6 +127,7 @@ const FORK_OWNED = new Set([
   "scripts/privacy-scan.mjs",
   "scripts/cursor-hooks.test.sh",
   "scripts/cursor-smoke.sh",
+  "scripts/port-edits.test.sh",
   "hooks/cursor-hook.sh",
   "hooks/require-lead.sh",
   "hooks/require-lead.test.sh",
@@ -209,7 +213,7 @@ const RULES = [
   R(/'claude mcp list'\*\|'claude plugin list'\*\|'claude plugin details'\*\)/g, "'agent mcp list'*|'agent status'*|'agent models'*|'cursor-agent mcp list'*|'cursor-agent status'*)", { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /'agent mcp list'/ }),
   // a cloud vm: cursor's managed vms expose the agent metadata socket
   R(/kru_is_cloud\(\) \{ \[ "\$\{CLAUDE_CODE_REMOTE:-\}" = "true" \]; \}/g,
-    'kru_is_cloud() { [ "${KRU_CLOUD:-}" = "1" ] || [ -n "${CURSOR_AGENT_SOCKET:-}" ] || [ -S /run/cursor/api.sock ]; }', { sh: true, files: /^scripts\/kru-store\.sh$/, required: /CURSOR_AGENT_SOCKET/ }),
+    'kru_is_cloud() { [ "${KRU_CLOUD:-}" = "0" ] && return 1; [ "${KRU_CLOUD:-}" = "1" ] || [ -n "${CURSOR_AGENT_SOCKET:-}" ] || [ -S /run/cursor/api.sock ]; }', { sh: true, files: /^scripts\/kru-store\.sh$/, required: /CURSOR_AGENT_SOCKET/ }),
   R(/CLAUDE_CODE_REMOTE=true/g, "KRU_CLOUD=1", { sh: true, files: /^scripts\/kru-store\.test\.sh$/ }),
   R(/-u CLAUDE_CODE_REMOTE\b/g, "-u KRU_CLOUD -u CURSOR_AGENT_SOCKET", { sh: true }),
   R(/(?<!CURSOR_PROJECT_DIR:-)\$\{CLAUDE_PROJECT_DIR:-\$PWD\}/g, "${CURSOR_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-$PWD}}", { sh: true }),
@@ -637,7 +641,53 @@ function rewrite(text, rel) {
   // upstream spells its commands both `/kru:x` and bare `/x`; a bare one is
   // re-pointed from the skill set on disk rather than from a list that drifts
   if (md && !pathsOnly) out = out.replace(BARE_COMMAND(), (_m, p, n) => `${p}/${PREFIX}${n}`)
+  return applyEdits(out, rel)
+}
+
+// the fork's own edits (scripts/cursor/edits.mjs), last, on the ported text.
+// replace the original passage while it is still in the file. the replacement
+// counting as already applied is only true once that passage is gone — a file
+// that contains the replacement somewhere else, with the original still
+// present, is not a silent pass. a replacement that quotes the passage it
+// replaced still contains it; that copy is not the original. a file the port
+// never reaches leaves its edits unapplied, which the check below reports.
+function indexOutside(text, needle, cover) {
+  const quoted = cover.includes(needle)
+  let from = 0
+  while (from <= text.length) {
+    const at = text.indexOf(needle, from)
+    if (at === -1) return -1
+    if (!quoted) return at
+    let inside = false
+    let cFrom = 0
+    while (cFrom <= at) {
+      const cAt = text.indexOf(cover, cFrom)
+      if (cAt === -1 || cAt > at) break
+      if (at + needle.length <= cAt + cover.length) {
+        inside = true
+        break
+      }
+      cFrom = cAt + 1
+    }
+    if (!inside) return at
+    from = at + 1
+  }
+  return -1
+}
+function applyEditList(text, rel, edits) {
+  let out = text
+  for (const e of edits) {
+    if (e.file !== rel) continue
+    const at = indexOutside(out, e.before, e.after)
+    if (at !== -1) {
+      out = out.slice(0, at) + e.after + out.slice(at + e.before.length)
+      e.applied = true
+    } else if (out.includes(e.after)) e.applied = true
+  }
   return out
+}
+function applyEdits(text, rel) {
+  return applyEditList(text, rel, EDITS)
 }
 let bareCommand
 function BARE_COMMAND() {
@@ -666,6 +716,8 @@ function portText() {
     if (rule === PATHS_END || !rule.required) continue
     if (!rule.hits) problems.push(`required rule no longer matches (${rule.files}): ${String(rule.re).slice(0, 100)} — upstream reworded it; port the new text by hand`)
   }
+  for (const e of EDITS)
+    if (!e.applied) problems.push(`fork edit no longer matches ${e.file} (${e.why}): ${JSON.stringify(e.before.slice(0, 90))}… — upstream reworded it; copy the new passage into scripts/cursor/edits.mjs`)
 }
 
 // --- step 5: version ----------------------------------------------------------------------
@@ -772,7 +824,8 @@ function portRules(version) {
     "",
     "- **Before building, reviewing or dispatching any seat, load the `kru-lead` skill** (`/kru-lead`) and follow it — it is the contract the whole team runs on. A triage or config turn that only reads needs nothing.",
     "- Seats are custom subagents: dispatch one with the Task tool as `kru-<seat>` (`kru-code-reviewer`, `kru-react-ui-builder`). Prose names them bare (`code-reviewer`).",
-    "- Team skills are `kru-<name>` (`kru-testing`), and the user's commands are `/kru-<name>` (`/kru-brief`, `/kru-setup`).",
+    "- The PM is the Grok Bot PM that briefed this session; Justin owns the product and approves (the `kru-lead` skill says what reaches him).",
+    "- Team skills are `kru-<name>` (`kru-testing`), and the PM's commands are `/kru-<name>` (`/kru-brief`, `/kru-setup`).",
     "- The install dir is `${CURSOR_PLUGIN_ROOT}`; the store resolver is `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\"`.",
     "",
   ].join("\n")
@@ -784,7 +837,7 @@ function portRules(version) {
     "---",
     `<!-- ${GEN("hooks/setup-nudge.sh")} -->`,
     "",
-    "A repo that has run `/kru-setup` carries a sheet in its root `AGENTS.md`, stamped `<!-- kru v… -->`. When the working repo's `AGENTS.md` has no such stamp, name `/kru-setup` to the user once this conversation (it is theirs to type), then carry on: brainstorming, briefs and grilling need no setup, and on a blank repo setup is where the stack gets settled. Skip it in the kru-cursor repo itself.",
+    "A repo that has run `/kru-setup` carries a sheet in its root `AGENTS.md`, stamped `<!-- kru v… -->`. When the working repo's `AGENTS.md` has no such stamp, name `/kru-setup` to the PM once this conversation (the PM bot runs it itself; a headless run says it in its return), then carry on: brainstorming, briefs and grilling need no setup, and on a blank repo setup is where the stack gets settled. Skip it in the kru-cursor repo itself.",
     "",
     "On a cloud agent the session-start hook never runs, so this rule is the nudge there; locally the hook may also say it — once covers both.",
     "",
@@ -853,6 +906,43 @@ function audit() {
     log(`\nsurfaces cursor lacks (PORTING.md → Known gaps): ${[...watched.values()].reduce((a, b) => a + b, 0)} references in ${watched.size} file(s)`)
     for (const [rel, n] of [...watched].sort((a, b) => b[1] - a[1]).slice(0, 8)) log(`  ? ${rel} (${n})`)
   }
+}
+
+// --test-edits: the apply order, including a replacement that quotes its own
+// original passage (eleven edits do) and one that already sits elsewhere in
+// the file. exits before the port.
+if (process.argv.includes("--test-edits")) {
+  const file = "t.md"
+  const fail = (name) => {
+    console.error(`edit apply: ${name}`)
+    process.exit(1)
+  }
+  const run = (before, after, text) => {
+    const e = { file, before, after, applied: false }
+    return { out: applyEditList(text, file, [e]), applied: e.applied }
+  }
+  {
+    const { out, applied } = run("ALPHA passage", "BETA passage", "intro BETA passage middle ALPHA passage end")
+    if (out !== "intro BETA passage middle BETA passage end" || !applied) fail("replacement elsewhere hid the original")
+    const again = run("ALPHA passage", "BETA passage", out)
+    if (again.out !== out || !again.applied) fail("second pass rewrote a finished edit")
+  }
+  {
+    const { out, applied } = run("keep this", "keep this, and more", "keep this")
+    if (out !== "keep this, and more" || !applied) fail("did not extend the passage")
+    const again = run("keep this", "keep this, and more", out)
+    if (again.out !== out || !again.applied) fail("a replacement that quotes the original was applied again")
+  }
+  {
+    const { out, applied } = run("keep this", "keep this, and more", "keep this, and more\n\nkeep this")
+    if (out !== "keep this, and more\n\nkeep this, and more" || !applied) fail("replaced inside the existing replacement")
+  }
+  {
+    const { applied } = run("gone", "new", "unrelated")
+    if (applied) fail("a missing passage counted as applied")
+  }
+  console.log("edit apply: ok")
+  process.exit(0)
 }
 
 // --list-models: the confirmed ids, one per line (scripts/verify.sh checks every

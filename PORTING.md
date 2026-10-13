@@ -90,11 +90,26 @@ guard allows — and the seven readonly seats don't depend on it.
 
 ## Hand-owned — what a merge will not normalize
 
+Every change this fork makes lives in one of three places, never in a ported file — a hand edit to
+one is overwritten by the next port, and `scripts/verify.sh`'s fresh-port check fails on it:
+
+1. **A rewrite rule** in `scripts/port.mjs` (`RULES`): vocabulary and layout, applied everywhere a
+   pattern matches. `required` makes the port fail when upstream rewords the line a rule exists for.
+2. **A fork edit** in `scripts/cursor/edits.mjs` (`EDITS`): a decision this fork makes that upstream
+   doesn't share (who the PM is, who pushes, where a bug goes), written as an exact passage of the
+   ported file and what it becomes, applied after every rule. An edit whose passage upstream
+   rewords fails the port by name; the fix is the new passage copied in. `scripts/port-edits.test.sh`
+   runs them against a fresh upstream tree, idempotence and the rewording failure included.
+3. **A hand-owned file** — listed in `FORK_OWNED` (or under `scripts/cursor/`, `.github/`), skipped by
+   the port and laid over upstream by the fresh-port check. A whole section is a hand-owned block
+   pulled in by a rule (`scripts/cursor/*.md`).
+
 | file | why |
 |---|---|
 | `README.md`, `PORTING.md`, `MODELS.md`, `NOTICE` | the fork's own documents |
 | `hooks/cursor-hook.sh`, `first-turn.sh`, `prompt-state.sh`, `seat-guard.sh`, `cursor-state.sh` | the Cursor seam. Per-conversation state lives under `${TMPDIR:-/tmp}/kru-cursor-<uid>/`, both levels `0700` and refused unless a real directory this user owns |
 | `hooks/require-lead.sh`, `hooks/brainstorm-guard.sh` and their tests | Cursor-native rewrites of upstream's transcript-reading gates; an upstream change to their *rules* (what counts as a go, which tools are reads) needs mirroring by hand. Both still call upstream's `hooks/readonly-bash.sh` |
+| `scripts/cursor/edits.mjs`, `scripts/port-edits.test.sh` | the fork edits and their test (above) |
 | `scripts/cursor/setup-1d.md` | `/kru-setup` §1d (grants, store repo, cloud environment), pulled in by a port rule |
 | `scripts/cursor/gates-report-path.md` | the review-report paragraph of `gates.md` |
 | `scripts/asset/xai.mjs`, `xai.test.mjs` | the asset generator's xAI backend and its tests; port rules hook it into upstream's `gen-asset.ts` and copy it in `run.sh` (`MODELS.md`) |
@@ -128,8 +143,9 @@ guard allows — and the seven readonly seats don't depend on it.
 `scripts/privacy-scan.mjs` runs in `verify.sh` over the tree and over every commit (`git log -p
 --all --diff-merges=first-parent`, so a merge's conflict resolution counts; added lines and
 author/committer emails), plus gitleaks when installed (CI installs a pinned,
-checksum-verified copy). It fails on tokens and keys, emails outside the reserved example domains and
-an exact list of placeholder addresses the vendored docs use, paths off the author's machine, and
+checksum-verified copy). It fails on tokens and keys, emails outside the reserved example domains, an
+exact list of placeholder addresses the vendored docs use, and the known bot identity
+`cursoragent@cursor.com`, paths off the author's machine, and
 client or private-repo names — those matched by hash, so the scanner doesn't publish them.
 
 - **Tree:** clean. One client repo name in `references/lossless-doc-compaction.md` is rewritten by a

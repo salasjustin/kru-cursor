@@ -19,4 +19,4 @@ When the frontier is empty, or the user stops answering, one line: *nothing's sa
 
 ## Go
 
-The user's go ("go", "brief it") is the only thing that writes. Run the brief's §1 writes, then §3 and §4, with the grill's settled answers as `Decisions resolved` — none re-asked. A frontier still open at the go runs as brief rounds first.
+The PM's go ("go", "brief it") is the only thing that writes. A headless brainstorm carries it in the prompt as a line of its own reading `go`, which lifts the lock from the start (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*). Run the brief's §1 writes, then §3 and §4, with the grill's settled answers as `Decisions resolved` — none re-asked. A frontier still open at the go runs as brief rounds first.

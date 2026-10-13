@@ -1,8 +1,8 @@
 #!/bin/bash
 # pretooluse on Shell|Write|Delete: the mechanized half of /kru-brainstorm's
-# "write nothing". from the user's /kru-brainstorm until their go — a turn that
-# opens with "go" or "brief it", or a /kru-brief — every write is refused;
-# read-only shell passes.
+# "write nothing". from the PM's /kru-brainstorm until its go — a turn that
+# opens with "go" or "brief it", a /kru-brief, or (headless) a `go` line in the
+# brainstorm prompt itself — every write is refused; read-only shell passes.
 #
 # cursor-native rewrite of upstream's brainstorm-guard.sh (hand-owned,
 # PORTING.md): upstream reads the lock out of claude's transcript; here
@@ -25,5 +25,5 @@ if [ "$tool" = "Shell" ] || [ "$tool" = "Bash" ]; then
   kru_readonly_bash "$cmd" && exit 0
 fi
 
-printf 'kru: /kru-brainstorm writes nothing until the user says go — reads stay open. Keep grilling; the brief is written on their go.\n' >&2
+printf 'kru: /kru-brainstorm writes nothing until the PM says go — reads stay open. Keep grilling; the brief is written on the go. A headless brief gives it up front as a line reading go.\n' >&2
 exit 2

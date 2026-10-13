@@ -30,6 +30,8 @@ report() {
 # run <dir> <args...> [VAR=value...] via env; sets $out and $code.
 # every KRU_* and every surface variable is stripped, so a value set in the
 # parent shell can't make a case pass for the wrong reason.
+# KRU_CLOUD=0 is the default so a host /run/cursor/api.sock does not flip these
+# cases; a case that passes KRU_CLOUD=1 overrides it.
 run() {
   local dir=$1; shift
   local args=() envs=()
@@ -43,7 +45,7 @@ run() {
   out=$(cd "$dir" && env -u KRU_HOME -u KRU_PROJECT -u KRU_PROJECT_STORE -u KRU_STORE_URL -u KRU_STORE_REPO \
     -u CLAUDE_PLUGIN_OPTION_KRU_STORE_REPO -u KRU_NO_AUDIT -u CLAUDE_PLUGIN_OPTION_KRU_NO_AUDIT \
     -u KRU_CLOUD -u CURSOR_AGENT_SOCKET -u CLAUDE_PROJECT_DIR \
-    HOME="$home" ${envs[@]+"${envs[@]}"} bash "$store" "${args[@]}" 2>&1)
+    HOME="$home" KRU_CLOUD=0 ${envs[@]+"${envs[@]}"} bash "$store" "${args[@]}" 2>&1)
   code=$?
 }
 
