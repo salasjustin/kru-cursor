@@ -37,6 +37,8 @@ Work the design tree in **rounds** — ask the whole **frontier** (every decisio
 
 Persisting the brief widens what's **written down**, never what's **asked**: a two-way door you settled goes into `Decisions resolved` as your call, with its reasoning — not into the round as a question.
 
+**The PM bot answers the round** — best up front, in the subject it hands you. In a headless run nobody answers mid-run: ask no round, write the open product calls and one-way doors into the brief as open questions, and return them under *Questions for the PM* (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*).
+
 Completion: the frontier is empty, and every question you asked was a product call or a one-way door.
 
 ## 3. Write `plan/<effort>/brief.md`

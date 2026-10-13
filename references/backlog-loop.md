@@ -29,6 +29,6 @@ Take the top queued entry and:
 
 ## 4. Report
 
-One message, `lead`'s *report when work lands* shape: the branch and the count against the cap, then what's different for users. Held entries get the numbered list, each with a recommendation; everything else is one counted clause under the skill's own outcome names. An *uncommitted* change is named in one line with the count it would have reached. Nothing is pushed — the branch is the user's to review and open.
+One message, `lead`'s *report when work lands* shape: the branch and the count against the cap, then what's different for users. Held entries go under *Questions for the PM*, numbered, each with a recommendation; everything else is one counted clause under the skill's own outcome names. An *uncommitted* change is named in one line with the count it would have reached. Nothing is pushed — the PM bot reviews the branch, pushes it and opens the pull request.
 
 **Completion criterion: every queued entry has a named outcome — one of the skill's, held, uncommitted, or not reached — and the count at the last commit is at or under the cap.**

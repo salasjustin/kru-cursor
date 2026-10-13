@@ -45,6 +45,13 @@ say c 'help' "$root/skills/kru-brainstorm/SKILL.md"
 check deny c Write '{"path":"x"}' "the skill attached from the / menu locks too"
 say c '/kru-brief'
 check allow c Write '{"path":"x"}' "/kru-brief lifts it"
+# headless: the PM bot's brief carries its go up front, as a line of its own
+say d $'/kru-brainstorm a referral program\n\nDecisions resolved: payouts monthly.\ngo'
+check allow d Write '{"path":"x"}' "headless: a go line in the brainstorm prompt lifts the lock up front"
+say e $'/kru-brainstorm a referral program\nwe should go slow on payouts'
+check deny e Write '{"path":"x"}' "headless: go inside a sentence is not a go"
+say f $'go\n/kru-brainstorm later'
+check allow f Write '{"path":"x"}' "a go on the first line is not a brainstorm"
 
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

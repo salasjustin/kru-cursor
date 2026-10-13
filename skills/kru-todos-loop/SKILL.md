@@ -12,4 +12,4 @@ argument-hint: "[max changed files, default 80]"
 - **Eligible**: open, `value` `3`–`5`, `effort` `1`–`3`, and `pitched`. A `discovered` line is the team's own capture and waits for the user to pull it, per `todos` → *Guardrails*; count it with the unreached. A `~` value is the team's guess at what the user wants, so it qualifies only at `4`–`5`.
 - **Held, on top of the shared bar**: a want whose line leaves open what it does for the person using it — the build would have to pick the feature, which is `/kru-brief`'s grill, not a guess.
 - **Outcomes**: `todos` §5's — *built* · *already done* · *bigger than its effort* (rescored in place, left parked).
-- **Report**: each built want as what someone using the product now gets. Every `~` value or urgency the run built on is listed under *Need your call* for the user to confirm, so the guess becomes their number.
+- **Report**: each built want as what someone using the product now gets. Every `~` value or urgency the run built on is listed under *Questions for the PM* for the PM bot to confirm, so the guess becomes its number.

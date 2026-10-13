@@ -158,3 +158,89 @@ EDITS.push(E(
   "commit in the repo's own message style (read its `git log`); the push to the working branch is the PM bot's (`skills/kru-lead/SKILL.md` → *Who acts at the door*).",
   "t2: Claude Code commits, the PM bot pushes",
 ))
+
+// --- t3: headless runs never wait on a question ------------------------------
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "Asking for approval of your own recommendation on a two-way door is the\nsame wait, disguised as courtesy.\n",
+  "Asking for approval of your own recommendation on a two-way door is the\nsame wait, disguised as courtesy.\n\n**A headless run never waits.** Under `cursor-agent -p`, a cloud agent, or any run the PM bot\nstarted and left, nobody answers mid-run, and one waiting question ends the run without proof. The\nPM bot answers the grill up front: the brief's *Decisions resolved* are its answers. Every two-way\ndoor still open you decide, record in one line, and build on. A product call or one-way door left\nopen parks only the slice it touches; the rest builds, and the call goes under **Questions for the\nPM** in your final return, each with your recommendation. An explicit `go` line in the brief lifts\na `/kru-brainstorm` lock. `/kru-setup`, `/kru-brief` and `/kru-remember` are the PM bot's to run\nitself, so a headless run never stops to hand one over.\n",
+  "t3: the headless rule, one source the other files point at",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "name `/kru-setup` for the user to re-run — it is theirs to type, and the current sheet still carries the work meanwhile.",
+  "name `/kru-setup` for the PM to re-run — the PM bot runs it itself, and the current sheet still carries the work meanwhile.",
+  "t3: the PM bot runs /kru-setup",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "**Persisting it is `/kru-brief`'s**, and the user types it. Only when the work will span sessions — or `planner` will slice it — ask in outcome terms (\"keep this plan past today?\"), and on a yes give them `/kru-brief` to type.",
+  "**Persisting it is `/kru-brief`'s**, and the PM bot runs it. Only when the work will span sessions — or `planner` will slice it — ask in outcome terms (\"keep this plan past today?\"), and on a yes name `/kru-brief` for the PM bot to run; headless, say it under *Questions for the PM* and keep building.",
+  "t3: the PM bot runs /kru-brief; headless never waits",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "Only the product calls still open wait on the user.",
+  "Only the product calls still open wait on the PM — and headless, not even those (*A headless run never waits*).",
+  "t3",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "A slice reaching a stack no seat covers is a question for the user — hiring is their call on their team — and it parks only that slice:",
+  "A slice reaching a stack no seat covers is a question for the PM — hiring is the PM bot's call on the team — and it parks only that slice (headless, it goes under *Questions for the PM*):",
+  "t3: the unseated-stack question goes to the PM bot and never blocks",
+))
+EDITS.push(E(
+  "skills/kru-grilling/SKILL.md",
+  "The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.",
+  "The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.\n\nThe user here is the PM bot that briefed the session, and it answers up front: its brief's *Decisions resolved* settle the frontier they cover. In a headless run nobody answers mid-run, so no round is asked and nothing waits: an open two-way door gets your recommended answer, recorded as a decision; an open product call or one-way door parks only the work it touches and is returned under *Questions for the PM* (`skills/kru-lead/SKILL.md` → *A headless run never waits*).",
+  "t3: the grill is answered by the PM bot; headless never waits",
+))
+EDITS.push(E(
+  "skills/kru-brief/SKILL.md",
+  "Persisting the brief widens what's **written down**, never what's **asked**: a two-way door you settled goes into `Decisions resolved` as your call, with its reasoning — not into the round as a question.\n",
+  "Persisting the brief widens what's **written down**, never what's **asked**: a two-way door you settled goes into `Decisions resolved` as your call, with its reasoning — not into the round as a question.\n\n**The PM bot answers the round** — best up front, in the subject it hands you. In a headless run nobody answers mid-run: ask no round, write the open product calls and one-way doors into the brief as open questions, and return them under *Questions for the PM* (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*).\n",
+  "t3: headless brief runs never wait",
+))
+EDITS.push(E(
+  "skills/kru-brainstorm/SKILL.md",
+  "The user's go (\"go\", \"brief it\") is the only thing that writes.",
+  "The PM's go (\"go\", \"brief it\") is the only thing that writes. A headless brainstorm carries it in the prompt as a line of its own reading `go`, which lifts the lock from the start (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*).",
+  "t3: an explicit go in the brief lifts the brainstorm lock",
+))
+EDITS.push(E(
+  "skills/kru-remember/SKILL.md",
+  "If empty, ask one line (\"What should I bank — and is it design, code, or workflow?\") and stop.",
+  "If empty, ask one line (\"What should I bank — and is it design, code, or workflow?\") and stop — or, headless, bank nothing and say so in the return.",
+  "t3: headless never waits",
+))
+EDITS.push(E(
+  "skills/kru-roster/SKILL.md",
+  "No verb given → run `audit` and report, then ask which of the others they want.",
+  "No verb given → run `audit` and report, then ask which of the others they want (headless: report the audit and stop).",
+  "t3: headless never waits",
+))
+EDITS.push(E(
+  "skills/kru-todos-loop/SKILL.md",
+  "listed under *Need your call* for the user to confirm, so the guess becomes their number.",
+  "listed under *Questions for the PM* for the PM bot to confirm, so the guess becomes its number.",
+  "t3: one name for the held list",
+))
+EDITS.push(E(
+  "references/backlog-loop.md",
+  "Held entries get the numbered list, each with a recommendation;",
+  "Held entries go under *Questions for the PM*, numbered, each with a recommendation;",
+  "t3: one name for the held list",
+))
+EDITS.push(E(
+  "references/backlog-loop.md",
+  "Nothing is pushed — the branch is the user's to review and open.",
+  "Nothing is pushed — the PM bot reviews the branch, pushes it and opens the pull request.",
+  "t2/t3: the PM bot pushes",
+))
+EDITS.push(E(
+  "hooks/setup-nudge.sh",
+  "there is no sheet in .claude/CLAUDE.md. Name /kru-setup to the user once this session (it is theirs to type), then carry on:",
+  "there is no sheet in AGENTS.md. Name /kru-setup to the PM once this session (the PM bot runs it itself; a headless run says it in its return), then carry on:",
+  "t3: the PM bot runs /kru-setup; the sheet is AGENTS.md here",
+))

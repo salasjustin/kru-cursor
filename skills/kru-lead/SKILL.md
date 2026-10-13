@@ -82,6 +82,15 @@ turns on the answer waits. "Say go" over a plan of two-way doors is a wait they 
 it and say what's running. Asking for approval of your own recommendation on a two-way door is the
 same wait, disguised as courtesy.
 
+**A headless run never waits.** Under `cursor-agent -p`, a cloud agent, or any run the PM bot
+started and left, nobody answers mid-run, and one waiting question ends the run without proof. The
+PM bot answers the grill up front: the brief's *Decisions resolved* are its answers. Every two-way
+door still open you decide, record in one line, and build on. A product call or one-way door left
+open parks only the slice it touches; the rest builds, and the call goes under **Questions for the
+PM** in your final return, each with your recommendation. An explicit `go` line in the brief lifts
+a `/kru-brainstorm` lock. `/kru-setup`, `/kru-brief` and `/kru-remember` are the PM bot's to run
+itself, so a headless run never stops to hand one over.
+
 **Who acts at the door.** You commit locally and return proof; the push is not yours. The PM bot
 reviews the proof, pushes the branch and opens the pull request. Merging, tagging, releasing,
 deploying, publishing and any message outside the team wait for Justin — except kru's own releases,
@@ -162,7 +171,7 @@ A repo that has run **`/kru-setup`** carries its **answers** in `AGENTS.md` — 
 
 **The sheet's gate line binds you** — the repo may have grown a stack the sheet predates, and only the user knows.
 
-**A stamp below the installed `VERSION`, or a cited line that no longer matches disk, means the sheet is behind.** Say so in one line and name `/kru-setup` for the user to re-run — it is theirs to type, and the current sheet still carries the work meanwhile.
+**A stamp below the installed `VERSION`, or a cited line that no longer matches disk, means the sheet is behind.** Say so in one line and name `/kru-setup` for the PM to re-run — the PM bot runs it itself, and the current sheet still carries the work meanwhile.
 
 ## Step 1 — the repo answers, or there is no repo
 **A repo owns what it is.** No stamp (Step 0) → name **`/kru-setup`** once this session, whatever the size of the work — a sessionStart hook says the same when the sheet is missing, and one mention covers both. It maps the repo and writes the answers — the `Explore` pass over stack, framework versions, architecture, conventions and test setup. Naming it never parks the work: until the user runs it, you carry on and settle what the sheet would have answered with your own `Explore` pass. Either way you reach Step 3 with the stack settled and the conventions named, and you match those over your own defaults — minimal diff, in-style.
@@ -183,9 +192,9 @@ You know the `/kru-grilling` skill and when it earns its cost. For non-trivial w
 
 **When you do grill, the round is the procedure: `${CURSOR_PLUGIN_ROOT}/skills/kru-brief/SKILL.md` → *The round*.** The frontier a round at a time, your recommended answer on every question, facts and two-way doors kept off the round entirely. It reads the same there; only the record differs — here it stays **in-session**, feeding Plan and the builders and dying with the session.
 
-**Answers start work; a grill doesn't end in a sign-off.** The grilling skill's closing "confirm shared understanding" doesn't run here: once the answers settle a branch, the work that branch allows is dispatched, and the round carries on over the rest. Only the product calls still open wait on the user.
+**Answers start work; a grill doesn't end in a sign-off.** The grilling skill's closing "confirm shared understanding" doesn't run here: once the answers settle a branch, the work that branch allows is dispatched, and the round carries on over the rest. Only the product calls still open wait on the PM — and headless, not even those (*A headless run never waits*).
 
-**Persisting it is `/kru-brief`'s**, and the user types it. Only when the work will span sessions — or `planner` will slice it — ask in outcome terms ("keep this plan past today?"), and on a yes give them `/kru-brief` to type. It never blocks building: what the plan can't change is already running.
+**Persisting it is `/kru-brief`'s**, and the PM bot runs it. Only when the work will span sessions — or `planner` will slice it — ask in outcome terms ("keep this plan past today?"), and on a yes name `/kru-brief` for the PM bot to run; headless, say it under *Questions for the PM* and keep building. It never blocks building: what the plan can't change is already running.
 
 ## Step 2.6 — persist the plan when it outgrows one context (`planner`)
 Most work goes straight from grilling/Plan mode to a builder. But when the change **won't fit one context window** — spans many sessions or parallel agents, or you want a durable plan that survives resets — spawn **`planner`** to write the plan of record into the plan store (`plan/<effort>/` under the project root, via `TRACKER.md`):
@@ -252,4 +261,4 @@ Ambient binds you too on the edits you make inline (a rename, a copy fix, a conf
 **What it writes: `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/reconcile.md`** — ticket status and the frontier, the brief's boxes, and the four captures and closeouts across `TODOS.md` and `issues/`.
 
 ## Handling gaps — a slice no seat covers
-A slice reaching a stack no seat covers is a question for the user — hiring is their call on their team — and it parks only that slice: every other slice dispatches meanwhile. The nearby seat is always available, which is why the question goes up first: a React Native screen is `.tsx` and still outside `react-ui-builder`'s lane. Ask it in outcomes — a specialist hired for the phone app, or the team builds it without one this time — and on the answer: mint it (`/kru-roster hire <name>` for a seat, `/kru-roster author <name>` for a skill; roster does the wiring, then route to it), or the general path (Explore conventions + implement, backed by Context7) for this slice, on their say-so.
+A slice reaching a stack no seat covers is a question for the PM — hiring is the PM bot's call on the team — and it parks only that slice (headless, it goes under *Questions for the PM*): every other slice dispatches meanwhile. The nearby seat is always available, which is why the question goes up first: a React Native screen is `.tsx` and still outside `react-ui-builder`'s lane. Ask it in outcomes — a specialist hired for the phone app, or the team builds it without one this time — and on the answer: mint it (`/kru-roster hire <name>` for a seat, `/kru-roster author <name>` for a skill; roster does the wiring, then route to it), or the general path (Explore conventions + implement, backed by Context7) for this slice, on their say-so.

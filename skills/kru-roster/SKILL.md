@@ -44,4 +44,4 @@ Read the one file for the requested verb, then execute it against the wiring map
 
 Plus one shared reference, read by `hire` and `audit` rather than dispatched to: **`shared-blocks.md`** — the canonical text of the blocks every seat carries (`Context hygiene`, `TypeScript`, the return contract), with its invariant clauses and its per-seat tailored slots marked.
 
-No verb given → run `audit` and report, then ask which of the others they want.
+No verb given → run `audit` and report, then ask which of the others they want (headless: report the audit and stop).
