@@ -5,11 +5,13 @@ here. Bringing upstream in is `fork-sync.md`; this file starts once `main` holds
 
 ## Who acts
 
+The names below are the ones defined in `skills/kru-lead/SKILL.md` (first paragraph and *Who acts at the door*). Kai is kru's PM bot. Justin owns the product and approves. Otto (Ops) sets up an account once Justin has approved it.
+
 | step | who |
 |---|---|
 | the version bump commit, local, with `bash scripts/verify.sh` green | Claude Code (the lead), on the PM's ask |
-| push, pull request, merge, tag | Kai, kru's PM bot — Kai owns kru releases and may merge and tag |
-| resubmitting to Cursor's marketplace, or making the repo public for it | Justin: anything public or live goes to him (publishing is a one-way door, which goes to the user: `skills/kru-lead/SKILL.md` → *Talk to a PM, not to an engineer*) |
+| push, pull request, merge, tag | Kai, kru's PM bot — he pushes and opens the pull request, and he merges and tags kru's releases |
+| resubmitting to Cursor's marketplace, or making the repo public for it | Justin: anything public or live goes to him. The lead reports to the PM bot, which carries this to Justin |
 | a Teams marketplace, the Cursor GitHub App, any new outside account | Justin decides (money, outside services); Otto sets the account up |
 
 ## The version

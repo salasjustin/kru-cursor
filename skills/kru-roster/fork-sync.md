@@ -17,25 +17,28 @@ newest commit with the fork-owned files laid over it, ported once by `scripts/po
    even where a port rule rewrote a line upstream also edited.
    Upstream's `.github/` is not taken: the fork owns that directory, and the workflow token can't
    push a workflow file. A file upstream added there is listed in the report under *Not taken*.
-3. Runs `bash scripts/verify.sh`, then one of:
+3. Runs `bash scripts/verify.sh` in its own job, then one of:
 
 | outcome | what you get |
 |---|---|
 | upstream already merged | nothing; the log says `no changes` |
 | synced, checks green | a pull request `sync: upstream kru X.Y.Z` with the upstream commits, the files the port changed, the files to read by hand, and the verify summary; an older sync pull request still open is closed as superseded |
 | synced, checks red | the same pull request as a draft, with the failing summary |
-| the port failed on the new upstream | no pull request; an issue `upstream sync blocked: …` (or a comment on the open one, retitled with the new commit) with the port's problem list |
-| synced, but the push was refused | no pull request; an issue `upstream sync blocked: … could not be pushed` with git's refusal. Upstream's history touched `.github/workflows/`, which the workflow token may not push: run the sync by hand (below) and push with your own credentials |
+| the port failed on the new upstream | no pull request; an issue `upstream port failed: …` (or a comment on the open one, retitled with the new commit) with the port's problem list |
+| synced, but the push was refused | no pull request; an issue `upstream push refused: …` with git's refusal. Upstream's history touched `.github/workflows/`, which the workflow token may not push: run the sync by hand (below) and push with your own credentials |
 | upstream's `VERSION` isn't a version string | the run fails red before anything is committed (`sync-upstream.sh` exits 1) |
 
-Two jobs, on the default `GITHUB_TOKEN`; no secret. `verify.sh` runs upstream's code (its hook tests,
-`audit.sh`) before anyone has read it, so the **sync** job that runs it holds a read-only token
-(`contents: read`, plus read on pull requests and issues to see what was already proposed), checks out without stored credentials, and runs verify with no token in its
-environment; it hands the sync commit on as a git bundle, written before verify runs. The **propose**
-job (`contents`, `pull-requests`, `issues: write`) runs none of the repo's code: it re-checks the
-branch name, commit ids and version it was handed, fetches the bundle, and pushes and files with the
-token set on those steps only. Values reach the scripts through `env:`, never `${{ }}` inside `run:`;
-`scripts/workflows.test.sh` holds these rules and the actions' commit-SHA pins.
+Three jobs, on the default `GITHUB_TOKEN`; no secret. `verify.sh` runs upstream's code (its hook tests,
+`audit.sh`) before anyone has read it, so that is the **verify** job and nothing else: `contents: read`
+only, a checkout without stored credentials, no token in its environment, and no output but the ok flag.
+The **sync** job (`contents: read`, plus read on pull requests and issues to see what was already
+proposed) does not run that code. It runs the port — which starts no subprocess — and, before the
+verify job starts, records the git bundle's sha256 and the artifact id of the upload as its own
+outputs. The **propose** job (`contents`, `pull-requests`, `issues: write`) runs none of the repo's
+code: it downloads that artifact by id, checks the sha256, re-checks the branch name, commit ids,
+version and ok flag, fetches the bundle, and pushes and files with the token set on those steps only.
+Values reach the scripts through `env:`, never `${{ }}` inside `run:`; `scripts/workflows.test.sh`
+holds these rules and the actions' commit-SHA pins.
 
 ### Repo settings it needs (once)
 
@@ -45,6 +48,8 @@ token set on those steps only. Values reach the scripts through `env:`, never `$
   days without repository activity; re-enable it from the Actions tab.
 
 ## Reviewing a sync pull request (Kai)
+
+Kai is kru's PM bot (`skills/kru-lead/SKILL.md`, first paragraph and *Who acts at the door*): he reviews this pull request, and he merges and tags kru's releases.
 
 - **CI.** A pull request opened with the workflow token starts no other workflow, so the `verify`
   check doesn't appear by itself; the summary in the body is the sync run's own `verify.sh` — run on

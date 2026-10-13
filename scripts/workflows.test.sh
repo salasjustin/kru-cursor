@@ -2,7 +2,9 @@
 # static checks over .github/workflows/*.yml: the workflows parse, and the
 # rules that keep a token away from code nobody has reviewed yet hold —
 # sync-upstream.yml runs upstream's tests (verify.sh) on upstream's code before
-# the PM reads the pull request. run: bash scripts/workflows.test.sh
+# the PM reads the pull request. verify.sh has its own job, which outputs
+# only the ok flag; the sync job records the bundle sha256 and artifact id
+# first, and the propose job checks them. run: bash scripts/workflows.test.sh
 set -u
 repo=$(cd "$(dirname "$0")/.." && pwd)
 py=(python3)
@@ -49,6 +51,35 @@ for path in sys.argv[1:]:
                 check(f"{f} {jn} [{label}]: action pinned to a commit sha", re.fullmatch(r"[\w.-]+/[\w./-]+@[0-9a-f]{40}", s["uses"]) is not None)
                 if s["uses"].startswith("actions/checkout@"):
                     check(f"{f} {jn} [{label}]: checkout keeps no credentials in .git/config", (s.get("with") or {}).get("persist-credentials") is False)
+    if f == "sync-upstream.yml":
+        jobs = wf.get("jobs") or {}
+        sync, verify, propose = jobs.get("sync") or {}, jobs.get("verify") or {}, jobs.get("propose") or {}
+        sync_runs = "\n".join(s.get("run") or "" for s in (sync.get("steps") or []))
+        propose_runs = "\n".join(s.get("run") or "" for s in (propose.get("steps") or []))
+        vsteps, psteps = verify.get("steps") or [], propose.get("steps") or []
+        def idx(steps, pred):
+            return next((i for i, s in enumerate(steps) if pred(s)), -1)
+        check(f"{f}: verify is its own job", "verify" in jobs and verify is not sync)
+        check(f"{f} sync: does not run verify.sh", "verify.sh" not in sync_runs)
+        check(f"{f} verify: needs sync", verify.get("needs") == "sync")
+        check(f"{f} verify: contents read only", verify.get("permissions") == {"contents": "read"})
+        check(f"{f} verify: outputs only the ok flag", list(verify.get("outputs") or {}) == ["ok"])
+        outs = sync.get("outputs") or {}
+        check(f"{f} sync: records the bundle sha256", any("sha256" in str(v) for v in outs.values()))
+        check(f"{f} sync: records the artifact id", any("artifact-id" in str(v) for v in outs.values()))
+        check(f"{f} sync: does not output the verify flag", "verify_ok" not in outs and "ok" not in outs)
+        sha_i = idx(vsteps, lambda s: "sync.bundle" in (s.get("run") or "") and "sha256sum" in (s.get("run") or ""))
+        ver_i = idx(vsteps, lambda s: "scripts/verify.sh" in (s.get("run") or ""))
+        check(f"{f} verify: sha256 is checked before verify.sh", sha_i != -1 and ver_i != -1 and sha_i < ver_i)
+        by_id = [s for s in psteps if "download-artifact" in (s.get("uses") or "") and "artifact-ids" in (s.get("with") or {})]
+        check(f"{f} propose: downloads the sync artifact by id", len(by_id) == 1 and "name" not in (by_id[0].get("with") or {}))
+        check(f"{f} propose: needs sync and verify", propose.get("needs") == ["sync", "verify"])
+        check(f"{f} propose: sha256 is checked before fetch", any(
+            "sha256sum" in (s.get("run") or "") and "git fetch" in (s.get("run") or "") and (s.get("run") or "").find("sha256sum") < (s.get("run") or "").find("git fetch")
+            for s in psteps))
+        check(f"{f}: push-refused and port-failed issues have distinct titles",
+              "upstream push refused:" in propose_runs and "upstream port failed:" in propose_runs and "upstream sync blocked" not in propose_runs)
+        check(f"{f}: summary.txt is indented before the pull request body", "sed 's/^/    /'" in propose_runs)
 print(f"{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)
 PY
