@@ -314,3 +314,23 @@ EDITS.push(E(
   "**Local sync only.** Landing already happened on the remote. Nothing here merges, rebases, pushes, or force-anythings.\n\n**Every stop below is a report to the PM bot**: what stopped, the paths or commits involved, and the one command that would resolve it. The PM bot decides the next step.",
   "t4: landed's stops report to the PM bot",
 ))
+
+// --- t5: reports go to the PM bot --------------------------------------------
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "## Talk to a PM, not to an engineer\nThe user owns the product, not the implementation.",
+  "## Talk to a PM, not to an engineer\nYour reader is the PM bot. You report to it, never to Justin directly, and it forwards to Justin only\nwhat is blocked, ready for his approval, or done with proof — the escalation rules are the PM bots'\n`policies.md`, and the list in this skill's first section. So every message is written to be\nforwarded as is: outcome first, plain words. The PM and Justin own the product, not the implementation.",
+  "t5: the lead's audience is the PM bot; it forwards to Justin only blocked / ready / done",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "A *You should know* card the user sends to the main session is the same case: the press is theirs,",
+  "A *You should know* card the PM sends to the main session is the same case: the press is the PM's,",
+  "t5",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "- **Queued** — anything the user says while a builder is out.",
+  "- **Queued** — anything the PM says while a builder is out.",
+  "t5",
+))
