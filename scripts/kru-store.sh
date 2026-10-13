@@ -1,6 +1,6 @@
 #!/bin/bash
 # the store's roots, resolved in one place. hooks source it; skills and seats
-# call it as a command — `bash "${CLAUDE_PLUGIN_ROOT}/scripts/kru-store.sh" project` —
+# call it as a command — `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" project` —
 # so no prompt re-derives a path and drifts from this one.
 #
 # two roots, because the store holds two lifetimes. the CROSS-PROJECT root is
@@ -17,8 +17,9 @@
 #
 # sourcing defines functions and prints nothing.
 
-# the plugin's /plugin options (plugin.json `userConfig`) reach a hook as
-# CLAUDE_PLUGIN_OPTION_<KEY>. each fills the env var of the same name only
+# claude's /plugin options reach a hook as CLAUDE_PLUGIN_OPTION_<KEY>; cursor has
+# no equivalent, so on cursor only the env vars below are read. kept for a
+# claude install of the same tree (CLAUDE_PLUGIN_OPTION_<KEY>). each fills the env var of the same name only
 # when that var is unset, so an export or a settings `env` entry still wins —
 # a cloud vm sets KRU_STORE_REPO that way. a boolean option arrives as the
 # string "true" or "false", and only "true" turns a switch on.
@@ -42,7 +43,7 @@ kru_repo_root() {
   esac
   common=$(git rev-parse --show-toplevel 2>/dev/null)
   [ -n "$common" ] && { printf '%s' "$common"; return 0; }
-  printf '%s' "${CLAUDE_PROJECT_DIR:-$PWD}"
+  printf '%s' "${CURSOR_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-$PWD}}"
 }
 
 # one name identifies a project across both stores — the inbox line /remember
@@ -52,7 +53,7 @@ kru_repo_root() {
 # it reaches every surface.
 kru_slug() { printf '%s' "${KRU_PROJECT:-$(basename "$(kru_repo_root)")}"; }
 
-kru_is_cloud() { [ "${CLAUDE_CODE_REMOTE:-}" = "true" ]; }
+kru_is_cloud() { [ "${KRU_CLOUD:-}" = "1" ] || [ -n "${CURSOR_AGENT_SOCKET:-}" ] || [ -S /run/cursor/api.sock ]; }
 
 kru_home() { printf '%s' "${KRU_HOME:-$HOME/.kru}"; }
 

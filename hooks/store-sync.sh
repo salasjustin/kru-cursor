@@ -14,7 +14,7 @@ input=$(cat 2>/dev/null)
 
 # a stop re-entered by a blocking stop hook syncs too: the continuation turn
 # can write to the store, and a clean tree with nothing ahead is a no-op
-plugin_root="${2:-$CLAUDE_PLUGIN_ROOT}"
+plugin_root="${2:-$CURSOR_PLUGIN_ROOT}"
 . "$plugin_root/scripts/kru-store.sh" 2>/dev/null || exit 0
 # both read after the resolver, which maps the /plugin options onto them
 [ -z "${KRU_STORE_REPO:-}" ] && exit 0

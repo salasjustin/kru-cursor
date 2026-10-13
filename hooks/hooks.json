@@ -1,104 +1,74 @@
 {
+  "version": 1,
   "hooks": {
-    "SessionStart": [
+    "sessionStart": [
       {
-        "matcher": "startup",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/check-task-tools.sh\"",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/setup-nudge.sh\" \"${CLAUDE_PLUGIN_ROOT}\"",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/store-sync.sh\" start \"${CLAUDE_PLUGIN_ROOT}\"",
-            "timeout": 60
-          }
-        ]
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" sessionStart first-turn.sh",
+        "timeout": 60
       }
     ],
-    "PreToolUse": [
+    "beforeSubmitPrompt": [
       {
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" beforeSubmitPrompt prompt-state.sh",
+        "timeout": 10
+      }
+    ],
+    "preToolUse": [
+      {
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" preToolUse first-turn.sh",
         "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/require-lead.sh\" \"${CLAUDE_PLUGIN_ROOT}\"",
-            "timeout": 10
-          }
-        ]
+        "timeout": 60
       },
       {
-        "matcher": "Agent",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/check-handoff.sh\" \"${CLAUDE_PLUGIN_ROOT}\"",
-            "timeout": 10
-          }
-        ]
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" preToolUse require-lead.sh",
+        "matcher": "*",
+        "timeout": 10
       },
       {
-        "matcher": "Write|Edit|NotebookEdit|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/brainstorm-guard.sh\" \"${CLAUDE_PLUGIN_ROOT}\"",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Agent",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/log-dispatch.sh\" \"${CLAUDE_PLUGIN_ROOT}\"",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/log-return.sh\" \"${CLAUDE_PLUGIN_ROOT}\"",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/nudge-audit.sh\" \"${CLAUDE_PLUGIN_ROOT}\"",
-            "timeout": 10
-          }
-        ]
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" preToolUse check-handoff.sh",
+        "matcher": "Task",
+        "timeout": 10
       },
       {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/store-sync.sh\" stop \"${CLAUDE_PLUGIN_ROOT}\"",
-            "timeout": 30
-          }
-        ]
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" preToolUse brainstorm-guard.sh",
+        "matcher": "Shell|Write|Delete",
+        "timeout": 10
+      },
+      {
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" preToolUse seat-guard.sh accessibility-reviewer architecture-reviewer code-reviewer conversion-copywriter dispatch-auditor planner ux-auditor ux-designer visual-reviewer",
+        "matcher": "Write|Delete",
+        "timeout": 10
+      }
+    ],
+    "subagentStart": [
+      {
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" subagentStart seat-guard.sh accessibility-reviewer architecture-reviewer code-reviewer conversion-copywriter dispatch-auditor planner ux-auditor ux-designer visual-reviewer",
+        "timeout": 10
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" postToolUse log-dispatch.sh",
+        "matcher": "Task",
+        "timeout": 10
+      }
+    ],
+    "subagentStop": [
+      {
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" subagentStop log-return.sh",
+        "timeout": 10,
+        "loop_limit": 1
+      }
+    ],
+    "stop": [
+      {
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" stop nudge-audit.sh",
+        "timeout": 10,
+        "loop_limit": 1
+      },
+      {
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" stop store-sync.sh stop",
+        "timeout": 30
       }
     ]
   }

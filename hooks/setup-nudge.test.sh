@@ -14,10 +14,10 @@ mkdir -p "$home"
 repo() { mkdir -p "$sandbox/$1" && git -C "$sandbox/$1" init -q; }
 repo bare
 repo stamped; mkdir -p "$sandbox/stamped/.claude"
-printf '# notes\n\n<!-- kru v0.141.0 · derived 2026-10-01 · /kru:setup to re-derive -->\n' > "$sandbox/stamped/.claude/CLAUDE.md"
+printf '# notes\n\n<!-- kru v0.141.0 · derived 2026-10-01 · /kru-setup to re-derive -->\n' > "$sandbox/stamped/AGENTS.md"
 repo unstamped; mkdir -p "$sandbox/unstamped/.claude"
-printf '# notes\nno team section\n' > "$sandbox/unstamped/.claude/CLAUDE.md"
-repo plugin; mkdir -p "$sandbox/plugin/.claude-plugin"; printf '{}' > "$sandbox/plugin/.claude-plugin/plugin.json"
+printf '# notes\nno team section\n' > "$sandbox/unstamped/AGENTS.md"
+repo plugin; mkdir -p "$sandbox/plugin/.cursor-plugin"; printf '{}' > "$sandbox/plugin/.cursor-plugin/plugin.json"
 repo nested; mkdir -p "$sandbox/nested/a/b"
 mkdir -p "$sandbox/nogit"
 
@@ -32,7 +32,7 @@ check() {
   code=$?
   [ "$code" -eq 0 ] || ok=false
   if [ "$expect" = nudge ]; then
-    printf '%s' "$out" | jq -e '.hookSpecificOutput.additionalContext | test("/kru:setup")' >/dev/null 2>&1 || ok=false
+    printf '%s' "$out" | jq -e '.hookSpecificOutput.additionalContext | test("/kru-setup")' >/dev/null 2>&1 || ok=false
   else
     [ -z "$out" ] || ok=false
   fi

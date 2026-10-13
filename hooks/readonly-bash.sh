@@ -31,7 +31,7 @@ kru_readonly_bash() {
           'git status'|'git status '*|'git log'|'git log '*|'git diff'|'git diff '*|'git show'|'git show '*|'git remote -v') continue ;;
           # listing flags only — -d/-D/-m/-c and a bare name all write
           'git branch'|'git branch '-[arv]|'git branch -vv'|'git branch -av'|'git branch --all'|'git branch --remotes'|'git branch --show-current'|'git branch --list'*) continue ;;
-          'claude mcp list'*|'claude plugin list'*|'claude plugin details'*) continue ;;
+          'agent mcp list'*|'agent status'*|'agent models'*|'cursor-agent mcp list'*|'cursor-agent status'*) continue ;;
         esac
         return 1
       done < <(printf '%s\n' "$1" | tr '|;&' '\n')

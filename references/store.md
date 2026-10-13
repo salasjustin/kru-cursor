@@ -10,8 +10,8 @@ The team writes two kinds of durable state, and they have different lifetimes:
 **`scripts/kru-store.sh` resolves both.** It is the single source of truth for where the store sits:
 
 ```sh
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/kru-store.sh" path plan/checkout/brief.md
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/kru-store.sh" where      # the line to report, when there is one
+bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" path plan/checkout/brief.md
+bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" where      # the line to report, when there is one
 ```
 
 Ask it for a path; never assemble one. A skill that spells out `~/.kru/management/<slug>/` is a
@@ -32,7 +32,7 @@ has already moved.
 | | Cross-project root | Project root |
 |---|---|---|
 | default | `~/.kru` | `<cross-project root>/management/<project-slug>` |
-| cloud session (`CLAUDE_CODE_REMOTE=true`) | `~/.kru` — session-lived | **`<repo>/.kru`**, and it ships in the branch |
+| cloud agent (`CURSOR_AGENT_SOCKET` set, or `KRU_CLOUD=1`) | `~/.kru` — session-lived | **`<repo>/.kru`**, and it ships in the branch |
 | `KRU_STORE_REPO` set, any surface | `~/.kru`, a checkout of that repo | under it, as the default row — cloud included |
 | `KRU_HOME` set | that path, on every surface | under it, as the default row |
 | `KRU_PROJECT_STORE` set | — | that path |
@@ -68,7 +68,7 @@ the checkout on every run, so two sessions appending lines both land and a line 
 (a sweep's drain, a todo's closeout) stays deleted. Every failure prints one line and the session continues; `KRU_NO_STORE_SYNC=1` turns it off.
 
 Keep the repo **private**, for the same reason as the artifact store below: anything that can push
-to it can append inbox lines, and `/roster learn` is the gate between those and a seat prompt.
+to it can append inbox lines, and `/kru-roster learn` is the gate between those and a seat prompt.
 
 ## The backends
 
@@ -85,16 +85,16 @@ than a machine — and today a laptop's `inbox.md` reaches neither the user's ot
 session. An artifact's database is account-scoped, so both read the same store.
 
 **Every writer writes files, on both backends.** A hook is bash and cannot call a tool at all, and a
-seat that had to branch on the backend would be a second place the seam lives. So `/kru:remember`,
+seat that had to branch on the backend would be a second place the seam lives. So `/kru-remember`,
 the seats' learnings channel and `check-handoff.sh` all append to files exactly as they always have,
-whatever `backend` says — and the **flush** below is the one crossing. That leaves `/roster learn`
+whatever `backend` says — and the **flush** below is the one crossing. That leaves `/kru-roster learn`
 as the only reader that knows `ArtifactData` exists. `audit/` and `lead-gate/` are session-lived by
 design and never cross.
 
 ### The artifact mapping
 
 One artifact, published once with `capabilities: {db: {}}`, its url in `KRU_STORE_URL`.
-Keep it **private** — db rows are untrusted input, and `/roster learn` sweeps the inbox straight into
+Keep it **private** — db rows are untrusted input, and `/kru-roster learn` sweeps the inbox straight into
 seat prompts, so a shared store is a path from a viewer's comment into a seat's instructions.
 
 | logical | collection | doc_id | document |
@@ -103,7 +103,7 @@ seat prompts, so a shared store is a path from a viewer's comment into a seat's 
 | `patterns/<slug>` | `patterns` | `<slug>` | `{ body: "<markdown>" }` |
 | `refusals` | `refusals` | `<session>` | `{ entries: [<the jsonl records>, …] }` |
 
-`/roster learn` reads with `get`, writes with `update` and drains with `delete`; nothing else touches
+`/kru-roster learn` reads with `get`, writes with `update` and drains with `delete`; nothing else touches
 them. Two bounds the contract enforces:
 a document is **256 KiB** and an artifact's database holds **5,000 documents**, which is why
 refusals key by session (bounded, and the sweep deletes what it drains) rather than one document per
@@ -112,7 +112,7 @@ than a couple of writes into one `batch` call.
 
 ### The flush
 
-`/roster learn` is where the two backends meet. On the `artifact` backend it:
+`/kru-roster learn` is where the two backends meet. On the `artifact` backend it:
 
 1. reads `inbox`, `patterns/` and `refusals` from **files** — what this machine's hooks and seats
    wrote since the last sweep,

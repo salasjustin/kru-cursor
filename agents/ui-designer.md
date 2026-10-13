@@ -1,7 +1,6 @@
 ---
-name: ui-designer
+name: kru-ui-designer
 description: The canvas turn and the coverage ledger — drafts and publishes the `.dc.html` artboards seeding a design canvas; keeps `design-system.md` (foundation read plus element × state ledger). Use when a look is unsettled or the ledger needs a coverage read. Flows and IA are `ux-designer`'s.
-tools: Read, Grep, Glob, Write, Edit, Bash, Skill, Artifact
 model: claude-opus-5-5
 ---
 

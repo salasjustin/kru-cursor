@@ -42,7 +42,7 @@ run() {
   done
   out=$(cd "$dir" && env -u KRU_HOME -u KRU_PROJECT -u KRU_PROJECT_STORE -u KRU_STORE_URL -u KRU_STORE_REPO \
     -u CLAUDE_PLUGIN_OPTION_KRU_STORE_REPO -u KRU_NO_AUDIT -u CLAUDE_PLUGIN_OPTION_KRU_NO_AUDIT \
-    -u CLAUDE_CODE_REMOTE -u CLAUDE_PROJECT_DIR \
+    -u KRU_CLOUD -u CURSOR_AGENT_SOCKET -u CLAUDE_PROJECT_DIR \
     HOME="$home" ${envs[@]+"${envs[@]}"} bash "$store" "${args[@]}" 2>&1)
   code=$?
 }
@@ -66,19 +66,19 @@ is "home honours KRU_HOME" "$sandbox/elsewhere"
 run "$repo" project
 is "project sits under the cross-project root, keyed by slug" "$home/.kru/management/acme-web"
 
-run "$repo" project CLAUDE_CODE_REMOTE=true
+run "$repo" project KRU_CLOUD=1
 is "project moves into the clone on a cloud vm" "$repo/.kru"
 
-run "$repo" project CLAUDE_CODE_REMOTE=true KRU_HOME="$sandbox/elsewhere"
+run "$repo" project KRU_CLOUD=1 KRU_HOME="$sandbox/elsewhere"
 is "an explicit KRU_HOME outranks the cloud default" "$sandbox/elsewhere/management/acme-web"
 
-run "$repo" project CLAUDE_CODE_REMOTE=true KRU_HOME="$sandbox/elsewhere" KRU_PROJECT_STORE="$sandbox/pinned"
+run "$repo" project KRU_CLOUD=1 KRU_HOME="$sandbox/elsewhere" KRU_PROJECT_STORE="$sandbox/pinned"
 is "KRU_PROJECT_STORE outranks both" "$sandbox/pinned"
 
-run "$repo" project CLAUDE_CODE_REMOTE=true KRU_STORE_REPO=acme/kru-store
+run "$repo" project KRU_CLOUD=1 KRU_STORE_REPO=acme/kru-store
 is "a store repo keeps the project half under home on a cloud vm" "$home/.kru/management/acme-web"
 
-run "$repo" project CLAUDE_CODE_REMOTE=true KRU_STORE_REPO=acme/kru-store KRU_PROJECT_STORE="$sandbox/pinned"
+run "$repo" project KRU_CLOUD=1 KRU_STORE_REPO=acme/kru-store KRU_PROJECT_STORE="$sandbox/pinned"
 is "KRU_PROJECT_STORE outranks a store repo" "$sandbox/pinned"
 
 # --- slug: one name across both stores --------------------------------------
@@ -102,7 +102,7 @@ is "no repo falls back to the cwd's name" "$(basename "$sandbox")"
 run "$repo" slug KRU_PROJECT=acme-oss
 is "KRU_PROJECT outranks the dir name" "acme-oss"
 
-run "$repo" project CLAUDE_CODE_REMOTE=true KRU_STORE_REPO=acme/kru-store KRU_PROJECT=acme-oss
+run "$repo" project KRU_CLOUD=1 KRU_STORE_REPO=acme/kru-store KRU_PROJECT=acme-oss
 is "KRU_PROJECT names the plan dir under a store repo" "$home/.kru/management/acme-oss"
 
 # --- backend ----------------------------------------------------------------
@@ -137,16 +137,16 @@ is "a defect file is project-scoped" "$home/.kru/management/acme-web/issues/flak
 run "$repo" path plan/checkout/brief.md
 is "a plan file is project-scoped" "$home/.kru/management/acme-web/plan/checkout/brief.md"
 
-run "$repo" path todos CLAUDE_CODE_REMOTE=true
+run "$repo" path todos KRU_CLOUD=1
 is "the project half follows the cloud root" "$repo/.kru/TODOS.md"
 
-run "$repo" path inbox CLAUDE_CODE_REMOTE=true
+run "$repo" path inbox KRU_CLOUD=1
 is "the cross-project half does not" "$home/.kru/inbox.md"
 
 run "$repo" path agent-memory
 is "agent memory is project-scoped" "$home/.kru/management/acme-web/agent-memory"
 
-run "$repo" path agent-memory CLAUDE_CODE_REMOTE=true KRU_STORE_REPO=acme/kru-store
+run "$repo" path agent-memory KRU_CLOUD=1 KRU_STORE_REPO=acme/kru-store
 is "agent memory follows the store repo on a cloud vm" "$home/.kru/management/acme-web/agent-memory"
 
 run "$repo" path nope
@@ -158,7 +158,7 @@ run "$repo" where
 report "where says nothing when both roots sit at their defaults" \
   "$([ -z "$out" ] && echo true || echo false)" "got [$out]"
 
-run "$repo" where CLAUDE_CODE_REMOTE=true
+run "$repo" where KRU_CLOUD=1
 report "where names the in-repo plan store" \
   "$(contains 'ships in the branch' "$out" && echo true || echo false)" "got [$out]"
 
@@ -166,7 +166,7 @@ run "$repo" where KRU_STORE_URL=https://claude.ai/code/artifact/abc
 report "where names the artifact backend" \
   "$(contains 'artifact' "$out" && echo true || echo false)" "got [$out]"
 
-run "$repo" where CLAUDE_CODE_REMOTE=true KRU_STORE_REPO=acme/kru-store
+run "$repo" where KRU_CLOUD=1 KRU_STORE_REPO=acme/kru-store
 report "where names the store repo, not the branch" \
   "$(contains 'acme/kru-store' "$out" && ! contains 'ships in the branch' "$out" && echo true || echo false)" "got [$out]"
 

@@ -1,8 +1,8 @@
 # Routing — detected stack to seat and skill
 
-The derivation tables, with three callers. **`/kru:setup`** runs them once over a repo and
+The derivation tables, with three callers. **`/kru-setup`** runs them once over a repo and
 writes the answers into that repo's block — that block is then the repo's routing, in prose, and
-re-running the tables is what a block exists to retire. **`/kru:roster`** writes this file when
+re-running the tables is what a block exists to retire. **`/kru-roster`** writes this file when
 a seat is hired or retired, or a conditional skill authored. **`lead`** runs them where no block has
 resolved them, or where a slice reaches a stack the block never covered. A repo whose block already
 names the seat and its skills has this question answered — take the answer.
@@ -44,18 +44,18 @@ names the seat and its skills has this question answered — take the answer.
 | a builder returned a **named gap** | the **user**, with the token name it would need. No seat fills it, and no seat extends the system |
 | a logo, mark or wordmark; a favicon, app icon or manifest icon set; a README or social header in the project's own identity | `brand-designer` (concepts → the user picks → the kit) → builder or you for the `<link>`/manifest/README lines it hands back |
 | needs generated/enhanced image assets (hero art, textures, image-led OG, restyle a photo — carrying the kit's mark, never drawing one) | `graphic-designer` → builder (**preflight** below) |
-| correctness/quality review of a diff | `code-reviewer` (or `/code-review` skill inline) |
+| correctness/quality review of a diff | `code-reviewer` (or `/review` skill inline) |
 | module/interface design, refactor with fuzzy boundaries, "where's the seam", coupling/testability | `architecture-reviewer` (design mode, before builder) |
 | structural-integrity gate on a change (boundary erosion, coupling drift) | `architecture-reviewer` (review mode, after builder) |
 | coverage sweep or fan-out across many files; repair a red/flaky suite; an exempt seat's logic-dense output; a repo with no testing conventions captured yet | `test-writer` |
 | repo tooling: pnpm workspaces/catalogs/lockfile · `turbo.json` monorepo task graph + caching · Biome/ESLint/Prettier lint+format · wiring a new package into the graph | `toolchain-engineer` |
 | repo-wide TypeScript infrastructure: strict migration, monorepo project references, type-perf profiling | a general agent with the `typescript` skill loaded |
-| a half-formed idea the user wants grilled without committing to a record | **`/kru:brainstorm`** — user-invoked; `brief`'s grill with nothing written, persisted as a `/kru:brief` on their go |
-| ambiguous or high-blast-radius change the user wants stress-tested and written down before building | **`/kru:brief`** — name it for the user to type; it is not a seat you spawn |
-| something the user wants but doesn't want done now — "not yet," "remember this for later" | **`/kru:todo`** — user-invoked, so name it in one line; mid-task it's your Step 4.5 `TODOS.md` capture |
-| something *wrong* the user wants recorded before it evaporates — a bug they just hit, not being fixed now | **`/kru:issue`** — user-invoked, same deal; mid-task it's your Step 4.5 `issues/` capture |
-| the user wants to work what's parked or what's broken — the `TODOS.md` lines, the open defect files | **`/kru:todos`** / **`/kru:issues`** — user-invoked; each reconciles the store against the code, scores, proposes a batch and waits for the pick before building. Name the one they want; only the user can fire them. Mid-task you already read the store directly when a step needs it |
-| the user wants to know where their efforts stand, or to pick one back up — the `plan/<effort>/brief.md` files | **`/kru:briefs`** — user-invoked; reconciles every brief's ticks against git and the code, and waits for the pick before ticking, archiving or resuming |
+| a half-formed idea the user wants grilled without committing to a record | **`/kru-brainstorm`** — user-invoked; `brief`'s grill with nothing written, persisted as a `/kru-brief` on their go |
+| ambiguous or high-blast-radius change the user wants stress-tested and written down before building | **`/kru-brief`** — name it for the user to type; it is not a seat you spawn |
+| something the user wants but doesn't want done now — "not yet," "remember this for later" | **`/kru-todo`** — user-invoked, so name it in one line; mid-task it's your Step 4.5 `TODOS.md` capture |
+| something *wrong* the user wants recorded before it evaporates — a bug they just hit, not being fixed now | **`/kru-issue`** — user-invoked, same deal; mid-task it's your Step 4.5 `issues/` capture |
+| the user wants to work what's parked or what's broken — the `TODOS.md` lines, the open defect files | **`/kru-todos`** / **`/kru-issues`** — user-invoked; each reconciles the store against the code, scores, proposes a batch and waits for the pick before building. Name the one they want; only the user can fire them. Mid-task you already read the store directly when a step needs it |
+| the user wants to know where their efforts stand, or to pick one back up — the `plan/<effort>/brief.md` files | **`/kru-briefs`** — user-invoked; reconciles every brief's ticks against git and the code, and waits for the pick before ticking, archiving or resuming |
 | work too big for one context / needs a durable plan of record / decompose a spec into parallelizable slices | `planner` (Step 2.6) |
 | **no specialist matches** | the **user**, naming the seat it would need (*Handling gaps*); the general path only on their say-so |
 
@@ -64,7 +64,7 @@ names the seat and its skills has this question answered — take the answer.
 - **SQLite four ways, split by the driver**: an embedded `.db` file on `better-sqlite3`/`node:sqlite`/`bun:sqlite` = `sqlite-architect` · **D1** = `cloudflare-builder` (it's CF's SQLite) · **Turso/libSQL**, local, Cloud or synced = `turso-specialist` · a Postgres server = `postgres-architect`.
 - **Vercel two ways**: app code = the framework builder · deploy/env/infra = `vercel-platform-engineer` · speed and caching-for-speed = `vercel-perf-optimizer`.
 - **Three platform lanes, split by runtime shape, not by vendor preference**: Vercel = `vercel-platform-engineer` · the Workers runtime = `cloudflare-builder` · a **long-lived VM with a persistent disk** (a container that has to be a container, a background worker, scale-to-zero with state) = `fly-platform-engineer`. App code is the framework builder's in all three.
-- **Copy splits by the route's job, not by the file**: a route that persuades someone who has not committed is `conversion-copywriter`'s (the pricing page), a route that operates the product is `ux-designer`'s (the billing settings screen). A page that already ships and reads badly is the user's `/copy-editing`; one that converts badly is their `/cro`.
+- **Copy splits by the route's job, not by the file**: a route that persuades someone who has not committed is `conversion-copywriter`'s (the pricing page), a route that operates the product is `ux-designer`'s (the billing settings screen). A page that already ships and reads badly is the user's `/kru-copy-editing`; one that converts badly is their `/kru-cro`.
 - **Anything that renders** crosses *the UI seam* — see below. The domain seats (`stripe-specialist`, `paypal-specialist`, `chariot-specialist`, `nowpayments-specialist`, `better-auth-specialist`, the data seats) each name their handoff in a **Builder owns** line.
 - **Payment rails, split by provider**: Stripe = `stripe-specialist` · PayPal/Venmo = `paypal-specialist` · Chariot DAF grants = `chariot-specialist` · NOWPayments crypto = `nowpayments-specialist`. A repo can run several, and a change touching each is one dispatch per rail — no provider's object graph, webhook vocabulary or idempotency mechanism transfers. The record they settle into (the order/donation row, the shared settlement math) is the data seat's and the framework builder's.
 - **Accounting sits downstream of every rail**: posting a settled record into QuickBooks is `quickbooks-specialist`'s adapter; the queue, cron and OAuth routes that drive it stay with the platform seat and framework builder.
@@ -83,7 +83,7 @@ line. What earns deriving is the **library choice inside a lane**, and what thes
 call that *succeeds* and returns wrong data.
 
 **One table, three channels.** The answer reaches a seat in the brief, or on the `skills` line a
-`/kru:setup` sheet writes into the repo's always-loaded docs; a seat that gets neither reads
+`/kru-setup` sheet writes into the repo's always-loaded docs; a seat that gets neither reads
 `package.json` against the table below. Past one conditional, a seat carries a single *libraries*
 section naming those three channels rather than a section per library, and keeps a named section only
 for a library it has something of its own to say about — a seam that library bends

@@ -25,7 +25,7 @@ Whether a build honors its design is a thing a person sees instantly and a machi
 
 What *is* machine-checkable is the source: a literal hex, an off-scale `p-[13px]`, an ad-hoc duration are all greppable — and that is the **repo's own gate**, set up by the builder in Phase 0 and holding at every commit, not a review pass anyone dispatches. It is structural where the build can make an off-system value have no rule at all, and a test in the suite for the rest — including the **class name nothing draws**, which paints nothing while still reading as correct in a diff (`ui-practice.md` → *The conformance gate*). A gate runs in no context window and can't be skipped because the batch was busy. Judgment stays with the user; enforcement stays static and local.
 
-The vocabulary is **shadcn's semantic set** as plain custom properties — the naming only, no shadcn or Tailwind dependency (`skills/roster/shared-blocks.md` → Block E is the canonical seat-facing text). The builders read the names off the real token file, which is the only authority: a brownfield repo has already answered the naming question and its names win. A handoff points at that file and never restates its values.
+The vocabulary is **shadcn's semantic set** as plain custom properties — the naming only, no shadcn or Tailwind dependency (`skills/kru-roster/shared-blocks.md` → Block E is the canonical seat-facing text). The builders read the names off the real token file, which is the only authority: a brownfield repo has already answered the naming question and its names win. A handoff points at that file and never restates its values.
 
 ## Motion rides with the UI builders
 

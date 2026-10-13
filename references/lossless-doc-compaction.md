@@ -1,6 +1,6 @@
 # Lossless compaction of a management/plan store
 
-Procedure for shrinking a plan store (or any summary-file + long-form-record pair) that has grown until reading it costs more than the work. Exercised on `better-giving-oss` 2026-08-04: 138KB brief → 51KB, 69KB ideas → 25KB, recurring read 52k → 19k tokens, zero loss.
+Procedure for shrinking a plan store (or any summary-file + long-form-record pair) that has grown until reading it costs more than the work. Exercised on a production plan store 2026-08-04: 138KB brief → 51KB, 69KB ideas → 25KB, recurring read 52k → 19k tokens, zero loss.
 
 The lead owns this (it edits the plan store — `TRACKER.md`) but never runs it inline: it's blocking, mechanical, and long. Dispatch it with the rules below as the hard brief, then audit the return per §5.
 

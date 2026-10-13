@@ -1,4 +1,0 @@
-schema_version: "1.1"
-name: rr7-signup-validation
-context:
-  scaffold_script: scaffold.sh
