@@ -28,6 +28,7 @@ if ! cmp -s "$src/package-lock.json" "$data/package-lock.json" || [ ! -d "$data/
   npm ci --prefix "$data" --no-audit --no-fund >&2
 fi
 cmp -s "$src/gen-asset.ts" "$data/gen-asset.ts" || cp "$src/gen-asset.ts" "$data/"
+cmp -s "$src/xai.mjs" "$data/xai.mjs" || cp "$src/xai.mjs" "$data/"
 
 cmd=${1:-}
 [ $# -gt 0 ] && shift

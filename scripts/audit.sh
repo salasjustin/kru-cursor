@@ -18,7 +18,7 @@ for f in agents/*.md; do
   [ "$(sed -n '2,/^---$/s/^name: *//p' "$f" | tr -d '"')" = "kru-$n" ] || bad "$f name != kru-<file stem>"
   grep -q "^| \`$n\` |" ROSTER.md || bad "$n has no ROSTER.md specialists row"
   m=$(sed -n '2,/^---$/s/^model: *//p' "$f")
-  [[ $m =~ ^claude-(opus|sonnet|haiku)-[0-9]+-[0-9]+(\[effort=(low|medium|high|xhigh|max)\])?$ ]] || bad "$f model '$m' is not a full pinned ID"
+  grep -qxF "${m%%\[*}" <(node scripts/port.mjs --list-models) || bad "$f model '$m' is not a confirmed Cursor model id (scripts/port.mjs → CONFIRMED_MODELS)"
 done
 while read -r n; do
   [ -f "agents/$n.md" ] || bad "ROSTER.md row names missing agent $n"

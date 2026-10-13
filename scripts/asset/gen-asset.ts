@@ -11,30 +11,33 @@
 // trust memory. see SOURCES.md.
 //
 // usage:
-//   bash "${CLAUDE_PLUGIN_ROOT}/scripts/asset/run.sh" gen-asset \
+//   bash "${CURSOR_PLUGIN_ROOT}/scripts/asset/run.sh" gen-asset \
 //     --prompt "abstract brushed-brass texture, warm charcoal ground, no text" \
 //     --out ~/projects/jeweler-demo/static/hero.avif \
 //     --sizes 1600,800 --formats avif,webp
 //
 //   # edit / enhance an existing image (Gemini image model, chat mode):
-//   bash "${CLAUDE_PLUGIN_ROOT}/scripts/asset/run.sh" gen-asset \
+//   bash "${CURSOR_PLUGIN_ROOT}/scripts/asset/run.sh" gen-asset \
 //     --input ./client-photo.jpg --prompt "remove background, warm studio light" \
 //     --out ~/projects/fastlane/static/product.avif
 //
 //   # ambient hero VIDEO background (Veo). emits mp4 + webm + poster (avif/webp).
 //   # loops are boomeranged by default (veo clips aren't seamless); --boomerang false
 //   # keeps the raw one-way clip. --resolution 1080p for crisp full-bleed 16:9 heroes:
-//   bash "${CLAUDE_PLUGIN_ROOT}/scripts/asset/run.sh" gen-asset \
+//   bash "${CURSOR_PLUGIN_ROOT}/scripts/asset/run.sh" gen-asset \
 //     --video --prompt "slow drifting aurora haze over deep charcoal, no people, no text" \
 //     --out ~/projects/studio/static/hero.mp4 --vwidth 1600 --aspect 16:9 --resolution 1080p
 //
 //   # true-alpha CUTOUT (background removal) of an existing photo — via rembg,
 //   # NOT gemini (gemini edit models recomposite to an opaque raster, no alpha):
-//   bash "${CLAUDE_PLUGIN_ROOT}/scripts/asset/run.sh" gen-asset \
+//   bash "${CURSOR_PLUGIN_ROOT}/scripts/asset/run.sh" gen-asset \
 //     --cutout --input ./headshot.jpg --out ~/proj/public/broker.webp \
 //     --sizes 880 --formats webp     # --rembg-model u2net for objects/products
 //
-// env: GOOGLE_API_KEY (or GEMINI_API_KEY) — a Google AI Studio key. NOT needed
+// env: GOOGLE_API_KEY (or GEMINI_API_KEY) — a Google AI Studio key. Or
+// XAI_API_KEY, an xAI key: with it set, stills and edits (no --model, or a
+// grok-imagine-* one) go through Grok Imagine (./xai.mjs); --backend google opts
+// out, --xai-quality low|medium picks its quality. Keys are NOT needed
 // for --cutout (rembg runs fully local). video path also needs `ffmpeg`/`ffprobe`
 // on PATH. --cutout self-bootstraps a python venv (.venv-rembg, beside this file in
 // the plugin data dir run.sh copies it to) on first use.
@@ -52,6 +55,7 @@ import {
 import { execFileSync } from "node:child_process";
 import { dirname, extname, join, basename } from "node:path";
 import { fileURLToPath } from "node:url";
+import * as xai from "./xai.mjs";
 
 // --- args -----------------------------------------------------------------
 
@@ -140,8 +144,14 @@ if (!outPath || (!prompt && !isCutout)) {
   process.exit(1);
 }
 
+// xai backend: stills and edits when XAI_API_KEY is set; video, cutouts and an
+// explicit google model take the path below, as does every run without the key
+const choice = xai.pickBackend({ env: process.env, backend: args.backend, model: args.model, isVideo, isCutout });
+if (choice.note) console.error(choice.note);
+const useXai = choice.backend === "xai";
+
 const apiKey = process.env.GOOGLE_API_KEY ?? process.env.GEMINI_API_KEY;
-if (!apiKey && !isCutout) {
+if (!apiKey && !isCutout && !useXai) {
   // cutout runs fully local through rembg — no Google key needed.
   console.error(
     "error: set GOOGLE_API_KEY (or GEMINI_API_KEY) to a Google AI Studio key.",
@@ -151,7 +161,7 @@ if (!apiKey && !isCutout) {
 
 // --- generate -------------------------------------------------------------
 
-const ai = new GoogleGenAI({ apiKey });
+const ai = useXai ? (undefined as unknown as GoogleGenAI) : new GoogleGenAI({ apiKey });
 
 // returns the raw generated image bytes (png-ish) from whichever model path applies.
 async function generate(): Promise<Buffer> {
@@ -206,6 +216,25 @@ async function generate(): Promise<Buffer> {
     );
   }
   return Buffer.from(imgPart.inlineData.data, "base64");
+}
+
+// the xai path returns the same raw bytes generate() does, so the sharp pass
+// below treats both alike
+async function generateXai(): Promise<Buffer> {
+  const out = await xai.generate({
+    apiKey: process.env.XAI_API_KEY,
+    prompt,
+    model: args.model?.startsWith("grok-imagine") ? args.model : undefined,
+    aspect: imgAspect,
+    resolution: imageSize,
+    quality: args["xai-quality"],
+    // the edits endpoint takes jpeg, png or webp; the source may be avif, so send png
+    inputB64: inputPath ? (await sharp(inputPath).png().toBuffer()).toString("base64") : undefined,
+    inputMime: "image/png",
+    log: (l: string) => console.error(l),
+  });
+  console.error(`xai served ${out.model}`);
+  return out.bytes;
 }
 
 // --- optimize + write -----------------------------------------------------
@@ -455,9 +484,9 @@ try {
     written = await optimizeAndWrite(runRembgCutout());
   } else {
     console.error(
-      `generating with ${model}${inputPath ? " (edit mode)" : ""}…`,
+      `generating with ${useXai ? `xAI ${args.model ?? xai.XAI_IMAGE_MODELS[0]}` : model}${inputPath ? " (edit mode)" : ""}…`,
     );
-    written = await optimizeAndWrite(await generate());
+    written = await optimizeAndWrite(useXai ? await generateXai() : await generate());
   }
   console.error("wrote:");
   for (const w of written) console.error(`  ${w}`);

@@ -42,12 +42,48 @@ const PLUGIN = {
 const PREFIX = "kru-"
 
 // ---------------------------------------------------------------------------
-// models. upstream pins claude ids that cursor serves under the same slug; the
-// rationale and the sources live in MODELS.md. effort becomes cursor's model
-// parameter syntax (`id[effort=high]`), the documented home for it.
+// models. every id a seat may run on, each read verbatim off a cursor docs page
+// (MODELS.md → Sources); an id that isn't here is refused, and scripts/verify.sh
+// checks every agent against this list. effort and the other options ride as
+// cursor's model parameters (`id[effort=high]`, `id[fast=false]`).
 // ---------------------------------------------------------------------------
-const CURSOR_MODELS = new Set(["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5", "claude-fable-5-1", "inherit"])
+const CONFIRMED_MODELS = {
+  "claude-opus-5-5": "https://cursor.com/docs/models/claude-opus-5-5",
+  "claude-sonnet-5-5": "https://cursor.com/docs/models/claude-sonnet-5-5",
+  "claude-haiku-5-5": "https://cursor.com/docs/models/claude-haiku-5-5",
+  "claude-fable-5-1": "https://cursor.com/docs/models/claude-fable-5-1",
+  "grok-4.7": "https://cursor.com/docs/models/grok-4-7",
+  "composer-2.5": "https://cursor.com/docs/models/cursor-composer-2-5",
+  "kimi-k3": "https://cursor.com/docs/models/kimi-k3",
+  "gpt-5.6-sol": "https://cursor.com/docs/models/gpt-5-6-sol",
+  "gemini-3.1-pro": "https://cursor.com/docs/models/gemini-3-1-pro",
+  inherit: "https://cursor.com/docs/subagents",
+}
+const CURSOR_MODELS = new Set(Object.keys(CONFIRMED_MODELS))
 const MODEL_ALIAS = { opus: "claude-opus-5-5", sonnet: "claude-sonnet-5-5", haiku: "claude-haiku-5-5" }
+const baseModel = (m) => m.replace(/\[.*\]$/, "")
+// where this fork re-tiers a seat away from upstream's pin: [pick, fallback].
+// the why for each row is MODELS.md's. a seat not named here keeps upstream's
+// pin, with the fallback its tier gets below
+const SEAT_MODELS = {
+  // the design and component seats: Kimi K3, Opus where it isn't served
+  "ui-designer": ["kimi-k3", "claude-opus-5-5"],
+  "ux-designer": ["kimi-k3", "claude-opus-5-5"],
+  "react-ui-builder": ["kimi-k3", "claude-opus-5-5"],
+  "web-components-builder": ["kimi-k3", "claude-opus-5-5"],
+  // bounded build and repair work: Grok 4.7, in Cursor's own pool
+  "test-writer": ["grok-4.7", "claude-sonnet-5-5"],
+  "toolchain-engineer": ["grok-4.7[effort=medium]", "claude-sonnet-5-5[effort=medium]"],
+  "vercel-perf-optimizer": ["grok-4.7[effort=medium]", "claude-sonnet-5-5[effort=medium]"],
+  // drives the asset generator, whose models make the image: Composer 2.5,
+  // standard speed (bare composer-2.5 selects the fast variant at 6x the price)
+  "graphic-designer": ["composer-2.5[fast=false]", "claude-sonnet-5-5"],
+}
+const TIER_FALLBACK = {
+  "claude-opus-5-5": "gpt-5.6-sol", // the same price band and tier, another provider
+  "claude-sonnet-5-5": "grok-4.7",
+  "claude-haiku-5-5": "composer-2.5[fast=false]",
+}
 const EFFORTS = new Set(["low", "medium", "high", "xhigh", "max"])
 
 // seats upstream gives no Edit/Write tool split two ways here. the ones whose
@@ -86,6 +122,8 @@ const FORK_OWNED = new Set([
   "scripts/port.mjs",
   "scripts/verify.sh",
   "scripts/verify-tree.mjs",
+  "scripts/asset/xai.mjs",
+  "scripts/asset/xai.test.mjs",
   "scripts/privacy-scan.mjs",
   "scripts/cursor-hooks.test.sh",
   "scripts/cursor-smoke.sh",
@@ -189,12 +227,58 @@ const RULES = [
     `[ "$(jq -r '.plugins[] | select(.name == "${PLUGIN.name}") | .version' .cursor-plugin/marketplace.json)" = "$v" ]`, { sh: true, files: /^scripts\/audit\.sh$/, required: /select\(\.name == "kru-cursor"\)/ }),
   R(/\[ "\$\(sed -n '2,\/\^---\$\/s\/\^name: \*\/\/p' "\$f" \| tr -d '"'\)" = "\$n" \] \|\| bad "\$f name != file stem"/g,
     `[ "$(sed -n '2,/^---$/s/^name: *//p' "$f" | tr -d '"')" = "${PREFIX}$n" ] || bad "$f name != ${PREFIX}<file stem>"`, { sh: true, files: /^scripts\/audit\.sh$/, required: /= "kru-\$n" \]/ }),
-  R(/\[\[ \$m =~ \^claude-\(opus\|sonnet\|haiku\)-\[0-9\]\+-\[0-9\]\+\$ \]\]/g,
-    "[[ $m =~ ^claude-(opus|sonnet|haiku)-[0-9]+-[0-9]+(\\[effort=(low|medium|high|xhigh|max)\\])?$ ]]", { sh: true, files: /^scripts\/audit\.sh$/, required: /\\\[effort=/ }),
+  // a seat's model is one of the ids port.mjs confirmed off cursor's docs (MODELS.md)
+  R(/\[\[ \$m =~ \^claude-\(opus\|sonnet\|haiku\)-\[0-9\]\+-\[0-9\]\+\$ \]\] \|\| bad "\$f model '\$m' is not a full pinned ID"/g,
+    () => `grep -qxF "\${m%%\\[*}" <(node scripts/port.mjs --list-models) || bad "$f model '$m' is not a confirmed Cursor model id (scripts/port.mjs → CONFIRMED_MODELS)"`, { sh: true, files: /^scripts\/audit\.sh$/, required: /<\(node scripts\/port\.mjs --list-models\)/ }),
   R(/grep -l '\^memory: local' agents\/\*\.md/g, `grep -l '${MEMORY_DIR}/' agents/*.md`, { sh: true, files: /^scripts\/audit\.sh$/, required: /agent-memory-local\/. agents/ }),
   R(/"Block Q heading and memory: local seat lists differ"/g, '"Block Q heading and memory line seat lists differ"', { sh: true, files: /^scripts\/audit\.sh$/ }),
   R(/for h in \$\(grep -oE 'hooks\/\[a-z0-9-\]\+\\\.sh' hooks\/hooks\.json \| sort -u\); do/g,
     "for h in $(grep -oE 'hooks/[a-z0-9-]+\\.sh' hooks/hooks.json | sort -u) $(jq -r '.hooks[][].command' hooks/hooks.json | grep -oE ' [a-z0-9-]+\\.sh( |$)' | tr -d ' ' | sed 's#^#hooks/#' | sort -u); do", { sh: true, files: /^scripts\/audit\.sh$/, required: /jq -r .\.hooks\[\]\[\]\.command/ }),
+
+  // the asset generator's xai backend (scripts/asset/xai.mjs, hand-owned):
+  // Grok Imagine stills and edits when XAI_API_KEY is set, the google path
+  // otherwise. run.sh copies the module beside the generator it imports from
+  R(/^(cmp -s "\$src\/gen-asset\.ts" "\$data\/gen-asset\.ts" \|\| cp "\$src\/gen-asset\.ts" "\$data\/"\n)(?!cmp -s "\$src\/xai\.mjs")/m, '$1cmp -s "$src/xai.mjs" "$data/xai.mjs" || cp "$src/xai.mjs" "$data/"\n', { sh: true, files: /^scripts\/asset\/run\.sh$/, required: /cp "\$src\/xai\.mjs" "\$data\/"/ }),
+  R(/^(import \{ fileURLToPath \} from "node:url";\n)(?!import \* as xai)/m, '$1import * as xai from "./xai.mjs";\n', { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^import \* as xai from "\.\/xai\.mjs";$/m }),
+  R(/^(\/\/ env: GOOGLE_API_KEY \(or GEMINI_API_KEY\) — a Google AI Studio key\.)(?! Or\n)/m,
+    "$1 Or\n// XAI_API_KEY, an xAI key: with it set, stills and edits (no --model, or a\n// grok-imagine-* one) go through Grok Imagine (./xai.mjs); --backend google opts\n// out, --xai-quality low|medium picks its quality. Keys are", { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^\/\/ XAI_API_KEY, an xAI key: with it set/m }),
+  R(/^const apiKey = process\.env\.GOOGLE_API_KEY \?\? process\.env\.GEMINI_API_KEY;\nif \(!apiKey && !isCutout\) \{/m, () => [
+    "// xai backend: stills and edits when XAI_API_KEY is set; video, cutouts and an",
+    "// explicit google model take the path below, as does every run without the key",
+    "const choice = xai.pickBackend({ env: process.env, backend: args.backend, model: args.model, isVideo, isCutout });",
+    "if (choice.note) console.error(choice.note);",
+    'const useXai = choice.backend === "xai";',
+    "",
+    "const apiKey = process.env.GOOGLE_API_KEY ?? process.env.GEMINI_API_KEY;",
+    "if (!apiKey && !isCutout && !useXai) {",
+  ].join("\n"), { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^if \(!apiKey && !isCutout && !useXai\) \{$/m }),
+  R(/(?<!return out\.bytes;\n\}\n\n)^\/\/ --- optimize \+ write -+\n/m, () => [
+    "// the xai path returns the same raw bytes generate() does, so the sharp pass",
+    "// below treats both alike",
+    "async function generateXai(): Promise<Buffer> {",
+    "  const out = await xai.generate({",
+    "    apiKey: process.env.XAI_API_KEY,",
+    "    prompt,",
+    '    model: args.model?.startsWith("grok-imagine") ? args.model : undefined,',
+    "    aspect: imgAspect,",
+    "    resolution: imageSize,",
+    '    quality: args["xai-quality"],',
+    "    // the edits endpoint takes jpeg, png or webp; the source may be avif, so send png",
+    '    inputB64: inputPath ? (await sharp(inputPath).png().toBuffer()).toString("base64") : undefined,',
+    '    inputMime: "image/png",',
+    "    log: (l: string) => console.error(l),",
+    "  });",
+    "  console.error(`xai served ${out.model}`);",
+    "  return out.bytes;",
+    "}",
+    "",
+    "// --- optimize + write -----------------------------------------------------",
+    "",
+  ].join("\n"), { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^async function generateXai\(\): Promise<Buffer> \{$/m }),
+  // the google client warns on construction without its key; an xai run never calls it
+  R(/^const ai = new GoogleGenAI\(\{ apiKey \}\);$/m, "const ai = useXai ? (undefined as unknown as GoogleGenAI) : new GoogleGenAI({ apiKey });", { files: /^scripts\/asset\/gen-asset\.ts$/, required: /^const ai = useXai \? /m }),
+  R(/`generating with \$\{model\}\$\{inputPath/g, '`generating with ${useXai ? `xAI ${args.model ?? xai.XAI_IMAGE_MODELS[0]}` : model}${inputPath', { files: /^scripts\/asset\/gen-asset\.ts$/, required: /generating with \$\{useXai \?/ }),
+  R(/written = await optimizeAndWrite\(await generate\(\)\);/g, "written = await optimizeAndWrite(useXai ? await generateXai() : await generate());", { files: /^scripts\/asset\/gen-asset\.ts$/, required: /useXai \? await generateXai\(\) : await generate\(\)/ }),
 
   // --- prose (markdown) ---------------------------------------------------------
   // the instruction files: cursor reads AGENTS.md (and CLAUDE.md) at a repo
@@ -257,10 +341,17 @@ const RULES = [
     "the sheet section in `AGENTS.md`, `.cursor/environment.json`, and the grants in `.cursor/cli.json`", { md: true, files: /^skills\/kru-propagate\/SKILL\.md$/, required: /`\.cursor\/environment\.json`, and the grants in `\.cursor\/cli\.json`/ }),
   R(/ — or a `\.claude\/cloud-setup\.md`\./g, " — or a `.cursor/environment.json` setup wrote.", { md: true, files: /^skills\/kru-propagate\/SKILL\.md$/ }),
   R(/A cloud session pushes its own `claude\/\*` branch/g, "A cloud agent pushes its own branch", { md: true }),
-  // the model tiers stay upstream's; how cursor reads them is MODELS.md's
-  R(/^## Model tiers\n(?!In kru-cursor)/m, "## Model tiers\nIn kru-cursor the pins below land as `MODELS.md` says: `effort` becomes the model id's `[effort=…]` parameter, `experimental.cacheTtl` has no Cursor equivalent, and `scripts/port.mjs` writes every seat's `model:` line.\n\n", { md: true, files: /^ROSTER\.md$/, required: /^In kru-cursor the pins below land as `MODELS\.md` says/m }),
+  // upstream's tiers stand as written; MODELS.md's map overrides them here
+  R(/^## Model tiers\n(?:In kru-cursor[^\n]*\n\n)?/m, () => "## Model tiers\nIn kru-cursor `MODELS.md` is the map, and it overrides this section where they differ: " +
+    `${Object.keys(SEAT_MODELS).length} seats run on models other than upstream's pin (${Object.keys(SEAT_MODELS).map((n) => "`" + n + "`").join(", ")}), every pick has a fallback, ` +
+    "`effort` becomes the model id's `[effort=…]` parameter, `experimental.cacheTtl` has no Cursor equivalent, and `scripts/port.mjs` writes every seat's `model:` line.\n\n",
+    { md: true, files: /^ROSTER\.md$/, required: /^In kru-cursor `MODELS\.md` is the map/m }),
   // the store's cloud surface
   R(/cloud session \(`CLAUDE_CODE_REMOTE=true`\)/g, "cloud agent (`CURSOR_AGENT_SOCKET` set, or `KRU_CLOUD=1`)", { md: true }),
+  // the asset key: an xai key is the alternative for stills and edits
+  R(/Generation needs `GOOGLE_API_KEY` \(Google AI Studio\) in the environment\./g, "Generation needs `GOOGLE_API_KEY` (Google AI Studio) or `XAI_API_KEY` (xAI) in the environment: with `XAI_API_KEY` set, stills and edits go through xAI's Grok Imagine (`grok-imagine-image-2.0`, falling back to `grok-imagine-image`) unless you pass a Google `--model` or `--backend google`; video and cutouts stay on the Google path.", { md: true, files: /^agents\/graphic-designer\.md$/, required: /or `XAI_API_KEY` \(xAI\) in the environment/ }),
+  R(/generation needs `GOOGLE_API_KEY` and Node\.js on PATH/g, "generation needs `GOOGLE_API_KEY` (or `XAI_API_KEY` for stills and edits) and Node.js on PATH", { md: true, files: /^references\/routing\.md$/, required: /\(or `XAI_API_KEY` for stills and edits\)/ }),
+  R(/needs `GOOGLE_API_KEY`\. Verify model ids\/params via Context7, never memory\. \|/g, "needs `GOOGLE_API_KEY`, or `XAI_API_KEY` for the xAI backend (`scripts/asset/xai.mjs`, Grok Imagine stills and edits; source: docs.x.ai → Inference API → Images). Verify model ids/params via Context7, never memory. |", { md: true, files: /^SOURCES\.md$/, required: /or `XAI_API_KEY` for the xAI backend/ }),
   // the harness itself. "Claude Code channel(s)" is a product extension-builder
   // builds, not the harness, so it stays
   R(/\s*\(resolves in both local and web plugin loads\)/g, " (it resolves in local and cloud-agent loads alike)", { md: true }),
@@ -449,15 +540,7 @@ function portAgents() {
     }
     if (guarded) noEdit.push(seat)
 
-    let model = unquote(value(get(fm, "model"))) ?? "inherit"
-    model = MODEL_ALIAS[model] ?? model
-    const base = model.replace(/\[.*\]$/, "")
-    const effort = value(get(fm, "effort"))
-    if (effort) {
-      if (!EFFORTS.has(effort)) problems.push(`agents/${seat}.md: effort ${effort} is not one cursor takes`)
-      model = `${base}[effort=${effort}]`
-    }
-    if (!CURSOR_MODELS.has(base)) problems.push(`agents/${seat}.md: model ${base} is not in CURSOR_MODELS (MODELS.md)`)
+    const model = seatModel(seat, fm)
 
     // cursor's agent parser reads one line per key, so the description stays one line
     const out = [`name: ${PREFIX}${seat}`, `description: ${scalar(description)}`, `model: ${model}`]
@@ -476,6 +559,29 @@ function portAgents() {
     write(path, joinFm(out, body))
   }
   return noEdit.sort()
+}
+
+// a seat's model line: the fork's pick when SEAT_MODELS names the seat, else
+// upstream's pin with its effort as a parameter. a pick whose id isn't confirmed
+// falls back; a fallback that isn't either is a problem
+const seatPlan = new Map()
+function seatModel(seat, fm) {
+  let up = unquote(value(get(fm, "model"))) ?? "inherit"
+  up = MODEL_ALIAS[up] ?? up
+  const effort = value(get(fm, "effort"))
+  if (effort) {
+    if (!EFFORTS.has(effort)) problems.push(`agents/${seat}.md: effort ${effort} is not one cursor takes`)
+    up = `${baseModel(up)}[effort=${effort}]`
+  }
+  const [pick, fallback] = SEAT_MODELS[seat] ?? [up, TIER_FALLBACK[baseModel(up)] ?? "inherit"]
+  seatPlan.set(seat, { pick, fallback })
+  if (CURSOR_MODELS.has(baseModel(pick))) return pick
+  if (CURSOR_MODELS.has(baseModel(fallback))) {
+    log(`  ! agents/${seat}.md: ${pick} is not a confirmed cursor model — using its fallback ${fallback}`)
+    return fallback
+  }
+  problems.push(`agents/${seat}.md: neither ${pick} nor its fallback ${fallback} is in CONFIRMED_MODELS (MODELS.md)`)
+  return pick
 }
 
 // --- step 3: skills -----------------------------------------------------------------
@@ -565,7 +671,8 @@ function BARE_COMMAND() {
 function portText() {
   for (const path of walk(ROOT)) {
     let rel = relative(ROOT, path)
-    if (!/\.(md|mdc|sh|mjs|txt)$/.test(rel)) continue
+    // gen-asset.ts is the one typescript file a rule edits (the xai hook)
+    if (!/\.(md|mdc|sh|mjs|txt)$/.test(rel) && rel !== "scripts/asset/gen-asset.ts") continue
     if (FORK_OWNED.has(rel) || FORK_OWNED_DIRS.test(rel)) continue
     // a vendored license is kept verbatim, whatever it says
     if (/(^|\/)(LICENSE|NOTICE|COPYING)[^/]*$/.test(rel)) continue
@@ -769,6 +876,21 @@ function audit() {
     log(`\nsurfaces cursor lacks (PORTING.md → Known gaps): ${[...watched.values()].reduce((a, b) => a + b, 0)} references in ${watched.size} file(s)`)
     for (const [rel, n] of [...watched].sort((a, b) => b[1] - a[1]).slice(0, 8)) log(`  ? ${rel} (${n})`)
   }
+}
+
+// --list-models: the confirmed ids, one per line (scripts/verify.sh checks every
+// agent's model against them); --list-models --seats: seat, pick and fallback,
+// tab-separated — the source of MODELS.md's map
+if (process.argv.includes("--list-models")) {
+  if (process.argv.includes("--seats")) {
+    for (const seat of seatNames()) {
+      const fm = splitFrontmatter(readF(join(ROOT, "agents", `${seat}.md`)))
+      if (fm) seatModel(seat, fm)
+      const p = seatPlan.get(seat)
+      if (p) console.log([seat, p.pick, p.fallback].join("\t"))
+    }
+  } else console.log(Object.keys(CONFIRMED_MODELS).join("\n"))
+  process.exit(0)
 }
 
 // --list-fork-owned: the files a fresh port of upstream needs laid over it to
