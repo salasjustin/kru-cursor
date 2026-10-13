@@ -30,6 +30,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      pull-requests: read
+      issues: read
     env:
       UPSTREAM_URL: https://github.com/ap-justin/kru.git
     outputs:
@@ -68,14 +70,17 @@ jobs:
         run: |
           up=$(git ls-remote "$UPSTREAM_URL" refs/heads/main | cut -f1)
           [[ $up =~ ^[0-9a-f]{40}$ ]] || { echo "could not read upstream main"; exit 1; }
-          name="sync/upstream-${up:0:8}"
-          echo "name=$name" >> "$GITHUB_OUTPUT"
+          short=${up:0:8}
+          echo "name=sync/upstream-$short" >> "$GITHUB_OUTPUT"
           echo "base=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          # one proposal per upstream commit: a branch already pushed means a
-          # pull request (or an issue) for it exists, and a rerun is a no-op
-          if gh api "repos/$REPO/branches/$name" --silent 2>/dev/null; then
+          # one proposal per upstream commit: a pull request from its branch, or
+          # an issue naming it, in any state, means it was handled. a run that
+          # pushed the branch but failed to open the pull request is retried
+          prs=$(gh pr list --repo "$REPO" --head "sync/upstream-$short" --state all --json number --jq length)
+          issues=$(gh issue list --repo "$REPO" --state all --search "$short in:title" --json number --jq length)
+          if [ "${prs:-0}" != 0 ] || [ "${issues:-0}" != 0 ]; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "$name is already proposed"
+            echo "upstream $short is already proposed"
           fi
 
       - name: merge upstream and regenerate
@@ -189,7 +194,8 @@ jobs:
         run: |
           gh auth setup-git
           set +e
-          git push origin "refs/heads/$BRANCH:refs/heads/$BRANCH" 2> "$RUNNER_TEMP/push.err"
+          # the bot's own branch: a rerun after a failed pull request replaces it
+          git push --force origin "refs/heads/$BRANCH:refs/heads/$BRANCH" 2> "$RUNNER_TEMP/push.err"
           code=$?
           set -e
           cat "$RUNNER_TEMP/push.err" >&2
@@ -220,8 +226,13 @@ jobs:
           EOF
           draft=()
           [ "$VERIFY_OK" = true ] || draft=(--draft)
-          gh pr create --base "$DEFAULT_BRANCH" --head "$BRANCH" \
-            --title "sync: upstream kru ${VERSION:-?}" --body-file "$body" "${draft[@]}"
+          url=$(gh pr create --base "$DEFAULT_BRANCH" --head "$BRANCH" \
+            --title "sync: upstream kru ${VERSION:-?}" --body-file "$body" "${draft[@]}")
+          echo "$url"
+          # an older sync pull request still open is superseded by this one
+          gh pr list --state open --json number,headRefName \
+            --jq '.[] | select((.headRefName | startswith("sync/upstream-")) and .headRefName != env.BRANCH) | .number' |
+            while read -r n; do gh pr close "$n" --delete-branch --comment "Superseded by $url."; done
 
       # the workflow token can't push a commit that touches .github/workflows/,
       # which upstream's history can carry even though its files aren't taken
@@ -250,12 +261,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          title="upstream sync blocked: kru ${VERSION:-?} ($UPSTREAM_SHA)"
-          # mark the commit as handled so a rerun doesn't file it twice
-          gh auth setup-git
-          git push origin "HEAD:refs/heads/$BRANCH"
+          title="upstream sync blocked: kru ${VERSION:-?} (${UPSTREAM_SHA:0:8})"
           existing=$(gh issue list --state open --search "in:title \"upstream sync blocked\"" --json number --jq '.[0].number')
           if [ -n "$existing" ]; then
+            # the title names the newest commit, which is how the next run finds it handled
+            gh issue edit "$existing" --title "$title"
             gh issue comment "$existing" --body-file "$RUNNER_TEMP/sync/report.md"
           else
             gh issue create --title "$title" --body-file "$RUNNER_TEMP/sync/report.md"

@@ -9,8 +9,9 @@ newest commit with the fork-owned files laid over it, ported once by `scripts/po
 
 `.github/workflows/sync-upstream.yml`, every Monday (06:23 UTC) and on **Run workflow**:
 
-1. Reads upstream `main`. A branch `sync/upstream-<sha>` already on the fork means that commit was
-   handled; the run stops there.
+1. Reads upstream `main`. A pull request from `sync/upstream-<sha>` (any state) or an issue naming
+   that sha means the commit was handled; the run stops there. A run that pushed the branch but
+   failed to open the pull request is retried next time, and the branch is replaced.
 2. Runs `scripts/sync-upstream.sh` on that branch. It records upstream as a merge parent
    (`git merge -s ours`) and replaces the tree with the fresh port, so a text conflict can't happen —
    even where a port rule rewrote a line upstream also edited.
@@ -21,15 +22,15 @@ newest commit with the fork-owned files laid over it, ported once by `scripts/po
 | outcome | what you get |
 |---|---|
 | upstream already merged | nothing; the log says `no changes` |
-| synced, checks green | a pull request `sync: upstream kru X.Y.Z` with the upstream commits, the files the port changed, the files to read by hand, and the verify summary |
+| synced, checks green | a pull request `sync: upstream kru X.Y.Z` with the upstream commits, the files the port changed, the files to read by hand, and the verify summary; an older sync pull request still open is closed as superseded |
 | synced, checks red | the same pull request as a draft, with the failing summary |
-| the port failed on the new upstream | no pull request; an issue `upstream sync blocked: …` (or a comment on the open one) with the port's problem list |
+| the port failed on the new upstream | no pull request; an issue `upstream sync blocked: …` (or a comment on the open one, retitled with the new commit) with the port's problem list |
 | synced, but the push was refused | no pull request; an issue `upstream sync blocked: … could not be pushed` with git's refusal. Upstream's history touched `.github/workflows/`, which the workflow token may not push: run the sync by hand (below) and push with your own credentials |
 | upstream's `VERSION` isn't a version string | the run fails red before anything is committed (`sync-upstream.sh` exits 1) |
 
 Two jobs, on the default `GITHUB_TOKEN`; no secret. `verify.sh` runs upstream's code (its hook tests,
 `audit.sh`) before anyone has read it, so the **sync** job that runs it holds a read-only token
-(`contents: read`), checks out without stored credentials, and runs verify with no token in its
+(`contents: read`, plus read on pull requests and issues to see what was already proposed), checks out without stored credentials, and runs verify with no token in its
 environment; it hands the sync commit on as a git bundle, written before verify runs. The **propose**
 job (`contents`, `pull-requests`, `issues: write`) runs none of the repo's code: it re-checks the
 branch name, commit ids and version it was handed, fetches the bundle, and pushes and files with the
@@ -67,13 +68,16 @@ bash scripts/sync-upstream.sh               # one merge commit, the tree regener
 bash scripts/verify.sh
 ```
 
-Open that as the sync pull request and close the issue. The workflow skips an upstream commit whose
-branch exists, so delete `sync/upstream-<sha>` before re-running the workflow instead.
+Open that as the sync pull request and close the issue. The workflow skips an upstream commit an
+issue already names, so after fixing the rule on `main`, a newer upstream commit — or running the
+script by hand as above — is what produces the pull request.
 
 ## Running it by hand
 
 `bash scripts/sync-upstream.sh --dry-run` on a clean checkout says whether upstream has anything new
-and what the port would change; without `--dry-run` it commits the merge on the current branch.
+and what the port would change; without `--dry-run` it commits the merge on the current branch,
+and refuses the default branch (the merge goes through a pull request and `verify.sh`;
+`KRU_SYNC_ALLOW_DEFAULT=1` overrides).
 `KRU_UPSTREAM_URL` / `KRU_UPSTREAM_REF` point it elsewhere (`scripts/sync-upstream.test.sh` runs it
 against a fake upstream). The plain `git merge upstream/main && node scripts/port.mjs` in
 `PORTING.md` still works; it can conflict where this can't.

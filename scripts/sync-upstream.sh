@@ -10,7 +10,7 @@
 # problem list is the report.
 #
 # run on a clean checkout of the branch to update (CI: .github/workflows/sync-upstream.yml):
-#   bash scripts/sync-upstream.sh             merge + regenerate, one commit
+#   bash scripts/sync-upstream.sh             merge + regenerate, one commit (never on the default branch)
 #   bash scripts/sync-upstream.sh --dry-run   say what would change, touch nothing
 # env: KRU_UPSTREAM_URL (default the public repo), KRU_UPSTREAM_REF (default main),
 # KRU_SYNC_REPORT (default $TMPDIR/kru-sync-report.md) — markdown for a PR or issue.
@@ -47,6 +47,15 @@ if git merge-base --is-ancestor "$up" HEAD; then
   exit 0
 fi
 [ -z "$(git status --porcelain)" ] || { echo "sync: the working tree has changes; commit or stash them first" >&2; exit 1; }
+# the merge commit lands on the branch checked out: never the default branch,
+# where it would skip the pull request and verify (KRU_SYNC_ALLOW_DEFAULT=1 overrides)
+if ! $dry && [ -z "${KRU_SYNC_ALLOW_DEFAULT:-}" ]; then
+  current=$(git symbolic-ref --short -q HEAD || true)
+  default=$(git symbolic-ref --short -q refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##' || true)
+  case "$current" in ""|"${default:-main}"|main|master)
+    echo "sync: on ${current:-a detached HEAD}; switch to a branch first (git switch -c sync/upstream)" >&2; exit 1 ;;
+  esac
+fi
 
 # the newest upstream commit already merged: the first one in history without
 # the port script (the same base verify.sh's fresh-port check reads)

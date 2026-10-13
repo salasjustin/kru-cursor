@@ -21,7 +21,7 @@ for c in $(git -C "$repo" rev-list HEAD); do git -C "$repo" cat-file -e "$c:scri
 # script and rules under test are the ones on disk
 git clone -q "$repo" "$t/fork"
 (cd "$repo" && git ls-files -co --exclude-standard -z | xargs -0 -I{} cp --parents {} "$t/fork/") 2>/dev/null
-(cd "$t/fork" && git add -A && git commit -q -m "test: working tree" --allow-empty)
+(cd "$t/fork" && git add -A && git commit -q -m "test: working tree" --allow-empty && git switch -q -c sync-test)
 # upstream: the commit the fork was ported from
 git init -q "$t/up" && git -C "$t/up" fetch -q "$repo" "$base" && git -C "$t/up" checkout -q -b main FETCH_HEAD
 export KRU_UPSTREAM_URL="$t/up" KRU_UPSTREAM_REF=main KRU_SYNC_REPORT="$t/report.md"
@@ -62,6 +62,15 @@ check "…commits nothing" bash -c '[ "$(git -C "$1" rev-parse HEAD)" = "$2" ]' 
 check "…and writes no output carrying it" bash -c '! grep -qF "curl" "$1" 2>/dev/null' _ "$t/gh-output"
 printf '%s\n' "$good_version" > "$t/up/VERSION"
 git -C "$t/up" commit -q -am "upstream: version restored"
+
+# the merge never lands on the default branch
+git -C "$t/fork" branch -q -f main HEAD
+printf '\nanother upstream line\n' >> "$t/up/agents/planner.md" && git -C "$t/up" commit -q -am "upstream: more"
+head_before=$(git -C "$t/fork" rev-parse HEAD)
+(cd "$t/fork" && git switch -q main && bash scripts/sync-upstream.sh >/dev/null 2>&1); code=$?
+check "refuses to commit the sync on main (exit 1)" test "$code" = 1
+check "…and commits nothing" bash -c '[ "$(git -C "$1" rev-parse HEAD)" = "$2" ]' _ "$t/fork" "$head_before"
+git -C "$t/fork" switch -q sync-test
 
 # (3) upstream rewords a line a required rule exists for
 sed -i 's#"$cwd"/.claude/rules/\*.md#"$cwd"/.claude/rules/*.markdown#' "$t/up/hooks/check-handoff.sh"
