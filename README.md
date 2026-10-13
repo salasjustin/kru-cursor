@@ -38,15 +38,17 @@ Plugin Imports** on, and a marketplace install of the same name takes precedence
 
 ## Requirements
 - **`jq` and `bash`**, for the hooks. Without `jq` every hook fails open: the team still runs, ungated.
-- **Model access to `claude-opus-5-5`, `claude-sonnet-5-5` and `claude-haiku-5-5`** for the seats that
-  pin them ([`MODELS.md`](MODELS.md)). A model your plan or admin blocks falls back to a compatible one.
+- **Model access** to the ids the seats pin — Claude Opus, Sonnet and Haiku 5.5, Kimi K3, Grok 4.7 and
+  Composer 2.5 ([`MODELS.md`](MODELS.md), which also records each seat's fallback). A model your plan or
+  admin blocks falls back to a compatible one.
 - **The `chrome-devtools` MCP server**, for the visual and accessibility reviewers only; without it
   they audit from source. In `~/.cursor/mcp.json`:
   ```json
   { "mcpServers": { "chrome-devtools": { "command": "npx", "args": ["chrome-devtools-mcp@latest", "--headless=true", "--screenshotFormat=webp", "--screenshotMaxWidth=1440"] } } }
   ```
 - **Context7** (`https://mcp.context7.com/mcp`) as an MCP server named `context7`: most seats' official-source chain starts there.
-- **Optional, for generated image/video assets:** `GOOGLE_API_KEY` and Node.js on PATH. Without them
+- **Optional, for generated image/video assets:** `GOOGLE_API_KEY` (or `XAI_API_KEY` for stills and
+  edits through xAI's Grok Imagine) and Node.js on PATH. Without them
   the `graphic-designer` seat says what's missing and offers a fallback instead of a placeholder.
 
 ## First run: `/kru-setup`

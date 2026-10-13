@@ -69,6 +69,20 @@ fresh_port() {
   return $rc
 }
 
+# every seat runs on an id port.mjs confirmed off cursor's docs (MODELS.md);
+# a pick that lost its confirmation falls back in the port, never silently here
+seat_models() {
+  local f m confirmed rc=0 all=""
+  confirmed=$(node scripts/port.mjs --list-models) || return 1
+  for f in agents/*.md; do
+    m=$(sed -n '2,/^---$/s/^model: *//p' "$f")
+    all="$all${m%%\[*}"$'\n'
+    grep -qxF "${m%%\[*}" <<<"$confirmed" || { echo "$f: model '$m' is not in scripts/port.mjs CONFIRMED_MODELS"; rc=1; }
+  done
+  printf '%s' "$all" | sort | uniq -c | sort -rn | awk '{ printf "%s%s×%s", s, $1, $2; s = " · " } END { print "" }'
+  return $rc
+}
+
 run_tests() {
   local t rc=0
   for t in hooks/*.test.sh scripts/*.test.sh; do
@@ -83,7 +97,9 @@ step "port normalized (port.mjs --check)" node scripts/port.mjs --check --quiet
 step "fresh port of upstream reproduces the tree" fresh_port
 step "script syntax (bash -n, node --check)" syntax
 step "roster audit (scripts/audit.sh)" bash scripts/audit.sh
+step "seat models are confirmed cursor ids (port.mjs CONFIRMED_MODELS)" seat_models
 step "hook + script tests (*.test.sh, cursor-shaped)" run_tests
+step "asset generator: xai backend (node --test, mocked fetch)" node --test scripts/asset/xai.test.mjs
 step "tree: manifest, frontmatter, hooks.json, versions, seats, leftovers" node scripts/verify-tree.mjs
 step "privacy: tree" node scripts/privacy-scan.mjs
 step "privacy: history (git log -p --all)" node scripts/privacy-scan.mjs --history
