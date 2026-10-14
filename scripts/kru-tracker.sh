@@ -18,11 +18,12 @@
 # anything else in KRU_TRACKER is a refusal (exit 2), not a fall-through to
 # GitHub. on github, a security finding is refused (exit 3): the store's
 # issues/, or a GitHub private security advisory and that advisory's private
-# fork. on linear it is filed, and its body may only be a description and a
-# pointer to where the evidence is kept. exit 4 means this process can't take
-# an item. on linear with no key, that is the API fallback only — a session
-# whose Linear MCP tools are connected files there instead (TRACKER.md) and
-# does not treat exit 4 as a reason to use the store.
+# fork. on linear it is filed, internal to the team. the title and body carry
+# no secret, key, or customer data, and the evidence stays in the store file.
+# exit 4 means this process can't take an item. on linear with no key, that is
+# the API fallback only — a session whose Linear MCP tools are connected files
+# there instead (TRACKER.md) and does not treat exit 4 as a reason to use the
+# store.
 #
 # prefer those MCP tools when the agent has them. this script calls
 # https://api.linear.app/graphql only as the fallback, and only with a key.
@@ -99,12 +100,24 @@ label_for() {
   esac
 }
 
-# a security body is a description and a pointer. credential-shaped text is
-# refused. the skill owns the rest: no customer data, no pasted evidence.
-security_body_ok() {
-  local body=$1
-  if printf '%s' "$body" | grep -Eq -- '-----BEGIN [A-Z ]*PRIVATE KEY-----|\bgh[pousr]_[A-Za-z0-9]{20,}|\bgithub_pat_[A-Za-z0-9_]{20,}|\bsk-[A-Za-z0-9_-]{16,}|\bAKIA[0-9A-Z]{16}|\bxox[abposr]-[A-Za-z0-9-]{10,}'; then
-    die "a security issue body is a description and a pointer to where the evidence is kept. It must not include a secret, a key, or customer data."
+# credential-shaped text is refused in a title or a body this script sends.
+# an email is refused only for --kind security. the skill owns customer data:
+# the evidence stays in the store file, not in the tracker title or body.
+SECRET_RE='-----BEGIN [A-Z ]*PRIVATE KEY-----|\bgh[pousr]_[A-Za-z0-9]{20,}|\bgithub_pat_[A-Za-z0-9_]{20,}|\bsk-[A-Za-z0-9_-]{16,}|\bAKIA[0-9A-Z]{16}|\bxox[abposr]-[A-Za-z0-9-]{10,}|\blin_api_[A-Za-z0-9_]{20,}'
+EMAIL_RE='[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
+
+refuse_secret() {
+  local text=$1
+  if printf '%s' "$text" | grep -Eq -- "$SECRET_RE"; then
+    die "a title or body must not include a secret or a key. A security issue's title and body are a description and a pointer to where the evidence is kept."
+  fi
+}
+
+refuse_security_email() {
+  [ "$KIND" = security ] || return 0
+  local text=$1
+  if printf '%s' "$text" | grep -Eq -- "$EMAIL_RE"; then
+    die "a security issue title or body must not include an email address. The evidence stays in the store file."
   fi
 }
 
@@ -171,31 +184,46 @@ github_rows() {
   jq -c '[.[] | {id: (.number | tostring), title, body, url}]'
 }
 
+github_number() {
+  case "$1" in
+    ""|*[!0-9]*) die "a GitHub id is the issue number" ;;
+  esac
+}
+
 github_list() {
   local label=$1
   gh issue list --label "$label" --state open --limit 100 --json number,title,body,url | github_rows
 }
 
+# labeled matches, plus open issues with no label. a label gh refuses is filed
+# with none, and a labeled-only glance misses that duplicate. the unlabeled
+# pass is capped so it cannot pull the whole repo.
 github_search() {
-  local label=$1 query=$2
-  gh issue list --label "$label" --state open --limit 10 --search "$query" --json number,title,body,url | github_rows
+  local label=$1 query=$2 labeled bare
+  need_jq
+  labeled=$(gh issue list --label "$label" --state open --limit 10 --search "$query" --json number,title,body,url) || die "gh issue list failed"
+  bare=$(gh issue list --state open --limit 20 --search "no:label $query" --json number,title,body,url) || die "gh issue list failed"
+  jq -n --argjson a "$labeled" --argjson b "$bare" '$a + $b | unique_by(.number)' | github_rows
 }
 
-github_comment() { gh issue comment "$1" --body "$2" >/dev/null || die "gh issue comment failed"; printf '%s\n' "$1"; }
-github_update() { gh issue edit "$1" --body "$2" >/dev/null || die "gh issue edit failed"; printf '%s\n' "$1"; }
-github_close() { gh issue close "$1" >/dev/null || die "gh issue close failed"; printf '%s\n' "$1"; }
+github_comment() { github_number "$1"; gh issue comment "$1" --body "$2" >/dev/null || die "gh issue comment failed"; printf '%s\n' "$1"; }
+github_update() { github_number "$1"; gh issue edit "$1" --body "$2" >/dev/null || die "gh issue edit failed"; printf '%s\n' "$1"; }
+github_close() { github_number "$1"; gh issue close "$1" >/dev/null || die "gh issue close failed"; printf '%s\n' "$1"; }
 
 # --- linear -------------------------------------------------------------------
 _team_id=""
 _project_id=""
 
 linear_key_missing() {
-  not_ready "LINEAR_API_KEY is unset. The key is optional. When Linear MCP tools are connected, use those — team key ${KRU_LINEAR_TEAM:-<KRU_LINEAR_TEAM>}, project name ${KRU_LINEAR_PROJECT:-<KRU_LINEAR_PROJECT>}, labels bug and enhancement; a security finding uses ${KRU_LINEAR_SECURITY_TEAM:-the main team} and the label security — and do not fall back to the store. This script is the API fallback for when those tools are not connected, so this tracker is not ready. Never commit a key. A security body is a description and a pointer, never a secret."
+  not_ready "LINEAR_API_KEY is unset. The key is optional. When Linear MCP tools are connected, use those — team key ${KRU_LINEAR_TEAM:-<KRU_LINEAR_TEAM>}, project name ${KRU_LINEAR_PROJECT:-<KRU_LINEAR_PROJECT>}, labels bug and enhancement; a security finding uses ${KRU_LINEAR_SECURITY_TEAM:-the main team} and the label security — and do not fall back to the store. This script is the API fallback for when those tools are not connected, so this tracker is not ready. Never commit a key. A security title and body are a description and a pointer, never a secret, and the evidence stays in the store file."
 }
 
 linear_gql() {
   local query=$1 vars=$2 payload code
   [ -n "${LINEAR_API_KEY:-}" ] || linear_key_missing
+  case "$LINEAR_API_KEY" in
+    *$'\r'*|*$'\n'*) die "LINEAR_API_KEY must not contain a carriage return or a line feed" ;;
+  esac
   command -v curl >/dev/null 2>&1 || not_ready "curl is not on PATH. When Linear MCP tools are connected, use those instead; the key is optional. Otherwise this tracker is not ready."
   need_jq
   payload=$(jq -nc --arg q "$query" --argjson v "$vars" '{query:$q, variables:$v}') || die "could not encode the Linear request"
@@ -394,7 +422,12 @@ cmd_file() {
   require_backend
   local label
   label=$(label_for "$KIND") || exit $?
-  [ "$KIND" = security ] && { security_body_ok "$BODY" || exit $?; }
+  if [ "$KIND" = security ]; then
+    refuse_secret "$TITLE" || exit $?
+    refuse_secret "$BODY" || exit $?
+    refuse_security_email "$TITLE" || exit $?
+    refuse_security_email "$BODY" || exit $?
+  fi
   cmd_ready
   use_security_scope
   case "$BACKEND" in
@@ -433,6 +466,8 @@ cmd_search() {
 cmd_comment() {
   [ -n "$ID" ] || die "comment needs --id"
   [ "$BODY_SET" = 1 ] || die "comment needs --body"
+  refuse_secret "$BODY" || exit $?
+  refuse_security_email "$BODY" || exit $?
   cmd_ready
   case "$BACKEND" in
     github) github_comment "$ID" "$BODY" ;;
@@ -443,6 +478,8 @@ cmd_comment() {
 cmd_update() {
   [ -n "$ID" ] || die "update needs --id"
   [ "$BODY_SET" = 1 ] || die "update needs --body"
+  refuse_secret "$BODY" || exit $?
+  refuse_security_email "$BODY" || exit $?
   cmd_ready
   case "$BACKEND" in
     github) github_update "$ID" "$BODY" ;;
@@ -470,10 +507,11 @@ cmd_link() {
       printf 'Fixes #%s\n' "$ID"
       ;;
     linear)
-      case "$ID" in
-        [A-Za-z]*-[0-9]*) printf 'Linear: %s\n' "$ID" ;;
-        *) die "a Linear link id is the issue identifier, like ENG-123" ;;
-      esac
+      if [[ "$ID" =~ ^[A-Z][A-Z0-9]*-[0-9]+$ ]]; then
+        printf 'Linear: %s\n' "$ID"
+      else
+        die "a Linear link id is the issue identifier, like ENG-123"
+      fi
       ;;
   esac
 }

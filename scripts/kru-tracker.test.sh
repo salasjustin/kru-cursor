@@ -1,7 +1,8 @@
 #!/bin/bash
 # kru-tracker.sh: the work-tracker setting. github is the default, including
-# when KRU_TRACKER is unset or empty; linear is opt-in and never receives a
-# security finding. gh and curl are mocks, so nothing here reaches a network.
+# when KRU_TRACKER is unset or empty; linear is opt-in.
+# A security finding goes to Linear, internal to the team: the title and body carry no secret, key, or customer data, and the evidence stays in the store file.
+# On GitHub it is refused. gh and curl are mocks, so nothing here reaches a network.
 # run: bash scripts/kru-tracker.test.sh
 set -u
 here=$(cd "$(dirname "$0")" && pwd)
@@ -22,7 +23,13 @@ fi
 case "$*" in
   *"repo view"*) printf '%s\n' true ;;
   *"issue create"*) printf '%s\n' "https://github.com/acme/web/issues/12" ;;
-  *"issue list"*) printf '%s\n' '[{"number":12,"title":"Flaky login","body":"value: 4","url":"https://github.com/acme/web/issues/12"}]' ;;
+  *"issue list"*)
+    if [[ "$*" == *no:label* ]]; then
+      printf '%s\n' '[{"number":13,"title":"Unlabeled login","body":"dropped label","url":"https://github.com/acme/web/issues/13"}]'
+    else
+      printf '%s\n' '[{"number":12,"title":"Flaky login","body":"value: 4","url":"https://github.com/acme/web/issues/12"}]'
+    fi
+    ;;
   *"issue comment"*|*"issue edit"*|*"issue close"*) ;;
   *) printf 'unexpected gh: %s\n' "$*" >&2; exit 1 ;;
 esac
@@ -166,7 +173,11 @@ is "github list is id/title/body/url" '[{"id":"12","title":"Flaky login","body":
 logged "…open bug label" "issue list --label bug --state open"
 
 run search --kind want --query "remember"
+ok "github search exits 0" 0
 logged "github search keeps the kind" "issue list --label enhancement --state open --limit 10 --search remember"
+logged "…and reads unlabeled open issues" "no:label remember"
+logged "…capped" "--limit 20"
+is "…and returns the labeled issue plus the unlabeled duplicate" '[{"id":"12","title":"Flaky login","body":"value: 4","url":"https://github.com/acme/web/issues/12"},{"id":"13","title":"Unlabeled login","body":"dropped label","url":"https://github.com/acme/web/issues/13"}]'
 
 run comment --id 12 --body "more"
 ok "github comment" 0
@@ -177,6 +188,28 @@ logged "github update is issue edit" "issue edit 12 --body value: 5"
 
 run close --id 12
 logged "github close" "issue close 12"
+
+run comment --id BG-41 --body "more"
+ok "a GitHub comment id must be digits" 1
+err_has "…and names the issue number" "issue number"
+not_logged "…and does not comment" "issue comment"
+
+run update --id 12x --body "value: 5"
+ok "a GitHub update id must be digits" 1
+not_logged "…and does not edit" "issue edit"
+
+run close --id "12 "
+ok "a GitHub close id must be digits" 1
+not_logged "…and does not close" "issue close"
+
+run comment --id 12 --body "ghp_abcdefghijklmnopqrst"
+ok "a comment body that carries a token is refused" 1
+err_has "…and names the pointer rule" "pointer to where the evidence is kept"
+not_logged "…before gh" "issue comment"
+
+run update --id 12 --body "lin_api_abcdefghijklmnopqrst"
+ok "an update body that carries a lin_api_ key is refused" 1
+not_logged "…before gh" "issue edit"
 
 run link --id 12
 is "a github pull request closes with Fixes" "Fixes #12"
@@ -255,6 +288,22 @@ is "a linear pull request links the identifier" "Linear: BG-41"
 run link --id 12 KRU_TRACKER=linear
 ok "a github number is not a Linear link" 1
 
+run link --id ENG-123 KRU_TRACKER=linear
+is "an uppercase Linear id links" "Linear: ENG-123"
+
+run link --id A1-9 KRU_TRACKER=linear
+is "a team key with a digit links" "Linear: A1-9"
+
+run link --id bg-41 KRU_TRACKER=linear
+ok "a lowercase Linear id is refused" 1
+err_has "…and names the identifier" "ENG-123"
+
+run link --id BG-41a KRU_TRACKER=linear
+ok "a Linear id with a trailing letter is refused" 1
+
+run link --id BG- KRU_TRACKER=linear
+ok "a Linear id without a number is refused" 1
+
 SEC_BODY='A token is written to the log. Evidence: the private store file issues/token-in-the-log.md'
 run file --kind security --title "token in the log" --body "$SEC_BODY" \
   KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
@@ -274,6 +323,65 @@ run file --kind security --title "token in the log" --body "ghp_abcdefghijklmnop
 ok "a security body that carries a token is refused" 1
 err_has "…and names the body rule" "pointer to where the evidence is kept"
 not_logged "…before any API call" "issueCreate"
+
+run file --kind security --title "ghp_abcdefghijklmnopqrst" --body "$SEC_BODY" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a security title that carries a token is refused" 1
+not_logged "…before any API call" "query"
+
+run file --kind security --title "token in the log" --body "see lin_api_abcdefghijklmnopqrst" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a lin_api_ key in a security body is refused" 1
+not_logged "…before any API call" "query"
+
+run file --kind security --title "lin_api_abcdefghijklmnopqrst leaked" --body "$SEC_BODY" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a lin_api_ key in a security title is refused" 1
+
+run file --kind security --title "token in the log" --body "mail a@ex.com" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a security body that carries an email is refused" 1
+err_has "…and names the email rule" "email address"
+not_logged "…before any API call" "query"
+
+run file --kind security --title "a@ex.com is the reporter" --body "$SEC_BODY" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a security title that carries an email is refused" 1
+
+run file --kind bug --title "Flaky login" --body "ping a@ex.com"
+ok "a bug body may name an email" 0
+logged "…and still files" "issue create"
+
+run comment --id BG-41 --body "ghp_abcdefghijklmnopqrst" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a linear comment body that carries a token is refused" 1
+not_logged "…before any API call" "query"
+
+run update --id BG-41 --body "lin_api_abcdefghijklmnopqrst" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a linear update body that carries a lin_api_ key is refused" 1
+not_logged "…before any API call" "query"
+
+run comment --kind security --id BG-41 --body "see a@ex.com" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a security comment that carries an email is refused" 1
+err_has "…and names the email rule" "email address"
+
+run comment --id BG-41 --body "see a@ex.com" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a comment without --kind security may name an email" 0
+logged "…and comments" "commentCreate"
+
+run ready KRU_TRACKER=linear LINEAR_API_KEY=$'lin_api_test_placeholder\nX-Injected: 1' KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a key with a line feed is refused" 1
+err_has "…and names the line feed" "line feed"
+not_logged "…and does not call the API" "query"
+quiet_key "…and does not print the key"
+
+run ready KRU_TRACKER=linear LINEAR_API_KEY=$'lin_api_test_placeholder\r' KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a key with a carriage return is refused" 1
+err_has "…and names the carriage return" "carriage return"
+not_logged "…and does not call the API" "query"
 
 run list --kind security \
   KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform KRU_LINEAR_SECURITY_TEAM=sec
@@ -332,6 +440,33 @@ for pair in "${needles[@]}"; do
   f=${pair%%|*} n=${pair#*|}
   report "$f names $n" "$(grep -qF "$n" "$repo/$f" && echo true || echo false)" "missing"
 done
+
+# the same security rule in the lead, the reconcile step, the tracker doc,
+# the issue skill, and this file's header. a fresh port re-applies the fork
+# edit, so the edit source has to say it too.
+policy=(
+  "skills/kru-lead/SKILL.md|goes to Linear when the tracker is Linear, internal to the team"
+  "skills/kru-lead/references/reconcile.md|goes to Linear, internal to the team"
+  "TRACKER.md|internal to the team"
+  "skills/kru-issue/SKILL.md|goes to Linear, internal to the team"
+  "scripts/cursor/edits.mjs|goes to Linear when the tracker is Linear, internal to the team"
+)
+for pair in "${policy[@]}"; do
+  f=${pair%%|*} n=${pair#*|}
+  report "$f files security on Linear" "$(grep -qF "$n" "$repo/$f" && echo true || echo false)" "missing [$n]"
+done
+for f in skills/kru-lead/SKILL.md skills/kru-lead/references/reconcile.md TRACKER.md skills/kru-issue/SKILL.md scripts/cursor/edits.mjs scripts/kru-tracker.test.sh; do
+  report "$f keeps secrets out of the title and body" "$(grep -qF "title and body carry no secret, key, or customer data" "$repo/$f" && echo true || echo false)" "missing the title/body rule"
+  report "$f keeps the evidence in the store" "$(grep -qF "evidence stays in the store" "$repo/$f" && echo true || echo false)" "missing the store rule"
+done
+header=$(sed -n '1,7p' "$repo/scripts/kru-tracker.test.sh" | sed 's/^# *//')
+report "the test header files security on Linear" "$(printf '%s\n' "$header" | grep -qF "A security finding goes to Linear, internal to the team: the title and body carry no secret, key, or customer data, and the evidence stays in the store file." && echo true || echo false)" "header [$header]"
+report "the lead no longer keeps security off Linear" "$(grep -qF "or to Linear" "$repo/skills/kru-lead/SKILL.md" && echo false || echo true)" "still says or to Linear"
+report "the lead fork edit no longer keeps security off Linear" "$(grep -qF "or to Linear" "$repo/scripts/cursor/edits.mjs" && echo false || echo true)" "edit still says or to Linear"
+report "kru-issue files security through MCP without the script" "$(grep -qF "do not call the script" "$repo/skills/kru-issue/SKILL.md" && echo true || echo false)" "missing"
+report "…and a missing key is not exit 4" "$(grep -qF "not exit 4" "$repo/skills/kru-issue/SKILL.md" && echo true || echo false)" "missing"
+report "TRACKER tells an MCP session to apply the secret rule by hand" "$(grep -qF "apply the same rule by hand" "$repo/TRACKER.md" && echo true || echo false)" "missing"
+report "…and names lin_api_" "$(grep -qF "lin_api_" "$repo/TRACKER.md" && echo true || echo false)" "missing"
 
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
