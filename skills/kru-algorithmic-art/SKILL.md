@@ -219,9 +219,9 @@ function draw() {
 
 Output:
 1. **Algorithmic Philosophy** - As markdown or text explaining the generative aesthetic
-2. **Single HTML Artifact** - Self-contained interactive generative art built from `templates/viewer.html` (see STEP 0 and next section)
+2. **Single HTML file** - Self-contained interactive generative art built from `templates/viewer.html` (see STEP 0 and next section)
 
-The HTML artifact contains everything: p5.js (from CDN), the algorithm, parameter controls, and UI - all in one file that works immediately in claude.ai artifacts or any browser. Start from the template file, not from scratch.
+The HTML artifact contains everything: p5.js (from CDN), the algorithm, parameter controls, and UI - all in one file that works immediately in any browser. Start from the template file, not from scratch.
 
 ---
 
@@ -229,7 +229,7 @@ The HTML artifact contains everything: p5.js (from CDN), the algorithm, paramete
 
 **REMINDER: `templates/viewer.html` should have already been read (see STEP 0). Use that file as the starting point.**
 
-To allow exploration of the generative art, create a single, self-contained HTML artifact. Ensure this artifact works immediately in claude.ai or any browser - no setup required. Embed everything inline.
+To allow exploration of the generative art, create a single, self-contained HTML artifact. Ensure this artifact works immediately in any browser - no setup required. Embed everything inline.
 
 ### CRITICAL: WHAT'S FIXED VS VARIABLE
 
@@ -278,7 +278,7 @@ The `templates/viewer.html` file is the foundation. It contains the exact struct
 - Input field to jump to specific seed
 - Generate 100 variations when requested (seeds 1-100)
 
-**3. Single Artifact Structure**
+**3. Single file structure**
 ```html
 <!DOCTYPE html>
 <html>
@@ -345,9 +345,8 @@ Add as many control-group divs as there are parameters.
 ### USING THE ARTIFACT
 
 The HTML artifact works immediately:
-1. **In claude.ai**: Displayed as an interactive artifact - runs instantly
-2. **As a file**: Save and open in any browser - no server needed
-3. **Sharing**: Send the HTML file - it's completely self-contained
+1. **In a browser**: save the HTML file and open it. No server. This file is not a Cursor canvas ([canvas](https://cursor.com/docs/agent/tools/canvas) is React)
+2. **Sharing**: Send the HTML file - it's completely self-contained
 
 ---
 

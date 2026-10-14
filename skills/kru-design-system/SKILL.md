@@ -68,7 +68,7 @@ Those three are also the finding names — `audit.md`.
 
 ## Owned elsewhere
 
-- **The values and the look** — Claude Design (`/design`), transcribed once by a builder; the verdict is the user's glance.
+- **The values and the look** — the canvas (`/canvas`, drafted by `/kru-design`; [canvas](https://cursor.com/docs/agent/tools/canvas)), transcribed once by a builder; the verdict is the PM's glance. The `.dc.html` artboards are the fallback when `/canvas` isn't available.
 - **Whether a consumer resolves to the token file** — the repo's conformance gate, at every commit (`${CURSOR_PLUGIN_ROOT}/references/ui-practice.md` → *The conformance gate*).
 - **What components exist and what they render** — `/kru-design-gallery`, on the app's own dev server.
 - **The rendered states and widths** — `/kru-visual-review`.

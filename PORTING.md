@@ -67,6 +67,10 @@ this tree byte for byte — so no ported file carries a hand edit the next merge
 | `TaskCreate` · `TaskUpdate` (or `TodoWrite`) | "the agent's todo list (always on in Cursor)" | one built-in todo tool |
 | `SendMessage` / resume | resuming the subagent by its agent ID | Cursor's resume mechanism (`cursor.com/docs/subagents` → Resume) |
 | built-ins `Explore`, `Plan`, `/code-review` | `Explore` (same name), Plan mode, `/review` | Cursor's built-ins |
+| Claude Design's canvas, the `Artifact` tool, bundled `/design`, claude.ai/design as the in-session editor | `/kru-design` drafts `.dc.html` artboards and publishes with `/canvas` ([skills](https://cursor.com/docs/skills), [canvas](https://cursor.com/docs/agent/tools/canvas)). The `.dc.html` files are the surface when `/canvas` isn't available. The look is decided on the canvas; the verdict is the PM's | Cursor's canvas is a React artifact beside the chat. A plugin packages the layout as a skill ([canvas](https://cursor.com/docs/agent/tools/canvas) → *Packaging in skills*). There is no Artifact tool and no claude.ai/design host |
+| bundled `/run` (confirm the behavior works) | the Browser subagent ([browser](https://cursor.com/docs/agent/tools/browser), [subagents](https://cursor.com/docs/subagents)) | Cursor's `/run` is Shell Mode, an alias of `/shell` ([slash commands](https://cursor.com/docs/cli/reference/slash-commands)), which does not confirm a running product |
+| bundled `/research` | a Cursor subagent for a long research task ([subagents](https://cursor.com/docs/subagents)) | no `/research` built-in ([skills](https://cursor.com/docs/skills)) |
+| `/kru-update`'s Claude Code release sweep | read [Cursor's changelog](https://cursor.com/changelog) and [docs release notes](https://cursor.com/docs/release-notes). The file stays `claude.md` so the argument stays `claude` | the closed Claude Code ledger in `reviewed.md` is history |
 | `mcp__<server>__<tool>` | `` `<tool>` (`<server>` MCP) `` | Cursor names a server and its tool (permissions write `Mcp(server:tool)`) |
 | `claude mcp add …`, `npx … --claude-code`, `mcp init --client claude`, `fly mcp server --claude` | an entry in `.cursor/mcp.json`; the vendors' `--cursor` flags | Cursor's MCP config |
 | the Turso claude plugin (`/plugin install turso@turso`) | the hosted Turso MCP server added in Cursor | the plugin is that server plus a skill kru vendors |
@@ -121,21 +125,43 @@ one is overwritten by the next port, and `scripts/verify.sh`'s fresh-port check 
 | `scripts/cursor/gates-report-path.md` | the review-report paragraph of `gates.md` |
 | `scripts/asset/xai.mjs`, `xai.test.mjs` | the asset generator's xAI backend and its tests; port rules hook it into upstream's `gen-asset.ts` and copy it in `run.sh` (`MODELS.md`) |
 | `scripts/cursor/sources-harness-row.md` | `SOURCES.md` → *Orchestration / harness mechanics* |
-| `skills/kru-update/claude.md`, `reviewed.md` | the sweep of claude code releases; layout rules only (below) |
+| `scripts/cursor/ui-canvas.md` | `references/ui-practice.md` → *The canvas*, pulled in by a port rule |
+| `scripts/cursor/update-sweep.md` | `skills/kru-update/claude.md`, the Cursor changelog sweep, pulled in by a port rule (the file keeps the name `claude.md`) |
+| `skills/kru-design/SKILL.md` | the design skill: `.dc.html` artboards plus Cursor's `/canvas`. Listed in `FORK_OWNED` so a new file inside `skills/` survives the port |
+| `skills/kru-update/claude.md`, `reviewed.md` | `claude.md` is the Cursor changelog sweep (the block above); `reviewed.md` keeps the closed Claude Code ledger and a Cursor mark. Layout rules only, plus that one edit |
 | `skills/kru-eval-review/SKILL.md` | audits a claude plugin eval suite; layout rules only |
 
 ## Known gaps
 
-- **The design canvas.** Upstream's design turn publishes Claude Design's canvas editor through the
-  `Artifact` tool and syncs to a claude.ai/design project. Cursor reaches neither; the prose still
-  names them (the port counts them on every run), and `ui-designer` loses the publish step with the
-  `Artifact` tool. What replaces it isn't written yet: kru-opencode's `kru-artboards` skill (local
-  `.dc.html` files the user opens) and Cursor's `/canvas` (React artifacts) are the two candidates.
-- **Claude's bundled skills** `/run`, `/simplify`, `/research`, `/verify` and the *You should know* mod
-  are named in places and have no Cursor counterpart; the seats fall back to their own sources.
-- **`/kru-update`'s claude ground** still sweeps Claude Code releases as upstream wrote it; this
-  fork's equivalent ground is Cursor's changelog and plugin docs. `/kru-propagate` and
-  `/kru-eval-review` came over as upstream wrote them apart from the setup-file names.
+Replacements below cite the doc that describes the Cursor surface. A row stays here only when no
+documented counterpart exists. The port still counts the leftovers (`WATCH` in `scripts/port.mjs`).
+
+- **claude.ai/design sync lane.** `references/design-sync.md` still describes publishing a bundle of
+  real components to a claude.ai/design project, and `agents/web-components-builder.md` still says a
+  custom element mounts in "a design bundle for Claude Design". Cursor has no such project
+  ([canvas](https://cursor.com/docs/agent/tools/canvas) is an in-session React artifact, not a synced
+  component host). The procedure is left in place so an existing `.design-sync/` can be read. The top of
+  `design-sync.md` says not to run it, and the seats point at `/canvas` instead of standing one up.
+  The in-session surface is `/canvas`.
+- **`ArtifactData`.** `references/store.md` still names the artifact database the store uses when
+  `KRU_STORE_URL` is set. Nothing in Cursor's docs is that database.
+- **A claude.ai connector** on the unreachable-source ladder (`SOURCES.md`). Connector traffic through
+  that host has no Cursor equivalent in the docs. The other rungs stand.
+- **`/simplify`.** Named by upstream as a bundled skill. It is not in [Cursor's skills](https://cursor.com/docs/skills).
+- **`/verify`.** Claude Code runs a project skill named `verify` before a commit. Cursor runs no
+  project skill before a commit (the cloud-environment row above). It is not a built-in
+  ([skills](https://cursor.com/docs/skills)). This repo's check is `bash scripts/verify.sh`. The live
+  roster no longer tells the lead to delegate to `/verify`. The closed ledger in
+  `skills/kru-update/reviewed.md` still names it.
+- **`/skill-doctor` and `/doctor prompt-audit`.** No built-in lists unused skills, and none audits
+  prompts for older models ([skills](https://cursor.com/docs/skills)). The token-split half of that
+  read is Cursor's context usage report ([changelog](https://cursor.com/changelog/canvas-improvements)).
+  `skills/kru-roster/audit.md` points at that report. The closed ledger still names both commands.
+- ***You should know*.** A side agent that flags, mid-task, what the turn missed. No Cursor mode by
+  that name ([skills](https://cursor.com/docs/skills)). `lead` still triages a card if one arrives.
+  The closed ledger still records the mod.
+- **`/kru-eval-review`.** Still audits a `claude plugin eval` suite. Cursor has no eval runner.
+- **wayfinder's `prototype` skill.** `skills/kru-wayfinder/SKILL.md` still says to call a skill named `prototype`. It is not vendored here and it is not a Cursor built-in ([skills](https://cursor.com/docs/skills)). `grilling` and `domain-modeling` are vendored. The sentence is left as written.
 - **Per-seat models in the CLI.** `cursor-agent` 2026.10.01 runs a plugin's agents on the parent's
   model (`MODELS.md`).
 - **Task input and plugin hooks on cloud agents are partly undocumented.** The shape of `tool_input`

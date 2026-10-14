@@ -65,7 +65,7 @@ whichever section of the host file already owns that subject:
 ```
 tokens     packages/brand/src/colors.css      ← gate: lefthook test-brand (colors.ts ↔ colors.css)
 ⚠ test     ~9 min cold, no watch mode         ← measured; no config states it
-mcp        sentry · stripe (project scope)    ← claude mcp list; context7 + chrome-devtools at user scope
+mcp        sentry · stripe (project scope)    ← agent mcp list; context7 + chrome-devtools at user scope
 ```
 
 **`mcp` names only the servers this repo's seats depend on**, each at the scope it is registered at, with the
