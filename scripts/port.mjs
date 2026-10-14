@@ -293,13 +293,19 @@ const RULES = [
     ].map((l) => a + l + "\n").join(""),
     { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /find\) kru_words "\$seg" && ! kru_any '\^-\(exec\|ok\|delete\|fls\|fprint\)'[\s\S]*git\) kru_words "\$seg" \|\| return 1; kru_any '\^--output\(=\|\$\)'/ }),
   // | ; & inside sed '/x/{p;q}' or awk '{print $1; print $2}' stay in the
-  // program; a raw newline always splits (kru_segments, inserted above)
+  // program; a raw newline always splits (kru_segments, inserted above).
+  // `kru_fn_def "$seg"` is inserted at `[ -z "$seg" ] && continue`. if that
+  // anchor drifts, this regex still matches and `kru_segments` is still
+  // emitted, so the skipped insert would count as applied. a missed insert
+  // fails the port here, and `required` demands the per-segment
+  // `kru_fn_def "$seg"` so --check fails closed once the upstream loop is gone.
   R(/^( +)while IFS= read -r seg; do\n +seg=\$\(printf '%s' "\$seg" \| sed 's\/\^\[\[:space:\]\]\*\/\/; s\/\[\[:space:\]\]\*\$\/\/'\)\n([\s\S]*?)\n( +)done < <\(printf '%s\\n' "\$1" \| tr '\|;&' '\\n'\)\n/m,
     (_m, a, mid, a2) => {
       const marked = mid.replace(
         /^([ \t]*)\[ -z "\$seg" \] && continue\n/,
         '$1[ -z "$seg" ] && continue\n$1kru_fn_def "$seg" && return 1\n',
       )
+      if (marked === mid) problems.push('hooks/readonly-bash.sh: per-segment kru_fn_def "$seg" was not inserted; [ -z "$seg" ] && continue drifted')
       return [
         `${a}kru_segments "$1" || return 1`,
         `${a}for seg in "\${KRU_S[@]}"; do`,
@@ -308,7 +314,7 @@ const RULES = [
         `${a2}done`,
       ].join("\n") + "\n"
     },
-    { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^ +kru_segments "\$1" \|\| return 1$/m }),
+    { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^ +kru_segments "\$1" \|\| return 1\n[\s\S]*?^ +kru_fn_def "\$seg" && return 1$/m }),
   // a hung remote must not hold the hook: the first preToolUse has 15s and the
   // stop hook 30s, and the stop path's push, pull, push would take three
   // separate timeouts past that. every call shares one budget, and a watchdog

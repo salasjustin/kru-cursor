@@ -127,5 +127,11 @@ for c in 'ls () ( touch x ); ls' 'ls () ( touch x )' 'grep () ( touch x ); grep 
   expect write "$c"
 done
 
+# `function name { …; }` is a definition too, including one that follows `true;`
+# (the whole-command check only sees a leading `function` word).
+for c in 'function name { touch /tmp/x; }; name' 'true; function name { touch /tmp/x; }; name'; do
+  expect write "$c"
+done
+
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
