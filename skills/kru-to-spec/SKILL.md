@@ -1,6 +1,6 @@
 ---
 name: kru-to-spec
-description: "Turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed."
+description: "Turn the current conversation into a spec and publish it to the plan store: no interview, just synthesis of what you've already discussed. Not the work tracker."
 disable-model-invocation: true
 ---
 
@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.
 
-The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
+The tracker for a spec is the store's `plan/<effort>/spec.md` (`bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh"` is the work tracker for bugs and wants, not for a spec — `${CURSOR_PLUGIN_ROOT}/TRACKER.md`). Do not run `/setup-matt-pocock-skills`, and do not file the spec on GitHub or Linear.
 
 ## Process
 
@@ -18,7 +18,7 @@ The issue tracker and triage label vocabulary should have been provided to you. 
 
 Check with the user that these seams match their expectations.
 
-3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.
+3. Write the spec using the template below, then publish it as `plan/<effort>/spec.md` in the store (`${CURSOR_PLUGIN_ROOT}/TRACKER.md`). Do not file it on the work tracker (`bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh"`). `KRU_TRACKER` is for bugs and product wants, not for a spec. Apply no triage label.
 
 <spec-template>
 

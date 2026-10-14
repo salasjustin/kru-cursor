@@ -8,7 +8,7 @@ argument-hint: "[max changed files, default 80]"
 `/kru-issues` with the gate lifted. The loop is `${CURSOR_PLUGIN_ROOT}/references/backlog-loop.md` — read it first and run it end to end; this file fills in the defect half. `${CURSOR_PLUGIN_ROOT}/skills/kru-issues/SKILL.md` is the procedure it reuses by section; its bucket, rank and outcome definitions hold here unchanged.
 
 - **Branch**: `fix/issues-loop-<date>`.
-- **Queue**: `issues` §1 and §2 over the whole dir and the product repo's open GitHub issues labelled `bug` (`gh issue list --label bug --state open`), its §4 bookkeeping, ranked by its §3 order.
+- **Queue**: `issues` §1 and §2 over the whole dir and the work tracker's open bugs (`bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh" list --kind bug`), its §4 bookkeeping, ranked by its §3 order.
 - **Eligible**: open, `effort` `1`–`3`. As in `issues` §3's weigh, a rare edge case on the money path is held, not fixed.
 - **Outcomes**: `issues` §5's — *fixed* (its repro test in the same commit) · *already fixed* · *bigger than its effort* (rescored in place, left open).
 - **Report**: each fixed bug as the symptom that's gone for users.

@@ -202,6 +202,13 @@ secret written into the repo would be the leak the Secrets tab exists to prevent
 the store with the GitHub access the cloud agent already has; where that access doesn't reach a
 private store, store-sync prints one line and the run continues on its own copy.
 
+**The work tracker, when the human team watches Linear.** Bugs and product wants stay GitHub
+issues until the repo opts in (`${CURSOR_PLUGIN_ROOT}/TRACKER.md`). Check the same Secrets tab.
+On a yes, the user adds `KRU_TRACKER=linear`, `KRU_LINEAR_TEAM` (a team key or id) and
+`KRU_LINEAR_PROJECT` (a project name or id), and `LINEAR_API_KEY` as its own secret — never a
+line in the repo. Pull requests stay on GitHub. A security finding never goes to Linear. Unset,
+and GitHub stays the tracker.
+
 **The cloud environment is a record in the repo.** Cursor builds a cloud agent's machine from
 `.cursor/environment.json` (`cursor.com/docs/cloud-agent/setup`): its `install` command runs when a
 build is made and again when a branch changes the dependencies, so the repo's dependency install

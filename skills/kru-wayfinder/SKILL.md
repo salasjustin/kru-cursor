@@ -1,12 +1,12 @@
 ---
 name: kru-wayfinder
-description: Plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear.
+description: Plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets in the plan store, and resolve them one at a time until the way to the destination is clear. `KRU_TRACKER` does not move the map.
 disable-model-invocation: true
 ---
 
 <!-- vendored from `mattpocock/skills` (v1.3.1, sha 24fe0ef) → `skills/kru-wayfinder`. Decision-ticket map for work bigger than one context, backing the `planner` seat. Kept verbatim minus the Codex `agents/openai.yaml` metadata (unused here); re-sync: re-download from https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/wayfinder/. -->
 
-A loose idea has arrived, too big for one agent session, and wrapped in fog: the way from here to the **destination** isn't visible yet. Wayfinding is about finding that way, not charging at the destination. This skill charts the way as a **shared map** on the repo's issue tracker, then works its **decision tickets** (questions whose resolution is a decision, not slices of a build to execute) one at a time until the route is clear.
+A loose idea has arrived, too big for one agent session, and wrapped in fog: the way from here to the **destination** isn't visible yet. Wayfinding is about finding that way, not charging at the destination. This skill charts the way as a **shared map** in the plan store, then works its **decision tickets** (questions whose resolution is a decision, not slices of a build to execute) one at a time until the route is clear.
 
 The destination varies per effort, and naming it is the first act of charting: it shapes every ticket. It might be a spec to hand off and iterate on, a decision to lock before planning starts, or a change made in place like a data-structure migration. The map is domain-agnostic: engineering work, course content, whatever fits the shape.
 
@@ -20,11 +20,11 @@ Every map and ticket is an issue, so it has a **name**: its title. In everything
 
 ## The Map
 
-The map is a single issue on this repo's issue tracker, labelled `wayfinder:map`, the canonical artifact. Its tickets are child issues of the map.
+The map is `plan/<effort>/map.md` in the store, the canonical artifact (`${CURSOR_PLUGIN_ROOT}/TRACKER.md`). Its tickets are files under `plan/<effort>/tickets/`, not child issues on GitHub or Linear.
 
 The map is an **index**, not a store. It lists the decisions made and points at the tickets that hold their detail; a decision lives in exactly one place, its ticket, so the map never restates it, only gists it and links.
 
-**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** The issue tracker should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`. Consult the tracker doc's "Wayfinding operations" section for how _this_ repo expresses them. If no tracker has been provided, default to the local-markdown tracker.
+**Where the map, its child tickets, blocking, and frontier queries physically live is the store**, not the work tracker. `plan/<effort>/map.md` and `tickets/` (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *wayfinder*). Do not run `/setup-matt-pocock-skills`, and do not file the map or its tickets on GitHub or Linear. `KRU_TRACKER` files bugs and product wants only (`bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh"`).
 
 ### The map body
 
