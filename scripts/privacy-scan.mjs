@@ -25,25 +25,19 @@ import { readFileSync, mkdtempSync, rmSync, realpathSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
+import { EMAIL_SOURCE, secretRegs } from "./leak-patterns.mjs"
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
 const HISTORY = process.argv.includes("--history")
 const git = (...a) => execFileSync("git", a, { cwd: ROOT, encoding: "utf8", maxBuffer: 1 << 30 })
 
 // --- what counts as a leak --------------------------------------------------
-const PATTERNS = [
-  // credentials
-  { id: "github-token", re: /\b(gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,})\b/ },
-  { id: "openai/anthropic-key", re: /\bsk-(ant-)?[A-Za-z0-9_-]{24,}\b/ },
-  { id: "aws-key", re: /\b(AKIA|ASIA)[0-9A-Z]{16}\b/ },
-  { id: "slack-token", re: /\bxox[abposr]-[A-Za-z0-9-]{10,}\b/ },
-  { id: "private-key", re: /-----BEGIN [A-Z ]*PRIVATE KEY-----/ },
-  { id: "google-api-key", re: /\bAIza[0-9A-Za-z_-]{35}\b/ },
-  { id: "stripe-live-key", re: /\b[rs]k_live_[0-9A-Za-z]{16,}\b/ },
-  { id: "cursor-api-key", re: /\bkey_[0-9a-f]{40,}\b/ },
-  { id: "bearer-token", re: /\bBearer\s+[A-Za-z0-9._~+/-]{24,}={0,2}/ },
-  // people and machines
-  { id: "email", re: /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, each: true },
+export const PATTERNS = [
+  // credentials — the same objects scripts/leak-patterns.mjs exports
+  ...secretRegs(),
+  // people and machines. mail uses that module's source too; the allow-list
+  // below is this scan's, not the tracker's.
+  { id: "email", re: new RegExp(EMAIL_SOURCE, "g"), each: true },
   { id: "internal-path", re: /\/home\/box\b|\/cursor\/stores\b|(^|[^\w.-])\/workspace\b/ },
   // a private repo addressed by owner: any of the author's repos but this one,
   // and the store repo by its name (the script it shares a name with is public)
@@ -107,7 +101,24 @@ const PATH_OK = [
   // cloudflare's sandbox sdk runs code in a container whose working dir is /workspace
   { id: "internal-path", path: /^skills\/(kru-)?cloudflare\/references\/sandbox\// },
   // this scanner names what it scans for, and PORTING.md reports what it found
-  { id: "*", path: /^(scripts\/privacy-scan\.mjs|PORTING\.md)$/ },
+  { id: "*", path: /^(scripts\/privacy-scan\.mjs|scripts\/leak-patterns\.mjs|scripts\/guard-text\.mjs|PORTING\.md)$/ },
+  // the tracker test spells the probes guard_text must refuse. gitleaks uses
+  // this same list, so those probe lines are not a second finding.
+  { id: "*", path: /^scripts\/kru-tracker\.test\.sh$/ },
+  // vendored docs show example env assignments (API_TOKEN=, auth_token=). the
+  // tracker still refuses that shape; these files are upstream examples.
+  { id: "assignment", path: /^skills\/kru-(cloudflare|turborepo|turso-cloud|turso-db)\// },
+  // the sync workflow passes GitHub's own installation token through. the
+  // expression is not a credential stored in this repo.
+  { id: "assignment", path: /^\.github\/workflows\/sync-upstream\.yml$/, line: /GH_TOKEN:\s*\$\{\{\s*github\.token\s*\}\}/ },
+  // vendored examples of a colon assignment. the tracker still refuses the shape.
+  { id: "assignment", path: /^skills\/kru-conform\/SKILL\.md$/, line: /password: 'hunter2'/ },
+  { id: "assignment", path: /^skills\/kru-hono\/SKILL\.md$/, line: /password: 'secret'/ },
+  { id: "assignment", path: /^skills\/kru-react-hook-form\/SKILL\.md$/, line: /secret: 'typed-then-hidden'/ },
+  // a vendored comment showing the shape of a secret that must not be committed.
+  { id: "assignment", path: /^skills\/(kru-)?workers-best-practices\/references\/configuration\.md$/, line: /"API_KEY": "sk-live-abc123\.\.\."/ },
+  // upstream wrangler docs. the current tree no longer has these example lines.
+  { id: "assignment", path: /^skills\/(kru-)?wrangler\/SKILL\.md$/, line: /API_KEY=local-dev-key|"secret_name": "my-secret"/ },
   // the store-resolver test pins a fictional owner's store repo (`acme/kru-store`)
   { id: "private-repo", path: /^scripts\/kru-store\.test\.sh$/, line: /acme\/kru-store/ },
 ]
@@ -118,6 +129,14 @@ const PATH_OK = [
 const HISTORY_REVIEWED = [
   { id: "client-data", commit: "82976d23", file: /^evals\/homepage-copy\/prompt\.md$/, why: "upstream eval prompt naming a public nonprofit platform as the example client; evals/ is dropped from this tree" },
   { id: "client-data", commit: "b10943af", file: /^(skills\/lead\/)?references\/lossless-doc-compaction\.md$/, why: "upstream reference naming the public repo its procedure was exercised on; rewritten in this tree by scripts/port.mjs" },
+  { id: "assignment", commit: "b10943af", file: /^skills\/cloudflare\/references\//, why: "upstream cloudflare docs showing example CLI flags and catalog tokens, not a credential this repo holds; gone from this tree" },
+  { id: "assignment", commit: "b10943af", file: /^skills\/turborepo\//, why: "upstream turborepo docs showing example TURBO_TOKEN assignments, not a credential this repo holds" },
+  { id: "assignment", commit: "94dcd7bf", file: /^skills\/turso-/, why: "upstream turso docs showing example auth_token assignments, not a credential this repo holds" },
+  { id: "assignment", commit: "e411cc68", file: /^scripts\/kru-tracker\.sh$/, why: "the previous credential regex named secret before an equals sign; the line is not a credential" },
+  { id: "assignment", commit: "cb005e14", file: /^skills\/conform\/SKILL\.md$/, why: "upstream conform docs showing an example password assignment, not a credential this repo holds" },
+  { id: "assignment", commit: "94dcd7bf", file: /^skills\/hono\/SKILL\.md$/, why: "upstream hono docs showing an example basicAuth password, not a credential this repo holds" },
+  { id: "assignment", commit: "60f7ccb6", file: /^skills\/react-hook-form\/SKILL\.md$/, why: "upstream react-hook-form docs showing an example field named secret, not a credential this repo holds" },
+  { id: "generic-api-key", commit: "b10943af", file: /^skills\/cloudflare\/references\//, why: "upstream cloudflare docs showing example API_KEY type names and placeholders, not a credential this repo holds; gone from this tree" },
 ]
 
 function allowed(id, path, line, value) {
@@ -218,10 +237,18 @@ if (gl.status === 0) {
     console.log(`FAIL: gitleaks ran but left no readable report (exit ${r.status}): ${String(err.message).split("\n")[0]}`)
     process.exit(1)
   } finally { rmSync(dir, { recursive: true, force: true }) }
-  // a placeholder is judged on the secret gitleaks extracted, never the line
+  // a placeholder is judged on the secret gitleaks extracted, never the line.
+  // what remains goes through PATH_OK, the same path list as the regex scan.
+  // a file the regex scan already accepts (the tracker probes, the scanner
+  // itself) is not a gitleaks finding either. anything else still fails.
   const real = found.filter((f) => !PLACEHOLDER_SECRET.test(f.Secret ?? ""))
   gitleaks = `${gl.stdout.trim()}: ${found.length} finding(s), ${found.length - real.length} placeholder(s)`
-  for (const f of real) hits.push({ commit: f.Commit, id: `gitleaks:${f.RuleID}`, path: f.File, value: "REDACTED", line: `line ${f.StartLine}` })
+  for (const f of real) {
+    const id = `gitleaks:${f.RuleID}`
+    const path = f.File
+    if (allowed(id, path, f.Match ?? "", f.Secret ?? "")) continue
+    hits.push({ commit: f.Commit, id, path, value: "REDACTED", line: `line ${f.StartLine}` })
+  }
 }
 
 // --- report ---------------------------------------------------------------------

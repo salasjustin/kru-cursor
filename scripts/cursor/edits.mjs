@@ -31,7 +31,7 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "You scope, route, delegate, integrate, verify, and report.\n\n**Capture, listing,",
-  "You scope, route, delegate, integrate, verify, and report.\n\n**The PM decides; the owner hears only a hard-to-reverse call.** The PM is the bot or person that briefed this session. A PM makes the calls it is handed by default, records why, and keeps going. The PM bot's own operating rules govern escalation and approval. The plugin's generic default applies only when the PM has none: escalate to the owner only a call that is hard to reverse or reaches outside the team — money (billing, pricing, spend), legal or compliance (terms, privacy, licensing), user impact (a change customers, clients or users need a heads-up about), security or data exposure, anything public or live, product direction (a change of direction or strategy), and any new outside account or service, free trials included. The owner decides that last one, and the account setup itself goes through ops. A call that fits none of these but would be costly to guess wrong goes to the owner too. Everything else the PM answers, including your grill. **Not an escalation:** a bug or want issue on the team's own product repo is internal tracking, public repo or not — the lead files it itself at Step 4.5, the PM bot through `/kru-issue` and `/kru-todo` (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*); a security finding never goes there and stays private.\n\n**Capture, listing,",
+  "You scope, route, delegate, integrate, verify, and report.\n\n**The PM decides; the owner hears only a hard-to-reverse call.** The PM is the bot or person that briefed this session. A PM makes the calls it is handed by default, records why, and keeps going. The PM bot's own operating rules govern escalation and approval. The plugin's generic default applies only when the PM has none: escalate to the owner only a call that is hard to reverse or reaches outside the team — money (billing, pricing, spend), legal or compliance (terms, privacy, licensing), user impact (a change customers, clients or users need a heads-up about), security or data exposure, anything public or live, product direction (a change of direction or strategy), and any new outside account or service, free trials included. The owner decides that last one, and the account setup itself goes through ops. A call that fits none of these but would be costly to guess wrong goes to the owner too. Everything else the PM answers, including your grill. **Not an escalation:** a bug or want on the work tracker is internal tracking — GitHub issues on the product repo, or Linear when `KRU_TRACKER=linear` (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`) — public repo or not. The lead files it itself at Step 4.5, the PM bot through `/kru-issue` and `/kru-todo` (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*). A security finding goes to Linear when the tracker is Linear, internal to the team. bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand. It never goes to a public GitHub issue; on GitHub it stays in the store's `issues/` or a GitHub private security advisory.\n\n**Capture, listing,",
   "t1: the escalation default, one source the other files point at",
 ))
 EDITS.push(E(
@@ -67,7 +67,7 @@ EDITS.push(E(
 EDITS.push(E(
   "TRACKER.md",
   "the next `brief` verb run reads the file back to the user during the grill, and the user (the PM) decides",
-  "the next `brief` verb run reads the file and the open `enhancement` issues back to the PM during the grill (`gh issue list --label enhancement --state open`), and the PM decides",
+  "the next `brief` verb run reads the file and the open wants back to the PM during the grill (Linear MCP `list_issues` when those tools are connected, `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*; otherwise `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" list --kind want`), and the PM decides",
   "t1: the brief reads the file and open enhancement issues back",
 ))
 EDITS.push(E(
@@ -131,7 +131,7 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "**A push is a one-way door, and most of the user's repos are public.** Read the repo's visibility\n(`gh repo view --json visibility`) before any push. A security fix stays local\nuntil the user OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` the session starts through the GitHub API, the workflow creating the tag\non its job token — the release is the session's to run end to end.",
-  "**Who acts at the door.** You commit locally and return proof; the push is not yours. The PM bot\nreviews the proof, pushes the branch and opens the pull request. Merging, tagging, releasing,\ndeploying, publishing and any message outside the team wait for the owner — except this plugin's own releases,\nwhich the plugin maintainer merges and tags. A bug or want issue on the product repo is internal\ntracking, not a message outside the team (first section). Most product repos are public, so the PM bot reads the\nrepo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local\nuntil the owner OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` started through the GitHub API, the workflow creating the tag on its\njob token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.",
+  "**Who acts at the door.** You commit locally and return proof; the push is not yours. The PM bot\nreviews the proof, pushes the branch and opens the pull request. Merging, tagging, releasing,\ndeploying, publishing and any message outside the team wait for the owner — except this plugin's own releases,\nwhich the plugin maintainer merges and tags. A bug or want on the work tracker (GitHub issues, or Linear when the repo has opted in) is internal\ntracking, not a message outside the team (first section). Pull requests stay on GitHub either way: the body\ncarries the line `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` prints. Most product repos are public, so the PM bot reads the\nrepo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local\nuntil the owner OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR and off Linear. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` started through the GitHub API, the workflow creating the tag on its\njob token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.",
   "t2: the lead commits, the PM pushes and opens the PR, the owner merges (the plugin maintainer for this plugin)",
 ))
 EDITS.push(E(
@@ -429,67 +429,67 @@ EDITS.push(E(
 EDITS.push(E(
   "TRACKER.md",
   "— **not** committed to the working repo, and **not** on GitHub Issues. This file **is** the \"tracker doc\" the vendored planning skills ask for — **do NOT run `/setup-matt-pocock-skills`**. When a vendored skill says \"the issue tracker should have been provided to you,\" or offers a GitHub/Linear path, use the file layout here — it is the skills' own **local-markdown path**, made canonical for this team.",
-  "— **not** committed to the working repo. Bugs and product wants are tracked on the product repo's GitHub issues instead, and security findings stay private (*Where each thing is tracked*, below). This file **is** the \"tracker doc\" the vendored planning skills ask for — **do NOT run `/setup-matt-pocock-skills`**. When a vendored skill says \"the issue tracker should have been provided to you,\" or offers a GitHub/Linear path for a plan, a spec or tickets, use the file layout here — it is the skills' own **local-markdown path**, made canonical for this team.",
+  "— **not** committed to the working repo. Bugs and product wants are tracked on the work tracker (`scripts/kru-tracker.sh`) instead — GitHub issues unless the repo sets `KRU_TRACKER=linear` — and security findings stay private (*Where each thing is tracked*, below). This file **is** the \"tracker doc\" the vendored planning skills ask for — **do NOT run `/setup-matt-pocock-skills`**. When a vendored skill says \"the issue tracker should have been provided to you,\" or offers a GitHub/Linear path for a plan, a spec or tickets, use the file layout here — it is the skills' own **local-markdown path**, made canonical for this team. `KRU_TRACKER` does not move a spec, a map or a plan ticket onto Linear.",
   "t7: bugs and wants move to GitHub issues; plans stay in the store",
 ))
 EDITS.push(E(
   "TRACKER.md",
   "Why user-level files, not in-repo and not Issues: the working repo stays clean — **no management files in it, ever**: no `management/` dir, no `issues/`, no plan docs, briefs, or todo lists, and **no pointer in its `AGENTS.md`**.",
-  "## Where each thing is tracked\n\n| what | where it goes | how |\n|---|---|---|\n| a **security or vulnerability** finding — anything an attacker could use: an auth bypass, data exposure, an injection, a leaked secret | the store's `issues/` (one file per finding), or a GitHub **private security advisory** on the product repo — **never a public issue** | `/kru-issue`, the lead's defect capture (Step 4.5) |\n| a **normal bug** or a **product want** | a **GitHub issue on the product repo** (`gh issue create`, labelled `bug` or `enhancement`), and closed by the pull request that fixes it (`Fixes #n`) | `/kru-issue`, `/kru-todo`, the lead's captures (Step 4.5) |\n| the team's **scratch todo** — a want the team turned up mid-task that nobody has asked for yet | the store's `TODOS.md` | the lead's todo capture (Step 4.5), `/kru-setup` |\n\nA repo with no GitHub remote, issues turned off, or no `gh` sign-in sends a bug to `issues/` and a want to `TODOS.md`, and the capture says so. Unsure whether a bug is security-shaped → treat it as one: a private file can be published later, a public issue can't be taken back.\n\n**Filing a bug or want issue is internal tracking, not an escalation.** It goes up on the team's own product repo without the owner's go-ahead, public repo or not: the lead files it at Step 4.5, the PM bot through `/kru-issue` and `/kru-todo` (`skills/kru-lead/SKILL.md`, first section). Only the security row stays private.\n\nWhy user-level files for the rest, not in-repo: the working repo stays clean — **no management files in it, ever**: no `management/` dir, no `issues/`, no plan docs, briefs, or todo lists, and **no pointer in its `AGENTS.md`**.",
+  "## Where each thing is tracked\n\n| what | where it goes | how |\n|---|---|---|\n| a **security or vulnerability** finding — anything an attacker could use: an auth bypass, data exposure, an injection, a leaked secret | the store's `issues/` (one file per finding), or, on the GitHub tracker, a GitHub **private security advisory** on the product repo (and that advisory's private fork) — **never a public issue**. On the Linear tracker, a Linear issue (`*Security on Linear*`, below): label `security`, on `KRU_LINEAR_SECURITY_TEAM` when set, otherwise the main team. What is written follows *Tracker text* | `/kru-issue`, the lead's defect capture (Step 4.5) |\n| a **normal bug** or a **product want** | the **work tracker** (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`). Unset, empty, or `KRU_TRACKER=github`: a GitHub issue on the product repo, labelled `bug` or `enhancement`. `KRU_TRACKER=linear`: a Linear issue on team key `KRU_LINEAR_TEAM` in the project named `KRU_LINEAR_PROJECT`, labelled the same way. Prefer the connected Linear MCP tools (`TRACKER.md` → *Linear MCP*); `LINEAR_API_KEY` is optional. The pull request stays on GitHub either way | `/kru-issue`, `/kru-todo`, the lead's captures (Step 4.5) |\n| the team's **scratch todo** — a want the team turned up mid-task that nobody has asked for yet | the store's `TODOS.md` | the lead's todo capture (Step 4.5), `/kru-setup` |\n| the **in-session board** — the lead's running worklist | the agent's todo list (always on in Cursor) | the lead skill. Not the work tracker |\n| an effort's **spec, map and execution tickets** | `plan/<effort>/` in the store | `planner`, `/kru-to-spec`, `/kru-to-tickets`, `/kru-wayfinder`. Not the work tracker, even when `KRU_TRACKER=linear` |\n\n**The work tracker.** GitHub (`KRU_TRACKER` unset, empty, or `github`) files, lists, updates, comments and closes through `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`. Linear (`KRU_TRACKER=linear`) prefers the connected Linear MCP tools when this session has them. The script's API is the fallback, and `LINEAR_API_KEY` is optional — never commit one, and never read one from a plugin option. `backend` prints `github` or `linear`. `link --id` always goes through the script: it prints `Fixes #<n>` or `Linear: <id>` and needs no key. On the GitHub tracker, `--kind security` is refused (exit 3). On Linear it is filed (*Security on Linear*).\n\n**Tracker text.** bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand\n\nA comment or an update on a security issue stays pointer-only, including when `--kind security` is given. In a security title, body, comment, or update the script refuses these anywhere, not only as headings: reproduc, steps to, repro, root cause, exploit, poc, proof of concept, payload, or an HTTP method followed by a path.\n\n**Linear settings are a team key and a project name.** For example `KRU_LINEAR_TEAM=BG` and `KRU_LINEAR_PROJECT=Connector`. Those values belong to the repo; this plugin hard-codes none. An id is only for a name that is not unique. `KRU_LINEAR_SECURITY_TEAM` (for example `SEC`) is optional and files security findings on that team.\n\n**Linear MCP, when those tools are connected.** Use them. Do not call the script for file, list, search, comment, update or close, and do not require `LINEAR_API_KEY`. A missing key is not a reason to fall back to the store. Pass `team` the team key and `project` the project name. Label `bug` for a bug and `enhancement` for a want. A security finding follows *Security on Linear*, not those labels. What you send follows *Tracker text*. Skip completed and canceled issues. Keep the identifier (a shape like `ABC-123`).\n- **file** — `save_issue` with `team`, `project`, `title`, `description`, and `labels`.\n- **search** — `list_issues` with `team`, `project`, `label`, and `query`.\n- **list** — `list_issues` with `team`, `project`, and `label`.\n- **comment** — `save_comment` with `issueId` (the identifier) and `body`. A comment on a security issue stays pointer-only.\n- **update** — `save_issue` with `id` and `description`. An update on a security issue stays pointer-only.\n- **close** — `save_issue` with `id` and `state` `Done`.\nThe pull request still gets the line `link --id` prints. Merge does not close a Linear issue, so the landing slice closes it: MCP `state` `Done`, or the script's `close --id` when MCP is absent.\n\n**Security on Linear.** This applies only when `backend` is `linear`. The GitHub tracker is unchanged: the finding stays in the store's `issues/` or a GitHub private security advisory, and `--kind security` is refused. On Linear, file it with the label `security`. Team is `KRU_LINEAR_SECURITY_TEAM` when set, and then there is no product project. Unset, the team is `KRU_LINEAR_TEAM` and the project is `KRU_LINEAR_PROJECT`. MCP: `save_issue` with `team`, `title`, `description`, and `labels: [\"security\"]`, plus `project` only on that fallback. The script: `file --kind security`. What you send follows *Tracker text*. A comment or an update on that issue stays pointer-only too.\n\n**The script, when MCP is not connected.** `ready` exits 0 when this process can file: GitHub, or Linear with `LINEAR_API_KEY` plus a team key and a project name the API can resolve. Exit 4 means fall back — a bug to `issues/`, a want to `TODOS.md` — and the capture repeats the reason. `file` prints the id and the url separated by a tab. `list` and `search` print a JSON array of `{id, title, body, url}`. `comment`, `update` and `close` take `--id` and print the id. A missing key is exit 4 only on this path.\n\nA repo whose tracker is not ready — no GitHub remote, issues turned off, no `gh` sign-in, or Linear with no MCP tools and no API key, or a team key or project name that cannot resolve — sends a bug to `issues/` and a want to `TODOS.md`, and the capture says so. Unsure whether a bug is security-shaped → treat it as one. On GitHub that is a private file, which can be published later; a public issue can't be taken back. On Linear it is a security issue, and what you send follows *Tracker text*, because that text can't be taken back either.\n\n**Filing a bug or want is internal tracking, not an escalation.** It goes up on the work tracker without the owner's go-ahead: the lead files it at Step 4.5, the PM bot through `/kru-issue` and `/kru-todo` (`skills/kru-lead/SKILL.md`, first section). Only the security row stays private. No seat files one. No hook files one — `hooks/store-sync.sh` only syncs the scratch `TODOS.md`.\n\nWhy user-level files for the rest, not in-repo: the working repo stays clean — **no management files in it, ever**: no `management/` dir, no `issues/`, no plan docs, briefs, or todo lists, and **no pointer in its `AGENTS.md`**.",
   "t7: the three destinations in one table; the old not-Issues rationale goes",
 ))
 EDITS.push(E(
   "TRACKER.md",
   "  TODOS.md                 # durable, cross-cutting — captured one-liners, untriaged",
-  "  TODOS.md                 # the team's scratch todos (and wants with no GitHub repo) — one-liners, untriaged",
+  "  TODOS.md                 # the team's scratch todos (and wants the work tracker can't take) — one-liners, untriaged",
   "t7",
 ))
 EDITS.push(E(
   "TRACKER.md",
   "  issues/                  # known defects — one file per bug, deleted when fixed",
-  "  issues/                  # security findings (and bugs with no GitHub repo) — one file each, deleted when fixed",
+  "  issues/                  # security findings (and bugs the work tracker can't take) — one file each, deleted when fixed",
   "t7",
 ))
 EDITS.push(E(
   "TRACKER.md",
   "- **Todo capture** → a pitched or discovered want, out of scope for the current slice, appends **one line** to `TODOS.md`.",
-  "- **Todo capture** → a pitched want (the PM's) out of scope for the current slice becomes a GitHub issue on the product repo; a discovered one (the team's scratch) appends **one line** to `TODOS.md` (*Where each thing is tracked*).",
+  "- **Todo capture** → a pitched want (the PM's) out of scope for the current slice goes to the work tracker (Linear MCP when those tools are connected, `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*; otherwise `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" file --kind want`); a discovered one (the team's scratch) appends **one line** to `TODOS.md` (*Where each thing is tracked*).",
   "t7",
 ))
 EDITS.push(E(
   "TRACKER.md",
   "- **Defect capture** → a bug that isn't being fixed in this slice gets **its own file** under `issues/` (below), not a line in `TODOS.md`. Fixed it in the slice instead? **Delete** its file in the same change.",
-  "- **Defect capture** → a bug that isn't being fixed in this slice becomes a GitHub issue on the product repo; a security finding gets **its own file** under `issues/` (below) — never a public issue. Fixed it in the slice instead? The pull request closes the issue (`Fixes #n`), or the same change **deletes** its file.",
+  "- **Defect capture** → a bug that isn't being fixed in this slice goes to the work tracker (`file --kind bug`); a security finding gets **its own file** under `issues/` (below). On the GitHub tracker that file is the record — never a public issue. On Linear the record is also a Linear issue, internal to the team (*Security on Linear*). What you send follows *Tracker text*. Fixed it in the slice instead? The pull request carries the line `link --id` prints, and a Linear issue is closed with `close --id`; a store file is **deleted** in the same change.",
   "t7",
 ))
 EDITS.push(E(
   "TRACKER.md",
   "- **Todo closeout** → a slice that satisfies a parked want **deletes its line** from `TODOS.md`, same as a fix deletes its `issues/` file.",
-  "- **Todo closeout** → a slice that satisfies a parked want **deletes its line** from `TODOS.md` (or closes its GitHub issue with `Fixes #n`), same as a fix deletes its `issues/` file.",
+  "- **Todo closeout** → a slice that satisfies a parked want **deletes its line** from `TODOS.md`, or closes its work-tracker item the same way a fix closes a bug (`link --id` on the pull request, and `close --id` when the tracker is Linear).",
   "t7",
 ))
 EDITS.push(E(
   "TRACKER.md",
   "**Three writers, one format.** Mid-task capture is the Step 4.5 sweep above (`pitched` when the user tossed it out, `discovered` when the team turned it up inside the effort in flight).",
-  "**Three writers, one format.** Mid-task capture is the Step 4.5 sweep above (`discovered` when the team turned it up inside the effort in flight; a want the PM tossed out goes to a GitHub issue, and lands here as `pitched` only when the repo has none to file in).",
+  "**Three writers, one format.** Mid-task capture is the Step 4.5 sweep above (`discovered` when the team turned it up inside the effort in flight; a want the PM tossed out goes to the work tracker, and lands here as `pitched` only when `ready` exits 4).",
   "t7",
 ))
 EDITS.push(E(
   "TRACKER.md",
   "The **`/kru-todo` skill** (`skills/kru-todo/`) is the user's direct front door for when there's no task running to sweep from: always `pitched`,",
-  "The **`/kru-todo` skill** (`skills/kru-todo/`) is the PM's direct front door for when there's no task running to sweep from: it files a GitHub issue, and writes here only when the repo has no GitHub issues — always `pitched`,",
+  "The **`/kru-todo` skill** (`skills/kru-todo/`) is the PM's direct front door for when there's no task running to sweep from: it files on the work tracker, and writes here only when `ready` exits 4 — always `pitched`,",
   "t7",
 ))
 EDITS.push(E(
   "TRACKER.md",
   "**`issues/` — known defects, one file per bug.** A defect is something *wrong*: an incorrect result, false information shown to a user, or a failure of a condition the code claims to handle. Something merely *wanted* — a feature, a refactor, a cleanup, duplication, misfiled config — is a `TODOS.md` line, not an issue. The three-way split is the whole rule: **wrong → `issues/`, wanted → `TODOS.md`, unformed → `notes/`.**",
-  "**`issues/` — security findings, one file per finding.** A defect is something *wrong*: an incorrect result, false information shown to a user, or a failure of a condition the code claims to handle. A normal one goes to a GitHub issue on the product repo; this dir holds the security-shaped ones, which never go public, plus any bug from a repo with no GitHub issues to file in. Something merely *wanted* — a feature, a refactor, a cleanup, duplication, misfiled config — is a want, not a defect. The split is the whole rule: **wrong → a GitHub issue (security: `issues/`), wanted → a GitHub issue (the team's own scratch: `TODOS.md`), unformed → `notes/`.**",
+  "**`issues/` — security findings, one file per finding.** A defect is something *wrong*: an incorrect result, false information shown to a user, or a failure of a condition the code claims to handle. A normal one goes to the work tracker; this dir holds the evidence. On the GitHub tracker the security finding never goes public. On Linear it goes to Linear, internal to the team (*Security on Linear*). What you send follows *Tracker text*. The dir also holds any bug whose tracker is not ready. Something merely *wanted* — a feature, a refactor, a cleanup, duplication, misfiled config — is a want, not a defect. The split is the whole rule: **wrong → the work tracker (security: `issues/` on GitHub, and on Linear a security issue internal to the team whose text follows *Tracker text*), wanted → the work tracker (the team's own scratch: `TODOS.md`), unformed → `notes/`.**",
   "t7: issues/ is for security findings",
 ))
 EDITS.push(E(
   "references/store.md",
   "- **Project** — one project's plan of record: `TODOS.md`, `issues/`, `notes/`, `plan/`\n  (`TRACKER.md` owns its layout).",
-  "- **Project** — one project's plan of record: `TODOS.md`, `issues/`, `notes/`, `plan/`\n  (`TRACKER.md` owns its layout).\n\nThe project root is the private half of tracking: security findings and the team's scratch todos live here, while normal bugs and product wants go to the product repo's GitHub issues. Which goes where is `TRACKER.md` → *Where each thing is tracked*.",
+  "- **Project** — one project's plan of record: `TODOS.md`, `issues/`, `notes/`, `plan/`\n  (`TRACKER.md` owns its layout).\n\nThe project root is the private half of tracking: security findings and the team's scratch todos live here, while normal bugs and product wants go to the work tracker (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`, GitHub unless `KRU_TRACKER=linear`). Which goes where is `TRACKER.md` → *Where each thing is tracked*. On Linear, prefer the connected MCP tools; an API key is optional (*Linear MCP*). A security finding stays in this store on the GitHub tracker. On Linear the tracker issue points at the store file and does not carry the evidence (*Security on Linear*).",
   "t7: the private half of tracking, pointing at TRACKER.md's table rather than copying it",
 ))
 EDITS.push(E(
@@ -501,79 +501,85 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-issue/SKILL.md",
   "Write the defect file from what the user just told you and get out.",
-  "Record the defect from what the PM just told you and get out — as a GitHub issue on the product repo, or, for a security finding, as a file in the store (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*).",
+  "Record the defect from what the PM just told you and get out — on the work tracker (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`), or, for a security finding, as a store file. On Linear it also goes to Linear, internal to the team. What you write follows *Tracker text* (`${CURSOR_PLUGIN_ROOT}/TRACKER.md`).",
   "t7: kru-issue files normal bugs on GitHub, security ones in the store",
 ))
 EDITS.push(E(
   "skills/kru-issue/SKILL.md",
   "2. **Glance at `issues/`** (`ls`, nothing more). Same defect already has a file → append the user's new detail to it and stop. One directory listing isn't investigation; two files for one bug is drift.\n3. **Write the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path issues/<kebab-slug>` names.** **No precondition**: create the dir if it isn't there.",
-  "2. **Pick the destination from what you were told.** Security-shaped — anything an attacker could use: an auth bypass, data exposure, an injection, a leaked secret — or unsure → the store file (step 3 on). Otherwise a normal bug → a GitHub issue, when the product repo has one to file in (`gh repo view --json hasIssuesEnabled` answers true); else the store file, and the confirm line says why.\n   - **GitHub:** glance for the same bug (`gh issue list --state open --search \"<two words from the symptom>\"`, nothing more) — found → add the new detail as a comment (`gh issue comment <n>`) and stop. Else `gh issue create --label bug --title \"<the symptom, one line>\" --body \"<the template below, minus the frontmatter, with severity and urgency as its first line>\"` (drop `--label` if `gh` refuses it, and say so). Then step 5.\n3. **Glance at `issues/`** (`ls`, nothing more). Same defect already has a file → append the new detail to it and stop. One directory listing isn't investigation; two files for one bug is drift. Else **write the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path issues/<kebab-slug>` names.** **No precondition**: create the dir if it isn't there.",
-  "t7: normal bug -> gh issue create; security -> the store",
+  "2. **Pick the destination from what you were told.** Security-shaped — anything an attacker could use: an auth bypass, data exposure, an injection, a leaked secret — or unsure → a security finding. On the GitHub tracker that is the store file (step 3 on) and never the work tracker. On the Linear tracker it goes to Linear, internal to the team, and the evidence stays in the store file (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Security on Linear*). What you write follows *Tracker text* (`${CURSOR_PLUGIN_ROOT}/TRACKER.md`). When Linear MCP tools are connected, file with `save_issue` (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*) and do not call the script: a missing `LINEAR_API_KEY` is not exit 4 and not a reason to skip Linear. When they are not connected, run `file --kind security` only if `ready` exits 0; on exit 4 the store file is the only record and the confirm line says why (`ready` writes it). Still write the store file either way. On the tracker that security issue is a short title and a link to the file, not the template's Repro, Root cause, or Exploit sections. A comment or an update on that issue stays pointer-only too. Otherwise a normal bug → the work tracker. When `backend` is `linear` and Linear MCP tools are connected, use them (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*) and do not treat a missing `LINEAR_API_KEY` as a reason to use the store. Otherwise, when `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" ready` exits 0, use the script; else the store file, and the confirm line says why (`ready` writes it).\n   - **Tracker, for a normal bug:** On Linear with MCP tools connected, do this glance, comment and file through those tools (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*). Otherwise glance for the same bug (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" search --kind bug --query \"<two words from the symptom>\"`, nothing more). One hit → add the new detail (`comment --id <id> --body \"<the new detail>\"`) and stop. None, or more than one → `file --kind bug --title \"<the symptom, one line>\" --body \"<the template below, minus the frontmatter, with severity and urgency as its first line>\"`. It prints the id and the url separated by a tab. On GitHub it drops a label `gh` refuses and says so. Then step 5. bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand\n3. **Glance at `issues/`** (`ls`, nothing more). Same defect already has a file → append the new detail to it and stop. One directory listing isn't investigation; two files for one bug is drift. Else **write the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path issues/<kebab-slug>` names.** **No precondition**: create the dir if it isn't there.",
+  "t7: normal bug -> the work tracker; security -> the store",
 ))
 EDITS.push(E(
   "skills/kru-issue/SKILL.md",
   "5. **Confirm in one line** — \"logged as <severity>, needed <urgency in words>; not looked into yet.\" No path.",
-  "5. **Confirm in one line** — \"logged as <severity>, needed <urgency in words>; not looked into yet\", with the issue number when it went to GitHub, and no path when it went to the store.",
+  "5. **Confirm in one line** — \"logged as <severity>, needed <urgency in words>; not looked into yet\", with the tracker id when it went to the work tracker, and no path when it went to the store.",
   "t7",
 ))
 EDITS.push(E(
   "skills/kru-issue/SKILL.md",
   "The store's three-way split holds: **wrong → `issues/`, wanted → `TODOS.md`, unformed → `notes/`**. Say in one line which you did.",
-  "The split holds: **wrong → a GitHub issue (security: `issues/`), wanted → `/kru-todo`, unformed → `notes/`**. Say in one line which you did.",
+  "The split holds: **wrong → the work tracker (security: `issues/` on GitHub; on Linear, internal to the team, text that follows *Tracker text*), wanted → `/kru-todo`, unformed → `notes/`**. Say in one line which you did.\n- **Tracker text.** bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand. Name the defect and point at the store file.",
   "t7",
 ))
 EDITS.push(E(
   "skills/kru-issue/SKILL.md",
   "Filling the file in is a normal `/kru-lead <task>`; fixing it deletes the file in that same change, along with the repro test that replaces it (`lead` Step 4.5).",
-  "Filling it in is a normal `/kru-lead <task>`; fixing it closes the issue (`Fixes #n` in the pull request) or deletes the file in that same change, along with the repro test that replaces it (`lead` Step 4.5).",
+  "Filling it in is a normal `/kru-lead <task>`; fixing it puts the line `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` prints on the pull request (and closes a Linear issue through MCP `save_issue` with `state` `Done` when those tools are connected (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*), otherwise `close --id <id>`) or deletes the file in that same change, along with the repro test that replaces it (`lead` Step 4.5).",
   "t7",
 ))
 EDITS.push(E(
   "skills/kru-todo/SKILL.md",
   "Write the user's deferred want into the project's `TODOS.md` and get out.",
-  "File the PM's deferred want and get out: as a GitHub issue on the product repo, or as a `TODOS.md` line when the repo has no GitHub issues to file in (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*).",
+  "File the PM's deferred want and get out: on the work tracker (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`), or as a `TODOS.md` line when `ready` exits 4 (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*).",
   "t7: product wants go to GitHub issues",
 ))
 EDITS.push(E(
   "skills/kru-todo/SKILL.md",
   "2. **Append** to the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path todos` names. **No precondition**: create the dir and the file if they don't exist.",
-  "2. **File it.** The product repo has GitHub issues (`gh repo view --json hasIssuesEnabled` answers true) → `gh issue create --label enhancement --title \"<the thing, one line>\" --body \"<the line's three scores and any sub-bullets, as written below>\"` (drop `--label` if `gh` refuses it, and say so). Otherwise **append** to the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path todos` names. **No precondition**: create the dir and the file if they don't exist.",
+  "2. **File it.** When `backend` is `linear` and Linear MCP tools are connected, file there (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*); a missing `LINEAR_API_KEY` is not a reason to append to `TODOS.md`. Otherwise `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" ready` exits 0 → `file --kind want --title \"<the thing, one line>\" --body \"<the line's three scores and any sub-bullets, as written below>\"`. It prints the id and the url separated by a tab. On GitHub it drops a label `gh` refuses and says so. Otherwise **append** to the file `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\" path todos` names, and the confirm line says why (`ready` writes it). **No precondition**: create the dir and the file if they don't exist.",
   "t7",
 ))
 EDITS.push(E(
   "skills/kru-todo/SKILL.md",
   "4. **Confirm in one line** — echo the headline, how much it matters and how soon, in words (\"logged: <headline> — matters 3 of 5, needed within weeks\"). No path, no effort, no notation.",
-  "4. **Confirm in one line** — echo the headline, how much it matters and how soon, in words (\"logged: <headline> — matters 3 of 5, needed within weeks\"), with the issue number when it went to GitHub. No path, no effort, no notation.",
+  "4. **Confirm in one line** — echo the headline, how much it matters and how soon, in words (\"logged: <headline> — matters 3 of 5, needed within weeks\"), with the tracker id when it went to the work tracker. No path, no effort, no notation.",
   "t7",
 ))
 EDITS.push(E(
   "skills/kru-todo/SKILL.md",
   "The store's three-way split holds: **wrong → `issues/`, wanted → `TODOS.md`, unformed → `notes/`**.",
-  "The split holds: **wrong → `/kru-issue`, wanted → a GitHub issue (or `TODOS.md` with none to file in), unformed → `notes/`**.",
+  "The split holds: **wrong → `/kru-issue`, wanted → the work tracker (or `TODOS.md` when it isn't ready), unformed → `notes/`**.",
   "t7",
 ))
 EDITS.push(E(
   "skills/kru-lead/references/reconcile.md",
   "- **Todo capture** — any want the **user pitches** mid-task, or one the **team discovers inside the effort in flight** (filed with that `plan: <slug>`), that's out of scope for the current slice: append a one-line entry to `TODOS.md` at the store root and **keep going** — never derail the task to build it.",
-  "- **Todo capture** — any want the **PM pitches** mid-task goes to a GitHub issue on the product repo, which you file yourself (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*); one the **team discovers inside the effort in flight** (filed with that `plan: <slug>`), out of scope for the current slice, is a one-line entry in `TODOS.md` at the store root. Either way **keep going** — never derail the task to build it.",
+  "- **Todo capture** — any want the **PM pitches** mid-task goes to the work tracker (Linear MCP when those tools are connected, `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*; otherwise `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" file --kind want`), which you file yourself (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*); one the **team discovers inside the effort in flight** (filed with that `plan: <slug>`), out of scope for the current slice, is a one-line entry in `TODOS.md` at the store root. Either way **keep going** — never derail the task to build it.",
   "t7: capture picks the destination by the table",
 ))
 EDITS.push(E(
   "skills/kru-lead/references/reconcile.md",
-  "gets **its own file** at `issues/<kebab-slug>.md` in the store root — the team's defect list; a GitHub issue is filed with `gh` only when the user asks for one: `severity` frontmatter,",
-  "goes to a **GitHub issue on the product repo** (`gh issue create --label bug`, written up as below), which you file yourself — internal tracking, not an escalation (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md`, first section) — unless it is security-shaped, which gets **its own file** at `issues/<kebab-slug>.md` in the store root and never a public issue (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*). The write-up: `severity` frontmatter,",
+  "gets **its own file** at `issues/<kebab-slug>.md` in the store root — the team's defect list; a GitHub issue is filed with `gh` only when the user asks for one: `severity` frontmatter, then call sites as `file:line`, observed behavior, root cause, repro, blast radius, fix options.",
+  "goes to the **work tracker** (Linear MCP when those tools are connected, `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*; otherwise `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" file --kind bug`, written up as below), which you file yourself — internal tracking, not an escalation (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md`, first section) — unless it is security-shaped, which gets **its own file** at `issues/<kebab-slug>.md` in the store root and never a public GitHub issue. On Linear it goes to Linear, internal to the team (*Security on Linear* in `TRACKER.md`). bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Tracker text*). The store-file write-up: `severity` frontmatter, then call sites as `file:line`, observed behavior, root cause, repro, blast radius, fix options. A bug on the tracker may carry the plain repro, symptoms and call sites from it; a security issue on the tracker is the short pointer only.",
   "t7: normal bugs to GitHub, security to the store",
+))
+EDITS.push(E(
+  "skills/kru-issue/SKILL.md",
+  "   Take `severity` from the user when they state it, else `medium` — and name which in the confirm line so they can correct it in one word. Never infer severity from how alarmed the message sounds. `urgency` (`TRACKER.md` anchors) is bare when they said how soon (\"before launch\", \"whenever\"), else `~3`.",
+  "   Take `severity` from the user when they state it, else `medium` — and name which in the confirm line so they can correct it in one word. Never infer severity from how alarmed the message sounds. `urgency` (`TRACKER.md` anchors) is bare when they said how soon (\"before launch\", \"whenever\"), else `~3`. The template above is the store file. A bug or want on the tracker may carry its plain repro, symptoms and call sites. A security issue on the tracker does not use the template.",
+  "t7: the store template stays; a security tracker issue does not copy its repro",
 ))
 EDITS.push(E(
   "skills/kru-lead/references/reconcile.md",
   "**a slice that fixes a bug closes its file.** `ls issues/` and read the listing against what you just landed — every file whose defect this slice fixed is **deleted in that same change**",
-  "**a slice that fixes a bug closes its record.** A GitHub issue closes through the pull request (`Fixes #n` in its description). For the store, `ls issues/` and read the listing against what you just landed — every file whose defect this slice fixed is **deleted in that same change**",
+  "**a slice that fixes a bug closes its record.** The pull request stays on GitHub and its description carries the line `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` prints (`Fixes #<n>`, or `Linear: <id>`). A Linear issue also needs a close — Linear MCP `save_issue` with `state` `Done` when those tools are connected (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*), otherwise `close --id <id>`. Merge does not close it. For the store, `ls issues/` and read the listing against what you just landed — every file whose defect this slice fixed is **deleted in that same change**",
   "t7",
 ))
 EDITS.push(E(
   "skills/kru-brief/SKILL.md",
   "**Walk `issues/` too — this is the dir's only reader.**",
-  "**Walk the open bugs too: the repo's GitHub issues labelled `bug` (`gh issue list --label bug --state open`) and the store's `issues/`, the security ones — the brief is their only reader.** Each GitHub issue is read against the current code the same way; one the code has since fixed is named in the brief for the PM bot to close, not closed by you.",
+  "**Walk the open bugs too: the work tracker's open bugs (Linear MCP `list_issues` when those tools are connected, `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*; otherwise `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" list --kind bug`) and the store's `issues/`, the security ones — the brief is their only reader.** Each tracker bug is read against the current code the same way; one the code has since fixed is named in the brief for the PM bot to close, not closed by you.",
   "t7: brief walks the repo's open issues as well as the store's security files",
 ))
 
@@ -581,13 +587,13 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-issues/SKILL.md",
   "Membership is the status: a file exists until the change that fixes its bug deletes it, so an empty dir is a true *no known defects*.",
-  "Membership is the status: a file exists until the change that fixes its bug deletes it, so an empty dir is a true *no known defects*.\n\nNormal bugs live on the product repo's GitHub issues (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*), so `issues/` holds the security findings and any bug from a repo with no GitHub issues. When the repo has them, the open ones labelled `bug` (`gh issue list --label bug --state open --json number,title,body`) run through the same steps beside the files: reconciled, scored and proposed alike, a verified-fixed one named for the PM bot to close rather than closed by you, and a fix carrying `Fixes #n` in its commit so the merge closes it.",
+  "Membership is the status: a file exists until the change that fixes its bug deletes it, so an empty dir is a true *no known defects*.\n\nNormal bugs live on the work tracker (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" list --kind bug`; `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*), so `issues/` holds the security findings and any bug whose tracker is not ready. When Linear MCP tools are connected, list and close there (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*) even with no API key. Otherwise when `ready` exits 0, the open bugs run through the same steps beside the files: reconciled, scored and proposed alike, a verified-fixed one named for the PM bot to close rather than closed by you. A fix puts the line `link --id <id>` prints on the pull request, and closes a Linear issue through MCP `save_issue` with `state` `Done` when those tools are connected (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*), otherwise `close --id <id>`.",
   "t7: the defect verb reads GitHub issues too",
 ))
 EDITS.push(E(
   "skills/kru-todos/SKILL.md",
   "This is the one verb where a filed want meets the codebase:",
-  "Product wants live on the product repo's GitHub issues (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*); when the repo has them, the open ones labelled `enhancement` (`gh issue list --label enhancement --state open --json number,title,body`) run through the same steps beside the file's lines — a landed one closed by `Fixes #n` in its commit, a verified-done one named for the PM bot to close. This is the one verb where a filed want meets the codebase:",
+  "Product wants live on the work tracker (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" list --kind want`; `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*); when Linear MCP tools are connected, list and close there (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*) even with no API key; otherwise when `ready` exits 0, those open wants run through the same steps beside the file's lines — a landed one closed by the line `link --id <id>` prints on the pull request (and by `close --id <id>` when the tracker is Linear), a verified-done one named for the PM bot to close. This is the one verb where a filed want meets the codebase:",
   "t7: the want verb reads GitHub issues too",
 ))
 
@@ -757,26 +763,26 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-brief/SKILL.md",
   "The store's existing `plan/<effort>/brief.md` (if you're re-grilling an effort), `TODOS.md` (the captured, untriaged one-liners), and the store's `notes/` (freeform brainstorming — **input, never authority**: cite it as *\"there's a note that says…\"*, never as a decision, and never let it override the brief, the repo's docs, or the user).\n\nBring them back to the user during the grill: an old brief's open threads get re-decided, and a `TODOS.md` line is either pulled into this change's scope or left where it is. Order them **`value × urgency ÷ effort`** the way `/kru-todos` ranks them — what matters, soon, for little work first, a `~n` ranked as filed, legacy lines with no digits after — and note the ones filed 90+ days ago or against a `plan/<slug>/` that's since been archived (\"may be out of date\"), since those are the lines most likely to be asking for a codebase that no longer exists. To the user, each surfaces as the want in plain words — what someone using the product would get — in that order, with no digits, tildes, ages or scoring notation. That ordering is arithmetic over filed numbers, not a triage: you don't triage `TODOS.md` on your own — you surface it and the user calls it.",
-  "The store's existing `plan/<effort>/brief.md` (if you're re-grilling an effort), `TODOS.md` (the captured, untriaged one-liners), the product repo's open GitHub issues labelled `enhancement` (`gh issue list --label enhancement --state open`), and the store's `notes/` (freeform brainstorming — **input, never authority**: cite it as *\"there's a note that says…\"*, never as a decision, and never let it override the brief, the repo's docs, or the user).\n\nBring them back to the user during the grill: an old brief's open threads get re-decided, and a `TODOS.md` line or an open `enhancement` issue is either pulled into this change's scope or left where it is. Order them **`value × urgency ÷ effort`** the way `/kru-todos` ranks them — what matters, soon, for little work first, an `enhancement` issue on the three scores in its body, a `~n` ranked as filed, legacy lines with no digits after — and note the ones filed 90+ days ago or against a `plan/<slug>/` that's since been archived (\"may be out of date\"), since those are the lines most likely to be asking for a codebase that no longer exists. To the user, each surfaces as the want in plain words — what someone using the product would get — in that order, with no digits, tildes, ages or scoring notation. That ordering is arithmetic over filed numbers, not a triage: you don't triage `TODOS.md` or the open `enhancement` issues on your own — you surface them and the user calls it. One the code has since grown is named for the PM bot to close, not closed by you.",
+  "The store's existing `plan/<effort>/brief.md` (if you're re-grilling an effort), `TODOS.md` (the captured, untriaged one-liners), the work tracker's open wants (Linear MCP `list_issues` when those tools are connected, `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*; otherwise `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" list --kind want`), and the store's `notes/` (freeform brainstorming — **input, never authority**: cite it as *\"there's a note that says…\"*, never as a decision, and never let it override the brief, the repo's docs, or the user).\n\nBring them back to the user during the grill: an old brief's open threads get re-decided, and a `TODOS.md` line or an open want is either pulled into this change's scope or left where it is. Order them **`value × urgency ÷ effort`** the way `/kru-todos` ranks them — what matters, soon, for little work first, a work-tracker want on the three scores in its body, a `~n` ranked as filed, legacy lines with no digits after — and note the ones filed 90+ days ago or against a `plan/<slug>/` that's since been archived (\"may be out of date\"), since those are the lines most likely to be asking for a codebase that no longer exists. To the user, each surfaces as the want in plain words — what someone using the product would get — in that order, with no digits, tildes, ages or scoring notation. That ordering is arithmetic over filed numbers, not a triage: you don't triage `TODOS.md` or the open wants on your own — you surface them and the user calls it. One the code has since grown is named for the PM bot to close, not closed by you.",
   "review: a brief reads open enhancement issues back with the parking lot",
 ))
 EDITS.push(E(
   "skills/kru-todos-loop/SKILL.md",
   "- **Queue**: `todos` §1 and §2 over the whole file, its §4 bookkeeping, ranked by its §3 order.\n- **Eligible**: open, `value` `3`–`5`, `effort` `1`–`3`, and `pitched`. A `discovered` line is the team's own capture and waits for the user to pull it, per `todos` → *Guardrails*; count it with the unreached. A `~` value is the team's guess at what the user wants, so it qualifies only at `4`–`5`.",
-  "- **Queue**: `todos` §1 and §2 over the whole file and the product repo's open GitHub issues labelled `enhancement` (`gh issue list --label enhancement --state open`), its §4 bookkeeping, ranked by its §3 order.\n- **Eligible**: open, `value` `3`–`5`, `effort` `1`–`3`, and `pitched`. A GitHub `enhancement` issue is a want the PM filed, so it counts as `pitched`, and its `value`, `urgency` and `effort` are the digits in its body. A `discovered` line is the team's own capture and waits for the user to pull it, per `todos` → *Guardrails*; count it with the unreached. A `~` value is the team's guess at what the user wants, so it qualifies only at `4`–`5`.",
+  "- **Queue**: `todos` §1 and §2 over the whole file and the work tracker's open wants (Linear MCP `list_issues` when those tools are connected, `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*; otherwise `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" list --kind want`), its §4 bookkeeping, ranked by its §3 order.\n- **Eligible**: open, `value` `3`–`5`, `effort` `1`–`3`, and `pitched`. A work-tracker want is one the PM filed, so it counts as `pitched`, and its `value`, `urgency` and `effort` are the digits in its body. A `discovered` line is the team's own capture and waits for the user to pull it, per `todos` → *Guardrails*; count it with the unreached. A `~` value is the team's guess at what the user wants, so it qualifies only at `4`–`5`.",
   "review: the want loop queues GitHub enhancement issues and counts each as pitched",
 ))
 EDITS.push(E(
   "skills/kru-issues-loop/SKILL.md",
   "- **Queue**: `issues` §1 and §2 over the whole dir, its §4 bookkeeping, ranked by its §3 order.",
-  "- **Queue**: `issues` §1 and §2 over the whole dir and the product repo's open GitHub issues labelled `bug` (`gh issue list --label bug --state open`), its §4 bookkeeping, ranked by its §3 order.",
+  "- **Queue**: `issues` §1 and §2 over the whole dir and the work tracker's open bugs (Linear MCP `list_issues` when those tools are connected, `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*; otherwise `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" list --kind bug`), its §4 bookkeeping, ranked by its §3 order.",
   "review: the defect loop queues GitHub bug issues with the store dir",
 ))
 EDITS.push(E(
   "skills/kru-todo/SKILL.md",
   "a `~` number is a proposal awaiting their read — if the user confirms or corrects it, rewrite that line in place with the bare digit and stop.",
-  "a `~` number is a proposal awaiting their read — if the user confirms or corrects it, write the bare digit back and stop: `gh issue edit <n> --body` when the want is a GitHub issue, or rewrite that line in place when it is a `TODOS.md` line.",
-  "review: a confirmed score on a GitHub want is gh issue edit, not a line rewrite",
+  "a `~` number is a proposal awaiting their read — if the user confirms or corrects it, write the bare digit back and stop: Linear MCP `save_issue` with `id` and `description` when those tools are connected (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*), otherwise `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" update --id <id> --body` when the want is on the work tracker, or rewrite that line in place when it is a `TODOS.md` line.",
+  "review: a confirmed score on a tracker want is kru-tracker update, not a line rewrite",
 ))
 EDITS.push(E(
   "skills/kru-todos/SKILL.md",
@@ -843,4 +849,102 @@ EDITS.push(E(
   "**`<project-slug>` is the repo's dir name**, and a linked worktree resolves to the **main** repo — a\n",
   "**`KRU_CLOUD=0` forces the local rows** even when `CURSOR_AGENT_SOCKET` is set or `/run/cursor/api.sock` exists: the project root stays `<cross-project root>/management/<project-slug>` and does not move into `<repo>/.kru`. Set it on a machine that has the agent socket but is not a cloud vm, and in tests, so a host socket cannot flip the layout. `KRU_CLOUD=1` forces the cloud row. Unset, the socket decides.\n\n**`<project-slug>` is the repo's dir name**, and a linked worktree resolves to the **main** repo — a\n",
   "review: when to set KRU_CLOUD=0",
+))
+
+// --- tracker: KRU_TRACKER=github|linear; security goes to Linear only then ---
+EDITS.push(E(
+  "TRACKER.md",
+  "skipping one already filed.",
+  "skipping one already filed — scratch, so it stays in this file even when the tracker is Linear.",
+  "tracker: setup's discovered upgrades stay scratch, even on Linear",
+))
+EDITS.push(E(
+  "skills/kru-issue/SKILL.md",
+  "description: Open a defect file in the project's plan store from what the user just said, un-investigated. The user's front door to issues/, for when no task is running to sweep from.",
+  "description: Record a defect from what the PM just said, un-investigated. A normal bug goes to the work tracker. A security finding stays in the store on GitHub; on Linear it goes to Linear, internal to the team, and what is filed follows *Tracker text* in TRACKER.md. The PM's front door for when no task is running to sweep from.",
+  "tracker: the issue command names the work tracker",
+))
+EDITS.push(E(
+  "skills/kru-todo/SKILL.md",
+  "description: Log something you want but don't want done now, into the project's plan store. Expands it from context already in the session; logs it as-is when there's none.",
+  "description: Log something the PM wants but doesn't want done now, on the work tracker. The plan store only when that tracker isn't ready. Expands it from context already in the session; logs it as-is when there's none.",
+  "tracker: the todo command names the work tracker",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/reconcile.md",
+  "- **Brief** — in `plan/<effort>/brief.md`: tick the `Landing plan` **commit** this slice just landed (and its parent PR box when that PR merges), tick the `Done when` boxes the slice satisfied, and correct `Blast radius` if the change reached further than the grill predicted. The PR's description is written from its `Change` + `Why now` + that PR's commit list.",
+  "- **Brief** — in `plan/<effort>/brief.md`: tick the `Landing plan` **commit** this slice just landed (and its parent PR box when that PR merges), tick the `Done when` boxes the slice satisfied, and correct `Blast radius` if the change reached further than the grill predicted. The PR's description is written from its `Change` + `Why now` + that PR's commit list, plus the line `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` prints for each bug or want this slice closes. Pull requests stay on GitHub.",
+  "tracker: the pull request links the work-tracker id",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/reconcile.md",
+  "- **Todo closeout** — the other half, and it fires on the slices a `/kru-todos` run lands: **a slice that satisfies a parked want deletes its line** from `TODOS.md`, in that same reconciliation. `TODOS.md` is the open parking lot, never an archive — the commit is where the want is written down now. Outside a `todos` run you delete only a line the slice you just landed actually satisfies; the rest of the file is the user's.",
+  "- **Todo closeout** — the other half, and it fires on the slices a `/kru-todos` run lands: **a slice that satisfies a parked want deletes its line** from `TODOS.md`, or closes its work-tracker item (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` on the pull request, and, when the tracker is Linear, close it through MCP `save_issue` with `state` `Done` when those tools are connected (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*), otherwise `close --id <id>`), in that same reconciliation. `TODOS.md` is the open parking lot, never an archive — the commit is where the want is written down now. Outside a `todos` run you delete only a line the slice you just landed actually satisfies; the rest of the file is the user's.",
+  "tracker: the pull request links the work-tracker id",
+))
+EDITS.push(E(
+  "references/routing.md",
+  "| something the user wants but doesn't want done now — \"not yet,\" \"remember this for later\" | **`/kru-todo`** — user-invoked, so name it in one line; mid-task it's your Step 4.5 `TODOS.md` capture |",
+  "| something the user wants but doesn't want done now — \"not yet,\" \"remember this for later\" | **`/kru-todo`** — user-invoked, so name it in one line; mid-task it's your Step 4.5 capture on the work tracker (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`; scratch still lands in `TODOS.md`; Linear MCP when those tools are connected, `TRACKER.md` → *Linear MCP*) |",
+  "tracker: routing sends bugs and wants through the work tracker",
+))
+EDITS.push(E(
+  "references/routing.md",
+  "| something *wrong* the user wants recorded before it evaporates — a bug they just hit, not being fixed now | **`/kru-issue`** — user-invoked, same deal; mid-task it's your Step 4.5 `issues/` capture |",
+  "| something *wrong* the user wants recorded before it evaporates — a bug they just hit, not being fixed now | **`/kru-issue`** — user-invoked, same deal; mid-task it's your Step 4.5 capture on the work tracker (security stays in `issues/` on GitHub; on Linear it is *Security on Linear* in `TRACKER.md`, and what is filed follows *Tracker text*) |",
+  "tracker: routing sends bugs and wants through the work tracker",
+))
+EDITS.push(E(
+  "references/routing.md",
+  "| the user wants to work what's parked or what's broken — the `TODOS.md` lines, the open defect files | **`/kru-todos`** / **`/kru-issues`** — user-invoked; each reconciles the store against the code, scores, proposes a batch and waits for the pick before building. Name the one they want; only the user can fire them. Mid-task you already read the store directly when a step needs it |",
+  "| the user wants to work what's parked or what's broken — the `TODOS.md` lines, the open defect files, the work tracker's open bugs and wants | **`/kru-todos`** / **`/kru-issues`** — user-invoked; each reconciles the store and the work tracker against the code, scores, proposes a batch and waits for the pick before building. Name the one they want; only the user can fire them. Mid-task you already read the store directly when a step needs it |",
+  "tracker: routing sends bugs and wants through the work tracker",
+))
+EDITS.push(E(
+  "skills/kru-to-spec/SKILL.md",
+  "description: \"Turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed.\"",
+  "description: \"Turn the current conversation into a spec and publish it to the plan store: no interview, just synthesis of what you've already discussed. Not the work tracker.\"",
+  "tracker: a spec stays in the plan store",
+))
+EDITS.push(E(
+  "skills/kru-to-spec/SKILL.md",
+  "The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.",
+  "The tracker for a spec is the store's `plan/<effort>/spec.md` (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"` is the work tracker for bugs and wants, not for a spec — `${CURSOR_PLUGIN_ROOT}/TRACKER.md`). Do not run `/setup-matt-pocock-skills`, and do not file the spec on GitHub or Linear.",
+  "tracker: a spec stays in the plan store",
+))
+EDITS.push(E(
+  "skills/kru-to-spec/SKILL.md",
+  "3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.",
+  "3. Write the spec using the template below, then publish it as `plan/<effort>/spec.md` in the store (`${CURSOR_PLUGIN_ROOT}/TRACKER.md`). Do not file it on the work tracker (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`). `KRU_TRACKER` is for bugs and product wants, not for a spec. Apply no triage label.",
+  "tracker: a spec stays in the plan store",
+))
+EDITS.push(E(
+  "skills/kru-to-tickets/SKILL.md",
+  "- **A real issue tracker (GitHub, Linear, …)** → publish one issue per ticket in dependency order (blockers first) so each ticket's blocking edges can reference real identifiers. Use the platform's native blocking / sub-issue relationship where it has one; otherwise set each ticket's \"Blocked by\" to the blocking issues. Apply the `ready-for-agent` triage label unless instructed otherwise; the tickets are agent-grabbable by construction.",
+  "- **A real issue tracker (GitHub, Linear, …)** → not this team's path for these tickets. Plan tickets stay files under the store (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Layout*). A bug or a product want is the work tracker (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`), and `KRU_TRACKER=linear` does not move a plan ticket onto Linear. The upstream branch, kept so a re-sync is visible, was: publish one issue per ticket in dependency order (blockers first) so each ticket's blocking edges can reference real identifiers. Use the platform's native blocking / sub-issue relationship where it has one; otherwise set each ticket's \"Blocked by\" to the blocking issues. Apply the `ready-for-agent` triage label unless instructed otherwise; the tickets are agent-grabbable by construction.",
+  "tracker: plan tickets stay in the store; KRU_TRACKER does not move them",
+))
+EDITS.push(E(
+  "skills/kru-wayfinder/SKILL.md",
+  "description: Plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear.",
+  "description: Plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets in the plan store, and resolve them one at a time until the way to the destination is clear. `KRU_TRACKER` does not move the map.",
+  "tracker: the wayfinder map stays in the plan store",
+))
+EDITS.push(E(
+  "skills/kru-wayfinder/SKILL.md",
+  "charts the way as a **shared map** on the repo's issue tracker",
+  "charts the way as a **shared map** in the plan store",
+  "tracker: the wayfinder map stays in the plan store",
+))
+EDITS.push(E(
+  "skills/kru-wayfinder/SKILL.md",
+  "The map is a single issue on this repo's issue tracker, labelled `wayfinder:map`, the canonical artifact. Its tickets are child issues of the map.",
+  "The map is `plan/<effort>/map.md` in the store, the canonical artifact (`${CURSOR_PLUGIN_ROOT}/TRACKER.md`). Its tickets are files under `plan/<effort>/tickets/`, not child issues on GitHub or Linear.",
+  "tracker: the wayfinder map stays in the plan store",
+))
+EDITS.push(E(
+  "skills/kru-wayfinder/SKILL.md",
+  "**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** The issue tracker should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`. Consult the tracker doc's \"Wayfinding operations\" section for how _this_ repo expresses them. If no tracker has been provided, default to the local-markdown tracker.",
+  "**Where the map, its child tickets, blocking, and frontier queries physically live is the store**, not the work tracker. `plan/<effort>/map.md` and `tickets/` (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *wayfinder*). Do not run `/setup-matt-pocock-skills`, and do not file the map or its tickets on GitHub or Linear. `KRU_TRACKER` files bugs and product wants only (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`).",
+  "tracker: the wayfinder map stays in the plan store",
 ))

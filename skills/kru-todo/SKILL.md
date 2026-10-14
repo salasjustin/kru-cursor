@@ -1,11 +1,11 @@
 ---
 name: kru-todo
-description: Log something you want but don't want done now, into the project's plan store. Expands it from context already in the session; logs it as-is when there's none.
+description: Log something the PM wants but doesn't want done now, on the work tracker. The plan store only when that tracker isn't ready. Expands it from context already in the session; logs it as-is when there's none.
 disable-model-invocation: true
 argument-hint: "<the thing you want, later>"
 ---
 
-File the PM's deferred want and get out: as a GitHub issue on the product repo, or as a `TODOS.md` line when the repo has no GitHub issues to file in (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*). They want something and don't want it done now. See `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *`TODOS.md`* for the artifact's lifecycle — you don't need to read it to run this.
+File the PM's deferred want and get out: on the work tracker (`bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh"`), or as a `TODOS.md` line when `ready` exits 4 (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*). They want something and don't want it done now. See `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *`TODOS.md`* for the artifact's lifecycle — you don't need to read it to run this.
 
 **Zero-derail.** One append, not a task. Inline; spawn nothing. If something was in flight, log and go straight back to it.
 
@@ -40,7 +40,7 @@ Same cost rule as expansion — score from what you already hold, never from a f
 ## Do
 
 1. **Read `$ARGUMENTS`** — the thing to log. If empty, ask one line ("What do you want logged?") and stop.
-2. **File it.** The product repo has GitHub issues (`gh repo view --json hasIssuesEnabled` answers true) → `gh issue create --label enhancement --title "<the thing, one line>" --body "<the line's three scores and any sub-bullets, as written below>"` (drop `--label` if `gh` refuses it, and say so). Otherwise **append** to the file `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" path todos` names. **No precondition**: create the dir and the file if they don't exist.
+2. **File it.** When `backend` is `linear` and Linear MCP tools are connected, file there (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*); a missing `LINEAR_API_KEY` is not a reason to append to `TODOS.md`. Otherwise `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh" ready` exits 0 → `file --kind want --title "<the thing, one line>" --body "<the line's three scores and any sub-bullets, as written below>"`. It prints the id and the url separated by a tab. On GitHub it drops a label `gh` refuses and says so. Otherwise **append** to the file `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" path todos` names, and the confirm line says why (`ready` writes it). **No precondition**: create the dir and the file if they don't exist.
 
    Cold — one line, the standing format:
 
@@ -57,11 +57,11 @@ Same cost rule as expansion — score from what you already hold, never from a f
 
    `pitched` always — this is the user's channel (`discovered` is for what the team turns up mid-task, the lead's Step 4.5 sweep). `plan` is the effort slug it surfaced in, and takes a slug only when the user names one or the store has exactly one `plan/<effort>/`; otherwise `—`. Never guess an effort to make the line look complete. Cite `file:line` for anything you name — the store sits outside the repo, so an unanchored reference is unfollowable.
 3. **Stay short.** The headline stays one line no matter how much you know; the sub-bullets cap at two. If it's genuinely paragraphs of half-formed thinking the user wants kept whole, write `notes/<slug>.md` instead and say which you did — a note is input, never authority.
-4. **Confirm in one line** — echo the headline, how much it matters and how soon, in words ("logged: <headline> — matters 3 of 5, needed within weeks"), with the issue number when it went to GitHub. No path, no effort, no notation. Value and urgency ride the confirmation so a wrong one is cheap to fix: a `~` number is a proposal awaiting their read — if the user confirms or corrects it, write the bare digit back and stop: `gh issue edit <n> --body` when the want is a GitHub issue, or rewrite that line in place when it is a `TODOS.md` line. Then return to whatever was in flight. The next `/kru-brief` run reads it back; until then it's a reminder, explicitly **not** a commitment. Pass through whatever `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" where` prints, which is usually nothing.
+4. **Confirm in one line** — echo the headline, how much it matters and how soon, in words ("logged: <headline> — matters 3 of 5, needed within weeks"), with the tracker id when it went to the work tracker. No path, no effort, no notation. Value and urgency ride the confirmation so a wrong one is cheap to fix: a `~` number is a proposal awaiting their read — if the user confirms or corrects it, write the bare digit back and stop: Linear MCP `save_issue` with `id` and `description` when those tools are connected (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*), otherwise `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh" update --id <id> --body` when the want is on the work tracker, or rewrite that line in place when it is a `TODOS.md` line. Then return to whatever was in flight. The next `/kru-brief` run reads it back; until then it's a reminder, explicitly **not** a commitment. Pass through whatever `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" where` prints, which is usually nothing.
 
 ## Don't
 
-- **Don't take a defect.** Something *wrong* (an incorrect result, false info shown to a user, a condition the code claims to handle and doesn't) is `/kru-issue`'s artifact, not this one. Something you merely *want* — a feature, a refactor, a cleanup, a smell worth revisiting — is this one. The split holds: **wrong → `/kru-issue`, wanted → a GitHub issue (or `TODOS.md` with none to file in), unformed → `notes/`**. Say in one line which you did; don't investigate either way.
+- **Don't take a defect.** Something *wrong* (an incorrect result, false info shown to a user, a condition the code claims to handle and doesn't) is `/kru-issue`'s artifact, not this one. Something you merely *want* — a feature, a refactor, a cleanup, a smell worth revisiting — is this one. The split holds: **wrong → `/kru-issue`, wanted → the work tracker (or `TODOS.md` when it isn't ready), unformed → `notes/`**. Say in one line which you did; don't investigate either way.
 - **Score the line alone, and attach nothing else.** `value`, `urgency` and `effort` are the whole score; a place in the order is `todos`' arithmetic, and scope is the user's call at the next grill. Nothing here reads the rest of the file.
 - Don't start it. "Not now" is the entire instruction.
 - Write through the resolver, never by hand (`TRACKER.md`, `${CURSOR_PLUGIN_ROOT}/references/store.md`).

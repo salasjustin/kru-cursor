@@ -114,6 +114,17 @@ the project's store folder in place of the repo's folder name (so a laptop clone
 agree), **`KRU_PROJECT_STORE`** pins one project's plan store, and **`KRU_STORE_REPO`** syncs the
 store through a private git repo. [`references/store.md`](references/store.md) is the whole map.
 
+Bugs and product wants go to the work tracker. **`KRU_TRACKER`** is `github` (the default — unset and
+empty count the same) or `linear`. Nothing routes to Linear until a repo sets `KRU_TRACKER=linear`,
+**`KRU_LINEAR_TEAM`** to the team key, and **`KRU_LINEAR_PROJECT`** to the project name — for example
+`KRU_LINEAR_TEAM=BG` and `KRU_LINEAR_PROJECT=Connector`. Those names are the repo's; this plugin
+hard-codes none. When the agent has Linear MCP tools, it uses those. **`LINEAR_API_KEY`** is optional —
+the script's API fallback when MCP is not connected, a cloud agent secret if you set one, never a
+committed key. Pull requests stay on GitHub and link the Linear issue id. On the GitHub tracker a
+security finding stays in the store's `issues/` or a GitHub private security advisory. On Linear it is
+a Linear issue (`KRU_LINEAR_SECURITY_TEAM`, or the main team with the label `security`) whose body is
+only a description and a pointer to the evidence. [`TRACKER.md`](TRACKER.md) → *Security on Linear*.
+
 ## Commands
 **Getting started**
 - `/kru-setup`: set the team up in this repo. Once per repo, again when the repo or the plugin moves.
