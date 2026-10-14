@@ -235,6 +235,56 @@ kru_operands() {
   [ "$n" -le "$max" ]
 }
 
+# kru_fn_def <text> — 0 when the text defines a function outside quotes.
+# `ls () ( touch x ); ls` names a read verb and the body writes; a space
+# between the parens (`ls ( )`) is the same definition. a quoted '()' is not.
+# a leading unquoted `function` word is one too.
+kru_fn_def() {
+  local s=$1 i=0 n=${#1} c j rest=$1
+  rest=${rest#"${rest%%[![:space:]]*}"}
+  [[ $rest == function[[:space:]]* ]] && return 0
+  while [ "$i" -lt "$n" ]; do
+    c=${s:i:1}
+    case $c in
+      \\) i=$((i + 2)); continue ;;
+      \')
+        i=$((i + 1))
+        while [ "$i" -lt "$n" ] && [ "${s:i:1}" != "'" ]; do i=$((i + 1)); done
+        i=$((i + 1)); continue ;;
+      \")
+        i=$((i + 1))
+        while [ "$i" -lt "$n" ]; do
+          c=${s:i:1}; i=$((i + 1))
+          case $c in
+            \") break ;;
+            \\) i=$((i + 1)) ;;
+          esac
+        done
+        continue ;;
+      \$)
+        # $$ is the pid; $'…' is a literal. neither token is ()
+        if [ "${s:i+1:1}" = '$' ]; then i=$((i + 2)); continue; fi
+        if [ "${s:i+1:1}" = "'" ]; then
+          i=$((i + 2))
+          while [ "$i" -lt "$n" ]; do
+            if [ "${s:i:1}" = "'" ]; then i=$((i + 1)); break; fi
+            [ "${s:i:1}" = \\ ] && i=$((i + 1))
+            i=$((i + 1))
+          done
+          continue
+        fi
+        i=$((i + 1)); continue ;;
+      \()
+        j=$((i + 1))
+        while [ "$j" -lt "$n" ] && [[ ${s:j:1} == [[:space:]] ]]; do j=$((j + 1)); done
+        [ "${s:j:1}" = ")" ] && return 0
+        i=$((i + 1)); continue ;;
+      *) i=$((i + 1)) ;;
+    esac
+  done
+  return 1
+}
+
 # kru_readonly_bash <command> — 0 when every segment only reads
 kru_readonly_bash() {
   # awk's system() and getline run commands, system with any space before its
@@ -245,6 +295,9 @@ kru_readonly_bash() {
   # any --output writes its file (git diff --output=x); --output-separator and
   # the other --output-* names don't
   [[ $1 =~ --output([=[:space:]\'\"]|$) ]] && return 1
+  # a function definition hides a write behind a read-looking name
+  # (ls () ( touch x ); ls) — on the whole command, before segments
+  kru_fn_def "$1" && return 1
   case "$1" in
     # a redirect, a substitution or an in-place edit writes whatever the verb is
     *'>'*|*'$('*|*'`'*|*'sed -i'*|*'perl -i'*|*'--in-place'*|*'-exec'*|*'-ok'*|*'-delete'*|*'-fprint'*|*'-fls'*|*'xargs'*|*'<('*) return 1 ;;
@@ -255,6 +308,7 @@ kru_readonly_bash() {
       for seg in "${KRU_S[@]}"; do
         seg=${seg#"${seg%%[![:space:]]*}"}; seg=${seg%"${seg##*[![:space:]]}"}
         [ -z "$seg" ] && continue
+        kru_fn_def "$seg" && return 1
         verb=${seg%% *}
         case "${verb##*/}" in
           ls|cat|head|tail|wc|grep|egrep|fgrep|stat|pwd|realpath|basename|dirname) continue ;;

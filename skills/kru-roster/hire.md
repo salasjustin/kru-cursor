@@ -5,6 +5,8 @@ Wire every point of the **wiring map** in `SKILL.md`. Steps:
 ## 1. Justify the seam
 State, in one line each: the seat's **single responsibility**, its **boundary** against the nearest existing seat (what it owns / where it stops), and its **backing official source**. If the responsibility overlaps a seat that already exists, **stop** — sharpen the boundary until it's distinct, or don't mint it. A seat with a fuzzy boundary is worse than no seat (`ROSTER.md` → *Scope*: adding a seat is fine, adding a blurred lane is not).
 
+Before authoring a new skill or inventing a seat-owned recipe, adopt an authoritative ready-made skill first: an official plugin, a publisher or standards-body skill repo, or a skill the team already has. Author one only where none of those exists.
+
 Completion: role + boundary-vs-nearest-peer + named source, all one line, no overlap.
 
 ## 2. Draft `agents/<name>.md` (map #1)

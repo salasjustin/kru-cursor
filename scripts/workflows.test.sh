@@ -80,6 +80,12 @@ for path in sys.argv[1:]:
         check(f"{f}: push-refused and port-failed issues have distinct titles",
               "upstream push refused:" in propose_runs and "upstream port failed:" in propose_runs and "upstream sync blocked" not in propose_runs)
         check(f"{f}: summary.txt is indented before the pull request body", "sed 's/^/    /'" in propose_runs)
+        check(f"{f}: summary.txt CR is normalized before the fence indent",
+              "tr '\\r' '\\n' < \"$RUNNER_TEMP/verify/summary.txt\" | sed 's/^/    /'" in propose_runs)
+        check(f"{f}: report.md CR is normalized before the pull request body",
+              "tr '\\r' '\\n' < \"$RUNNER_TEMP/sync/report.md\"" in propose_runs)
+        check(f"{f}: a passing verify.sh is not worded as a CI verdict",
+              "All checks passed" not in propose_runs and "not a CI check" in propose_runs)
 print(f"{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)
 PY

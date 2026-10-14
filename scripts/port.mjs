@@ -245,7 +245,10 @@ const RULES = [
   // or write, and quoting hides them (-ex''ec), so find is checked on the
   // quote-resolved words. git --output writes its file the same way
   // (--out''put=); --output-separator does not. $$' is a pid plus a single
-  // quote, not $'…', and any other unquoted $ fails closed (kru_segments_line)
+  // quote, not $'…', and any other unquoted $ fails closed (kru_segments_line).
+  // a function definition (`name ()` or `name ( )`) is a write on the whole
+  // command and on each segment, so `ls () ( touch x ); ls` cannot hide a
+  // write behind a read-looking name
   // (tests: hooks/readonly-bash.test.sh)
   R(/(refusal costs one message\.\n)\n(?=# kru_readonly_bash <command>)/, (_m, a) => `${a}\n${block("readonly-words.sh")}\n`,
     { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^kru_sed_reads\(\) \{$/m }),
@@ -259,6 +262,9 @@ const RULES = [
     "# any --output writes its file (git diff --output=x); --output-separator and",
     "# the other --output-* names don't",
     String.raw`[[ $1 =~ --output([=[:space:]\'\"]|$) ]] && return 1`,
+    "# a function definition hides a write behind a read-looking name",
+    "# (ls () ( touch x ); ls) — on the whole command, before segments",
+    'kru_fn_def "$1" && return 1',
     'case "$1" in',
   ].map((l) => a + l + "\n").join(""),
     { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /case \$1 in \*awk\*\) \[\[ \$1 =~ system\[\[:space:\]\]\*\\\(\|getline\|@include\|@load\|@\[\[:space:\]\]/ }),
@@ -289,13 +295,19 @@ const RULES = [
   // | ; & inside sed '/x/{p;q}' or awk '{print $1; print $2}' stay in the
   // program; a raw newline always splits (kru_segments, inserted above)
   R(/^( +)while IFS= read -r seg; do\n +seg=\$\(printf '%s' "\$seg" \| sed 's\/\^\[\[:space:\]\]\*\/\/; s\/\[\[:space:\]\]\*\$\/\/'\)\n([\s\S]*?)\n( +)done < <\(printf '%s\\n' "\$1" \| tr '\|;&' '\\n'\)\n/m,
-    (_m, a, mid, a2) => [
-      `${a}kru_segments "$1" || return 1`,
-      `${a}for seg in "\${KRU_S[@]}"; do`,
-      `${a}  seg=\${seg#"\${seg%%[![:space:]]*}"}; seg=\${seg%"\${seg##*[![:space:]]}"}`,
-      mid,
-      `${a2}done`,
-    ].join("\n") + "\n",
+    (_m, a, mid, a2) => {
+      const marked = mid.replace(
+        /^([ \t]*)\[ -z "\$seg" \] && continue\n/,
+        '$1[ -z "$seg" ] && continue\n$1kru_fn_def "$seg" && return 1\n',
+      )
+      return [
+        `${a}kru_segments "$1" || return 1`,
+        `${a}for seg in "\${KRU_S[@]}"; do`,
+        `${a}  seg=\${seg#"\${seg%%[![:space:]]*}"}; seg=\${seg%"\${seg##*[![:space:]]}"}`,
+        marked,
+        `${a2}done`,
+      ].join("\n") + "\n"
+    },
     { sh: true, files: /^hooks\/readonly-bash\.sh$/, required: /^ +kru_segments "\$1" \|\| return 1$/m }),
   // a hung remote must not hold the hook: the first preToolUse has 15s and the
   // stop hook 30s, and the stop path's push, pull, push would take three

@@ -226,3 +226,53 @@ kru_operands() {
   done
   [ "$n" -le "$max" ]
 }
+
+# kru_fn_def <text> — 0 when the text defines a function outside quotes.
+# `ls () ( touch x ); ls` names a read verb and the body writes; a space
+# between the parens (`ls ( )`) is the same definition. a quoted '()' is not.
+# a leading unquoted `function` word is one too.
+kru_fn_def() {
+  local s=$1 i=0 n=${#1} c j rest=$1
+  rest=${rest#"${rest%%[![:space:]]*}"}
+  [[ $rest == function[[:space:]]* ]] && return 0
+  while [ "$i" -lt "$n" ]; do
+    c=${s:i:1}
+    case $c in
+      \\) i=$((i + 2)); continue ;;
+      \')
+        i=$((i + 1))
+        while [ "$i" -lt "$n" ] && [ "${s:i:1}" != "'" ]; do i=$((i + 1)); done
+        i=$((i + 1)); continue ;;
+      \")
+        i=$((i + 1))
+        while [ "$i" -lt "$n" ]; do
+          c=${s:i:1}; i=$((i + 1))
+          case $c in
+            \") break ;;
+            \\) i=$((i + 1)) ;;
+          esac
+        done
+        continue ;;
+      \$)
+        # $$ is the pid; $'…' is a literal. neither token is ()
+        if [ "${s:i+1:1}" = '$' ]; then i=$((i + 2)); continue; fi
+        if [ "${s:i+1:1}" = "'" ]; then
+          i=$((i + 2))
+          while [ "$i" -lt "$n" ]; do
+            if [ "${s:i:1}" = "'" ]; then i=$((i + 1)); break; fi
+            [ "${s:i:1}" = \\ ] && i=$((i + 1))
+            i=$((i + 1))
+          done
+          continue
+        fi
+        i=$((i + 1)); continue ;;
+      \()
+        j=$((i + 1))
+        while [ "$j" -lt "$n" ] && [[ ${s:j:1} == [[:space:]] ]]; do j=$((j + 1)); done
+        [ "${s:j:1}" = ")" ] && return 0
+        i=$((i + 1)); continue ;;
+      *) i=$((i + 1)) ;;
+    esac
+  done
+  return 1
+}
