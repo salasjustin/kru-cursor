@@ -10,7 +10,8 @@
 //   node scripts/brief-drift.mjs --path plan/<effort>/brief.md --brief <file> --issues <json|->
 //
 // issues JSON is an array of {id, title, body, url, state}. state completed or
-// closed counts as done. a canceled issue is not done.
+// closed counts as done. a canceled issue is kept: unlisted, it is (b), and
+// it is never (c). two objects with one id keep the one whose body links.
 
 import { readFileSync } from "node:fs"
 
@@ -127,7 +128,7 @@ function trackerItems(markdown) {
 
 function parseItem(raw) {
   let text = String(raw).trim()
-  text = text.replace(/(`?(?:#\d+|[A-Za-z][A-Za-z0-9]*-\d+)`?)\s+`?(?:done|open|closed|todo)`?\s*$/i, "$1").trim()
+  text = text.replace(/(`?(?:#\d+|[A-Za-z][A-Za-z0-9]*-\d+)`?)\s+`?(?:done|open|closed|todo|completed|canceled|cancelled)`?\s*$/i, "$1").trim()
   const idMatch = text.match(/`?(#\d+|[A-Za-z][A-Za-z0-9]*-\d+)`?$/i)
   if (!idMatch) return { text, id: null }
   const id = normId(idMatch[0].replace(/`/g, ""))
@@ -163,7 +164,8 @@ for (const issue of issues) {
   if (!issue || typeof issue !== "object") continue
   const id = normId(issue.id)
   if (!id) continue
-  byKey.set(id.key, issue)
+  const prev = byKey.get(id.key)
+  if (!prev || (!links(prev.body, briefPath) && links(issue.body, briefPath))) byKey.set(id.key, issue)
 }
 
 const missing = []

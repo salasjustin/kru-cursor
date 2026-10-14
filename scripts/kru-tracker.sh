@@ -27,6 +27,9 @@
 # the API fallback only — a session whose Linear MCP tools are connected files
 # there instead (TRACKER.md) and does not treat exit 4 as a reason to use the
 # store.
+# exit 5 is auth, network, or a tool error from show or list-effort. it is not
+# "no such issue". the caller stops and reports it, and does not treat the id
+# as missing.
 #
 # prefer those MCP tools when the agent has them. this script calls
 # https://api.linear.app/graphql only as the fallback, and only with a key.
@@ -38,11 +41,15 @@
 #   file        --kind bug|want|security --title T --body B   prints id<TAB>url
 #   list        --kind bug|want|security                      JSON [{id,title,body,url}]
 #   list-effort --brief plan/<effort>/brief.md               JSON [{id,title,body,url,state}]
-#               issues whose body contains that path, completed included.
-#               state is open, done, or canceled. the path goes through the
-#               outbound guard before gh or the API.
+#               issues whose body contains that path, every page.
+#               state is open, done, or canceled. a GitHub issue closed as
+#               not_planned is canceled. the path goes through the outbound
+#               guard before gh or the API.
 #   search      --kind bug|want|security --query Q            the same JSON, at most 10
 #   show        --id ID                                       one issue, list-effort shape
+#               a leading # is stripped; a Linear id is uppercased.
+#               exit 1 and the text "no such issue" means it does not exist.
+#               exit 5 is auth, network, or a tool error.
 #   comment     --id ID --body B                       prints id
 #   update      --id ID --body B                       prints id
 #   close       --id ID                                prints id
@@ -65,6 +72,8 @@ kru_tmp=$(mktemp -d)
 trap 'rm -rf "$kru_tmp"' EXIT
 
 die() { printf 'kru tracker: %s\n' "$*" >&2; exit 1; }
+missing_issue() { printf 'kru tracker: no such issue\n' >&2; exit 1; }
+tracker_error() { printf 'kru tracker: %s\n' "$*" >&2; exit 5; }
 not_ready() { printf 'kru tracker: %s\n' "$*" >&2; exit 4; }
 refuse_security() {
   printf '%s\n' "kru tracker: on the GitHub tracker a security finding stays in the store's issues/ or a GitHub private security advisory (or that advisory's private fork). It is never a public GitHub issue." >&2
@@ -179,6 +188,23 @@ linear_id() {
   [[ "$1" =~ ^[A-Z][A-Z0-9]*-[0-9]+$ ]] || die "a Linear id is the issue identifier, like ENG-123"
 }
 
+# strip a leading # and uppercase a Linear identifier. a bad shape dies here,
+# before gh or the API, and the message is not "no such issue".
+normalize_show_id() {
+  local id=$1
+  id=${id#\#}
+  id=$(printf '%s' "$id" | tr -d '[:space:]')
+  if [[ "$id" =~ ^[0-9]+$ ]]; then
+    printf '%s\n' "$((10#$id))"
+    return 0
+  fi
+  if [[ "$id" =~ ^[A-Za-z][A-Za-z0-9]*-[0-9]+$ ]]; then
+    printf '%s\n' "$id" | tr '[:lower:]' '[:upper:]'
+    return 0
+  fi
+  die "an id is a GitHub issue number or a Linear identifier, like 12 or ENG-123"
+}
+
 need_jq() { command -v jq >/dev/null 2>&1 || die "need jq on PATH"; }
 
 # --- arguments ----------------------------------------------------------------
@@ -256,22 +282,58 @@ github_list() {
   gh issue list --label "$label" --state open --limit 100 --json number,title,body,url | github_rows
 }
 
-# effort issues, open and closed. the client keeps a body that contains the
-# path; search is only the fetch. CLOSED is done — status lives here, not in
-# the brief.
+# CLOSED is done, except not_planned, which is canceled. status lives here.
+github_state_jq='if ((.state // "") | ascii_upcase) != "CLOSED" then "open" elif ((.stateReason // "") | ascii_upcase) == "NOT_PLANNED" then "canceled" else "done" end'
+
+# effort issues, every page. the client keeps a body that contains the path.
+# search is only the fetch. a stuck cursor is an error, not a short list.
 github_list_effort() {
-  local path=$1 raw
+  local path=$1 repo cursor="" page=0 raw nodes has next acc="[]"
   require_outbound "$path"
   need_jq
-  raw=$(gh issue list --state all --limit 100 --search "$path in:body" --json number,title,body,url,state) || die "gh issue list failed"
-  printf '%s\n' "$raw" | jq -c --arg path "$path" '[.[] | select((.body // "") | contains($path)) | {id: (.number | tostring), title, body, url, state: (if ((.state // "") | ascii_upcase) == "CLOSED" then "done" else "open" end)}]'
+  repo=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>"$kru_tmp/gh.err") || {
+    cat "$kru_tmp/gh.err" >&2
+    tracker_error "gh repo view failed"
+  }
+  local query='query($q:String!, $after:String){ search(first:100, after:$after, type:ISSUE, query:$q){ pageInfo { hasNextPage endCursor } nodes { ... on Issue { number title body url state stateReason } } } }'
+  while :; do
+    page=$((page + 1))
+    [ "$page" -le 50 ] || tracker_error "gh issue search did not finish"
+    if [ -n "$cursor" ]; then
+      raw=$(gh api graphql -f query="$query" -f q="repo:${repo} is:issue ${path} in:body" -f after="$cursor" 2>"$kru_tmp/gh.err") || {
+        cat "$kru_tmp/gh.err" >&2
+        tracker_error "gh issue search failed"
+      }
+    else
+      raw=$(gh api graphql -f query="$query" -f q="repo:${repo} is:issue ${path} in:body" 2>"$kru_tmp/gh.err") || {
+        cat "$kru_tmp/gh.err" >&2
+        tracker_error "gh issue search failed"
+      }
+    fi
+    nodes=$(printf '%s\n' "$raw" | jq -ce --arg path "$path" '[.data.search.nodes[]? | select(.number != null) | select((.body // "") | contains($path)) | {id: (.number | tostring), title, body, url, state: ('"$github_state_jq"')}]') || tracker_error "could not read the GitHub search"
+    acc=$(jq -nc --argjson a "$acc" --argjson b "$nodes" '$a + $b') || tracker_error "could not read the GitHub search"
+    has=$(printf '%s\n' "$raw" | jq -r '.data.search.pageInfo.hasNextPage // false') || tracker_error "could not read the GitHub search"
+    [ "$has" = true ] || break
+    next=$(printf '%s\n' "$raw" | jq -r '.data.search.pageInfo.endCursor // empty') || tracker_error "could not read the GitHub search"
+    if [ -z "$next" ] || [ "$next" = "$cursor" ]; then
+      tracker_error "gh issue search did not advance"
+    fi
+    cursor=$next
+  done
+  printf '%s\n' "$acc"
 }
 
 github_show() {
   local id=$1 raw
   github_number "$id"
-  raw=$(gh issue view "$id" --json number,title,body,url,state) || die "no such issue"
-  printf '%s\n' "$raw" | jq -c '{id: (.number | tostring), title, body, url, state: (if ((.state // "") | ascii_upcase) == "CLOSED" then "done" else "open" end)}'
+  if ! raw=$(gh issue view "$id" --json number,title,body,url,state,stateReason 2>"$kru_tmp/gh.err"); then
+    if grep -Eqi 'could not resolve|not found|no such issue' "$kru_tmp/gh.err"; then
+      missing_issue
+    fi
+    cat "$kru_tmp/gh.err" >&2
+    tracker_error "gh issue view failed"
+  fi
+  printf '%s\n' "$raw" | jq -ce '{id: (.number | tostring), title, body, url, state: ('"$github_state_jq"')}' || tracker_error "could not read the GitHub issue"
 }
 
 # labeled matches, plus open issues with no label. a label gh refuses is filed
@@ -326,6 +388,15 @@ linear_key_missing() {
   not_ready "LINEAR_API_KEY is unset. The key is optional. When Linear MCP tools are connected, use those — team key ${KRU_LINEAR_TEAM:-<KRU_LINEAR_TEAM>}, project name ${KRU_LINEAR_PROJECT:-<KRU_LINEAR_PROJECT>}, labels bug and enhancement; a security finding uses ${KRU_LINEAR_SECURITY_TEAM:-the main team} and the label security — and do not fall back to the store. This script is the API fallback for when those tools are not connected, so this tracker is not ready. Never commit a key. Tracker text follows TRACKER.md."
 }
 
+# show and list-effort set this so a transport failure is exit 5, not "no such issue".
+GQL_ERROR_IS_TRACKER=0
+gql_fail() {
+  if [ "${GQL_ERROR_IS_TRACKER:-}" = 1 ]; then
+    tracker_error "$*"
+  fi
+  die "$*"
+}
+
 linear_gql() {
   local query=$1 vars=$2 payload code
   [ -n "${LINEAR_API_KEY:-}" ] || linear_key_missing
@@ -334,15 +405,15 @@ linear_gql() {
   esac
   command -v curl >/dev/null 2>&1 || not_ready "curl is not on PATH. When Linear MCP tools are connected, use those instead; the key is optional. Otherwise this tracker is not ready."
   need_jq
-  payload=$(jq -nc --arg q "$query" --argjson v "$vars" '{query:$q, variables:$v}') || die "could not encode the Linear request"
+  payload=$(jq -nc --arg q "$query" --argjson v "$vars" '{query:$q, variables:$v}') || gql_fail "could not encode the Linear request"
   code=$(curl -sS --max-time 30 --proto '=https' -o "$kru_tmp/body" -w '%{http_code}' \
     -H "Authorization: ${LINEAR_API_KEY}" \
     -H "Content-Type: application/json" \
     --data-binary "$payload" \
-    https://api.linear.app/graphql) || die "Linear API request failed"
-  [ "$code" = 200 ] || die "Linear API returned HTTP $code"
+    https://api.linear.app/graphql) || gql_fail "Linear API request failed"
+  [ "$code" = 200 ] || gql_fail "Linear API returned HTTP $code"
   if jq -e '.errors | type == "array" and length > 0' >/dev/null <"$kru_tmp/body"; then
-    die "Linear API error: $(jq -r '.errors[0].message // "request failed"' <"$kru_tmp/body")"
+    gql_fail "Linear API error: $(jq -r '.errors[0].message // "request failed"' <"$kru_tmp/body")"
   fi
   jq -c '.data' <"$kru_tmp/body"
 }
@@ -433,21 +504,39 @@ linear_rows() {
   jq -c '[.issues.nodes[] | {id: .identifier, title, body: (.description // ""), url}]'
 }
 
-# the product project, every state. the client keeps a description that
-# contains the path. completed is done; canceled stays canceled.
+# the product project, every state, every page. the client keeps a description
+# that contains the path. completed is done; canceled stays canceled.
 linear_list_effort() {
-  local path=$1 data
+  local path=$1 data cursor="" page=0 nodes has next acc="[]"
   require_outbound "$path"
   ensure_linear
-  data=$(linear_gql 'query($team:ID!, $project:ID!, $path:String!){ issues(first:100, filter:{team:{id:{eq:$team}}, project:{id:{eq:$project}}, description:{containsIgnoreCase:$path}}){ nodes { identifier title description url state { type } } } }' \
-    "$(jq -n --arg team "$_team_id" --arg project "$_project_id" --arg path "$path" '{team:$team, project:$project, path:$path}')") || exit $?
-  jq -c --arg path "$path" '[.issues.nodes[] | select((.description // "") | contains($path)) | {id: .identifier, title, body: (.description // ""), url, state: (if .state.type == "completed" then "done" elif .state.type == "canceled" then "canceled" else "open" end)}]' <<<"$data"
+  GQL_ERROR_IS_TRACKER=1
+  local query='query($team:ID!, $project:ID!, $path:String!, $after:String){ issues(first:100, after:$after, filter:{team:{id:{eq:$team}}, project:{id:{eq:$project}}, description:{containsIgnoreCase:$path}}){ pageInfo { hasNextPage endCursor } nodes { identifier title description url state { type } } } }'
+  while :; do
+    page=$((page + 1))
+    [ "$page" -le 50 ] || tracker_error "Linear issue search did not finish"
+    data=$(linear_gql "$query" "$(jq -n --arg team "$_team_id" --arg project "$_project_id" --arg path "$path" --arg after "$cursor" '{team:$team, project:$project, path:$path, after:(if $after == "" then null else $after end)}')") || exit $?
+    nodes=$(jq -c --arg path "$path" '[.issues.nodes[] | select((.description // "") | contains($path)) | {id: .identifier, title, body: (.description // ""), url, state: (if .state.type == "completed" then "done" elif .state.type == "canceled" then "canceled" else "open" end)}]' <<<"$data") || tracker_error "could not read the Linear issues"
+    acc=$(jq -nc --argjson a "$acc" --argjson b "$nodes" '$a + $b') || tracker_error "could not read the Linear issues"
+    has=$(jq -r '.issues.pageInfo.hasNextPage // false' <<<"$data") || tracker_error "could not read the Linear issues"
+    [ "$has" = true ] || break
+    next=$(jq -r '.issues.pageInfo.endCursor // empty' <<<"$data") || tracker_error "could not read the Linear issues"
+    if [ -z "$next" ] || [ "$next" = "$cursor" ]; then
+      tracker_error "Linear issue search did not advance"
+    fi
+    cursor=$next
+  done
+  printf '%s\n' "$acc"
 }
 
 linear_show() {
   local key=$1 data
+  GQL_ERROR_IS_TRACKER=1
   data=$(linear_gql 'query($id:String!){ issue(id:$id){ identifier title description url state { type } } }' "$(jq -n --arg id "$key" '{id:$id}')") || exit $?
-  jq -ce 'def st: if .state.type == "completed" then "done" elif .state.type == "canceled" then "canceled" else "open" end; .issue | select(.identifier != null) | {id: .identifier, title, body: (.description // ""), url, state: st}' <<<"$data" || die "no such issue"
+  if jq -e '.issue == null or .issue.identifier == null' >/dev/null <<<"$data"; then
+    missing_issue
+  fi
+  jq -ce 'def st: if .state.type == "completed" then "done" elif .state.type == "canceled" then "canceled" else "open" end; .issue | {id: .identifier, title, body: (.description // ""), url, state: st}' <<<"$data" || tracker_error "could not read the Linear issue"
 }
 
 linear_list() {
@@ -607,6 +696,7 @@ cmd_list_effort() {
 
 cmd_show() {
   [ -n "$ID" ] || die "show needs --id"
+  ID=$(normalize_show_id "$ID") || exit $?
   require_backend
   [ "$BACKEND" = linear ] && linear_id "$ID"
   cmd_ready

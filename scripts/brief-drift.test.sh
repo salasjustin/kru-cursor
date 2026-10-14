@@ -126,6 +126,43 @@ run '# Onboarding
 ' '[{"id":"40","body":"Brief: plan/onboarding/brief.md","state":"done"}]'
 is "a done issue the brief listed was planned" $'plan/onboarding/brief.md\nno drift'
 
+run '# Onboarding
+
+## Tracker
+- ship the invite email — #12
+- same number, padded — #012
+' '[{"id":"12","body":"Brief: plan/onboarding/brief.md","state":"open"}]'
+is "a hash id and a padded hash id are the same github issue" $'plan/onboarding/brief.md\nno drift'
+
+run '# Onboarding
+
+## Tracker
+- ship — #12 completed
+- drop — BG-9 canceled
+' '[{"id":"12","body":"Brief: plan/onboarding/brief.md","state":"open"},{"id":"BG-9","body":"Brief: plan/onboarding/brief.md","state":"canceled"}]'
+is "trailing completed or canceled in the brief is not status" $'plan/onboarding/brief.md\nno drift'
+
+run '# Onboarding
+
+## Tracker
+- ship the invite email — #12
+' '[{"id":"12","body":"no path","state":"open"},{"id":12,"body":"Brief: plan/onboarding/brief.md","state":"done"}]'
+is "a duplicate id keeps the object that links" $'plan/onboarding/brief.md\nno drift'
+
+run '# Onboarding
+
+## Tracker
+- ship the invite email — #12
+' '[{"id":"12","body":"Brief: plan/onboarding/brief.md","state":"open"},{"id":"12","body":"no path","state":"open"}]'
+is "a later unlinked duplicate does not replace the linked one" $'plan/onboarding/brief.md\nno drift'
+
+run '# Onboarding
+
+## Tracker
+- ship the invite email — nope
+' '[{"id":"40","body":"Brief: plan/onboarding/brief.md","state":"canceled"}]'
+is "a non-numeric token is a planned item, and a canceled issue is not done" $'plan/onboarding/brief.md\n(b) linked, not listed: #40\n(d) planned, no issue: ship the invite email — nope'
+
 printf '%s\n' '# Onboarding' > "$t/brief.md"
 printf '%s\n' '[]' > "$t/issues.json"
 out=$(node "$drift" --path 'plan/not a slug/brief.md' --brief "$t/brief.md" --issues "$t/issues.json" 2>"$t/err")
