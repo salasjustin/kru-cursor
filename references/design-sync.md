@@ -2,13 +2,13 @@
 
 **Cursor has no claude.ai/design project, so do not run this lane.** The in-session surface is `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`, with `.dc.html` artboards when `/canvas` isn't available. The procedure below stays so a repo that already has a `.design-sync/` can still be read. Standing a new one up is a gap (`PORTING.md`).
 
-Behind `ui-practice.md` → *The sync lane*. Read it when the tree has a `.design-sync/`, and before standing one up.
+Behind `ui-practice.md` → *The sync lane*. Do not stand one up. Design in this session with `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`. Read the procedure below only to understand a `.design-sync/` that is already in the tree.
 
 `/design-sync` publishes a bundle of the repo's **real** components to a claude.ai/design project, where screens get designed out of the actual parts. It is the only surface that does, and everything it buys is paid for in maintenance.
 
 ## The entry bar
 
-Stand up a bundle where **someone who doesn't write code designs against the system** — a marketing team shipping pages, a designer working screens between engineering slices. That recurring non-engineer turn is what pays for the lane.
+Do not stand up a bundle. Upstream's entry bar was a recurring turn where **someone who doesn't write code designs against the system** — a marketing team shipping pages, a designer working screens between engineering slices. That turn has no Cursor host. Point it at `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`, with `.dc.html` artboards when `/canvas` isn't available.
 
 Two conditions gate it:
 

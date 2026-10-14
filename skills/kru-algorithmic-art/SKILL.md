@@ -346,7 +346,7 @@ Add as many control-group divs as there are parameters.
 
 The HTML artifact works immediately:
 1. **In a browser**: save the HTML file and open it. No server. This file is not a Cursor canvas ([canvas](https://cursor.com/docs/agent/tools/canvas) is React)
-3. **Sharing**: Send the HTML file - it's completely self-contained
+2. **Sharing**: Send the HTML file - it's completely self-contained
 
 ---
 

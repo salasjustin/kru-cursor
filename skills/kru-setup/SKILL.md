@@ -140,8 +140,8 @@ Three that fail with no error:
 - **The name is the namespace.** Several seats name `resolve-library-id` (`context7` MCP) /
   `query-docs` in their own tool lists, so Context7 has to be registered under the bare name
   `context7` (user scope, http `https://mcp.context7.com/mcp`). The official plugin namespaces it to
-  `*` (`plugin_context7_context7` MCP) and the claude.ai connector to `MCP claude_ai_Context7__*` —
-  either leaves those seats holding entries that resolve to nothing.
+  `*` (`plugin_context7_context7` MCP) —
+  that leaves those seats holding entries that resolve to nothing. The claude.ai connector (`MCP claude_ai_Context7__*`) is Claude-only and is not a Cursor failure mode.
 - **A permission allowlist entry is coupled to that same prefix.** Moving a server between plugin,
   connector and local scope dead-letters every rule naming it: the rule stops matching, nothing
   errors, and the user is re-prompted forever. Re-point the allowlist in the same change that moves

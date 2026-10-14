@@ -12,7 +12,7 @@ The look is made on **the canvas**, which invents one better than a plan written
 
 **The gallery is the builder's local loop.** Where the repo keeps one, its own components render on its own dev server, maintained as ordinary app code — `skills/kru-design-gallery/SKILL.md`, the user's `/kru-design-gallery`. It answers *what does this system have* for whoever is building it.
 
-**The sync lane is the addition a repo earns, and Cursor has no host for it (known gap).** Where someone who doesn't write code designs against the system on a recurring basis, a React repo can also publish a bundle of its **real** components to a claude.ai/design project and design out of the actual parts. It is a build product with its own maintenance, and it has an entry bar: **`design-sync.md`**, read when the tree has a `.design-sync/` or before standing one up.
+**The sync lane is the addition a repo earns, and Cursor has no host for it (known gap).** Where someone who doesn't write code designs against the system on a recurring basis, a React repo can also publish a bundle of its **real** components to a claude.ai/design project and design out of the actual parts. It is a build product with its own maintenance, and it has an entry bar: **`design-sync.md`**. Do not stand one up and do not run it. The in-session surface is `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`.
 
 ## Who owns what
 
@@ -46,7 +46,7 @@ This is the only prose either surface reads. The bundle's `tokens/` and `guideli
 5. **The builder's Phase 0** — the design's values transcribed into `design-system.ts`, the token file emitted, and **the conformance gate as a deliverable in the same slice** (the check script alongside it, so a hand-edit to the emitted token file turns the suite red). Phase 0 fills the skeleton in; it no longer authors the architecture, and `grep -c 'var(--unset)'` is what says how much of the system is still unsettled. Then the first components, and the conventions file turns over from corpus to header: the header is what briefs every design turn from here.
 6. **`ui-designer` reads coverage** — the foundation `audit` first (does every ladder have a set, a rule and a consumer, and do the primitives and shells carry their state sets), then `design-system.md`'s element half beside the token file, one row per element the inventory implies with the states it needs, and one question before feature work is dispatched: *can every screen be composed from this without inventing a value?* Gaps come back ordered by what they block, as the builder's next slices; `nothing to add — dispatch` is one line and the expected answer.
 
-From there the practice is steady state. A repo that has earned the sync lane stands up its bundle once the first components exist, and budgets for it properly (`design-sync.md` → *The bundle*).
+From there the practice is steady state. Do not stand up a sync-lane bundle. Later screens are `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`. `design-sync.md` records the upstream bundle, and Cursor has no host for it.
 
 ## Steady state — the loop
 
@@ -56,7 +56,7 @@ Brownfield starts here, and greenfield lands here after Phase 0.
 2. **Pull it as a spec.** What comes back is a design, and it lands in a quarantine path for a builder to read.
 3. **Land it as an ordinary change** — the component, plus the token or sheet edit it needs, in the repo, by the builder. The repo is the only place the system is ever authored.
 
-A bundle repo wraps a push before step 1 and a resync after step 3 (`design-sync.md` → *The loop*).
+Do not wrap these steps in a design-sync push or resync. `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) reads the tree. The upstream loop stays in `design-sync.md`, and it is not run.
 
 **The repo is upstream of every design project, in every direction.** That is the whole design: a design project is downstream, so it is rebuilt from the repo and never merged into it. Merge both ways and you are maintaining a design system in two places, which holds at no size. What the tool produces is a design; what the repo holds is the system.
 

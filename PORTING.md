@@ -140,7 +140,8 @@ documented counterpart exists. The port still counts the leftovers (`WATCH` in `
   real components to a claude.ai/design project, and `agents/web-components-builder.md` still says a
   custom element mounts in "a design bundle for Claude Design". Cursor has no such project
   ([canvas](https://cursor.com/docs/agent/tools/canvas) is an in-session React artifact, not a synced
-  component host). The procedure is left in place and the top of `design-sync.md` says not to run it.
+  component host). The procedure is left in place so an existing `.design-sync/` can be read. The top of
+  `design-sync.md` says not to run it, and the seats point at `/canvas` instead of standing one up.
   The in-session surface is `/canvas`.
 - **`ArtifactData`.** `references/store.md` still names the artifact database the store uses when
   `KRU_STORE_URL` is set. Nothing in Cursor's docs is that database.
