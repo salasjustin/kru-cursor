@@ -114,6 +114,10 @@ const PATH_OK = [
   { id: "assignment", path: /^skills\/kru-conform\/SKILL\.md$/, line: /password: 'hunter2'/ },
   { id: "assignment", path: /^skills\/kru-hono\/SKILL\.md$/, line: /password: 'secret'/ },
   { id: "assignment", path: /^skills\/kru-react-hook-form\/SKILL\.md$/, line: /secret: 'typed-then-hidden'/ },
+  // a vendored comment showing the shape of a secret that must not be committed.
+  { id: "assignment", path: /^skills\/(kru-)?workers-best-practices\/references\/configuration\.md$/, line: /"API_KEY": "sk-live-abc123\.\.\."/ },
+  // upstream wrangler docs. the current tree no longer has these example lines.
+  { id: "assignment", path: /^skills\/(kru-)?wrangler\/SKILL\.md$/, line: /API_KEY=local-dev-key|"secret_name": "my-secret"/ },
   // the store-resolver test pins a fictional owner's store repo (`acme/kru-store`)
   { id: "private-repo", path: /^scripts\/kru-store\.test\.sh$/, line: /acme\/kru-store/ },
 ]
@@ -131,6 +135,7 @@ const HISTORY_REVIEWED = [
   { id: "assignment", commit: "cb005e14", file: /^skills\/conform\/SKILL\.md$/, why: "upstream conform docs showing an example password assignment, not a credential this repo holds" },
   { id: "assignment", commit: "94dcd7bf", file: /^skills\/hono\/SKILL\.md$/, why: "upstream hono docs showing an example basicAuth password, not a credential this repo holds" },
   { id: "assignment", commit: "60f7ccb6", file: /^skills\/react-hook-form\/SKILL\.md$/, why: "upstream react-hook-form docs showing an example field named secret, not a credential this repo holds" },
+  { id: "generic-api-key", commit: "b10943af", file: /^skills\/cloudflare\/references\//, why: "upstream cloudflare docs showing example API_KEY type names and placeholders, not a credential this repo holds; gone from this tree" },
 ]
 
 function allowed(id, path, line, value) {

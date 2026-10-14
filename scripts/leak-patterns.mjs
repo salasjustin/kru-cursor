@@ -2,12 +2,15 @@
 // import it. a copy in either file is a drift the tracker test refuses.
 //
 // lin_api_ is case-insensitive, suffix length >= 8, hyphens allowed.
-// an assignment is the word password, secret, or token inside the name, with
-// no space before '=' or ':'. AWS_SECRET_ACCESS_KEY=, API_TOKEN=, and
-// `password: hunter2` count; a `const token = …` does not, because of the
-// space before '='. leakIn tries the original text, a copy whose newlines are
-// spaces, and a copy whose newlines are deleted, so a key on its own line
-// keeps its word boundary and a key split across lines is one token.
+// an assignment is password, secret, token, api_key, apikey, or private_key
+// inside the name. quotes around the name and the value are optional, so a
+// JSON or YAML key counts ("password": "hunter2", 'client_secret': '...',
+// "access_token", "refresh_token", "AWS_SECRET_ACCESS_KEY"). there is no
+// space before '=' or ':' unless a closing quote sits there. a `const token
+// = …` does not count, because of the space before '='. leakIn tries the
+// original text, a copy whose newlines are spaces, and a copy whose newlines
+// are deleted, so a key on its own line keeps its word boundary and a key
+// split across lines is one token.
 
 export const SECRET_PATTERNS = [
   { id: "github-token", source: String.raw`\b(gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,})\b` },
@@ -23,12 +26,22 @@ export const SECRET_PATTERNS = [
   { id: "linear-api-key", source: String.raw`\blin_api_[A-Za-z0-9-]{8,}`, flags: "i" },
   // _ is not a word boundary, so API_TOKEN= and DB_PASSWORD= need an explicit
   // separator. more than one _segment is the same name (AWS_SECRET_ACCESS_KEY=).
-  // ':' is the same assignment as '=', and a space belongs after it
-  // (`password: hunter2`). a colon value has to look like a credential — a
+  // quotes may wrap the name, the value, or both. a quoted name with no value
+  // still counts for access_token, refresh_token, client_secret, api_key,
+  // apikey, private_key, and AWS_SECRET_ACCESS_KEY. ':' is the same assignment
+  // as '=', and a space belongs after it (`password: hunter2`) or after the
+  // closing quote. an unquoted colon value has to look like a credential — a
   // digit, quotes, or ${ — so prose ("secret: the") is not one. a letter
   // glued on the front (authToken=) is not this shape, and neither is a
   // space before '=' (`const token = …`).
-  { id: "assignment", source: String.raw`(?:^|[^A-Za-z0-9])(?:[A-Za-z0-9]+_)*(?:password|secret|token)(?:_[A-Za-z0-9]+)*(?:=[^\s]+|:\s*(?:'[^'\s]+'|"[^"\s]+"|\$\{[^\s]+|[^\s]*[0-9][^\s]*))`, flags: "i" },
+  { id: "assignment", source: String.raw`(?:^|[^A-Za-z0-9])(?:['"](?:[A-Za-z0-9]+_)*(?:password|secret|token|private_key|api[_-]?key)(?:_[A-Za-z0-9]+)*['"]\s*[:=]\s*(?:'[^']+'|"[^"]+"|\$\{[^\s]+|[^\s]*[0-9][^\s]*)|(?:[A-Za-z0-9]+_)*(?:password|secret|token|private_key|api[_-]?key)(?:_[A-Za-z0-9]+)*(?:=[^\s]+|:\s*(?:'[^']+'|"[^"]+"|\$\{[^\s]+|[^\s]*[0-9][^\s]*))|['"](?:access_token|refresh_token|client_secret|aws_secret_access_key|(?:[A-Za-z0-9]+_)*(?:private_key|api[_-]?key))['"])`, flags: "i" },
+  // a raw JWT: header and payload both start with eyJ, then a signature.
+  { id: "jwt", source: String.raw`eyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}` },
+  { id: "slack-webhook", source: String.raw`hooks\.slack\.com\/services\/` },
+  // API_KEY= or apikey: whose value is one opaque token of at least 16 chars.
+  // a space before '=' is not this shape. shorter values are the assignment
+  // pattern above when the name is api_key or apikey.
+  { id: "generic-api-key", source: String.raw`(?:^|[^A-Za-z0-9])(?:['"](?:[A-Za-z0-9]+_)*api[_-]?key['"]\s*[:=]\s*['"]?[A-Za-z0-9+/=_-]{16,}|(?:[A-Za-z0-9]+_)*api[_-]?key[:=]\s*['"]?[A-Za-z0-9+/=_-]{16,})`, flags: "i" },
 ]
 
 // customer data. the privacy scan allow-lists placeholder mailboxes; the

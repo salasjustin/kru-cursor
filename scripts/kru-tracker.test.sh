@@ -555,6 +555,72 @@ run file --kind want --title "login" --body "password: hunter2"
 ok "a colon assignment with a space after it is refused" 1
 not_logged "…before gh" "issue create"
 
+# quoted JSON/YAML keys, a raw JWT, a Slack webhook, and a long API_KEY.
+quoted_names=(
+  "json password"
+  "yaml client_secret"
+  "quoted access_token"
+  "quoted refresh_token"
+  "quoted AWS secret"
+  "api_key assignment"
+  "json api_key"
+  "apikey colon"
+  "json apikey"
+  "private_key assignment"
+  "json private_key"
+  "raw jwt"
+  "slack webhook"
+  "long API_KEY"
+)
+quoted_probes=(
+  '{"password": "hunter2"}'
+  "'client_secret': '...'"
+  '"access_token"'
+  '"refresh_token"'
+  '"AWS_SECRET_ACCESS_KEY"'
+  'api_key=abc'
+  '{"api_key": "abc"}'
+  'apikey: 0123456789abcdef'
+  '{"apikey": "abc"}'
+  'private_key=abc'
+  '{"private_key": "abc"}'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+  'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+  'API_KEY=0123456789abcdef'
+)
+for i in "${!quoted_probes[@]}"; do
+  probe=${quoted_probes[$i]}
+  tag=${quoted_names[$i]}
+  run file --kind bug --title "note" --body "$probe"
+  ok "github file refuses [$tag]" 1
+  not_logged "…before gh [$tag]" "issue create"
+  run search --kind bug --query "$probe"
+  ok "github search refuses [$tag]" 1
+  not_logged "…before gh [$tag]" "issue list"
+  run comment --id 12 --body "$probe"
+  ok "github comment refuses [$tag]" 1
+  not_logged "…before gh [$tag]" "issue comment"
+  run update --id 12 --body "$probe"
+  ok "github update refuses [$tag]" 1
+  not_logged "…before gh [$tag]" "issue edit"
+  run file --kind bug --title "note" --body "$probe" \
+    KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+  ok "linear file refuses [$tag]" 1
+  not_logged "…before any API call [$tag]" "query"
+  run search --kind bug --query "$probe" \
+    KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+  ok "linear search refuses [$tag]" 1
+  not_logged "…before any API call [$tag]" "query"
+  run comment --id BG-41 --body "$probe" \
+    KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+  ok "linear comment refuses [$tag]" 1
+  not_logged "…before any API call [$tag]" "query"
+  run update --id BG-41 --body "$probe" \
+    KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+  ok "linear update refuses [$tag]" 1
+  not_logged "…before any API call [$tag]" "query"
+done
+
 run file --kind security --title "**Exploit:** in the title" --body "see issues/token.md" \
   KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
 ok "a security title with an Exploit section is refused" 1
@@ -611,6 +677,54 @@ logged "…and still comments" "issue comment"
 run comment --id 12 --body "see issues/token.md" KRU_TEST_SECURITY_ISSUE=1
 ok "a short pointer comment on a github security issue is sent" 0
 logged "…and still comments" "issue comment"
+
+# security text is pointer-only wherever the words appear, not only as headings.
+pointer_names=(
+  "reproduc"
+  "steps to"
+  "repro"
+  "root cause"
+  "exploit"
+  "poc"
+  "proof of concept"
+  "payload"
+  "POST /"
+  "GET /"
+)
+pointer_probes=(
+  "how to reproduce"
+  "steps to log in"
+  "a repro note"
+  "root cause unknown"
+  "an exploit note"
+  "a poc note"
+  "proof of concept"
+  "the payload"
+  "POST /login"
+  "get /health"
+)
+for i in "${!pointer_probes[@]}"; do
+  probe=${pointer_probes[$i]}
+  tag=${pointer_names[$i]}
+  run file --kind security --title "token in the log" --body "$probe" \
+    KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+  ok "a linear security body containing [$tag] is refused" 1
+  not_logged "…before any API call [$tag]" "query"
+  run file --kind security --title "$probe" --body "see issues/token.md"
+  ok "a github security title containing [$tag] is refused" 1
+  not_logged "…and does not call gh [$tag]" "issue"
+  run comment --kind security --id 12 --body "$probe"
+  ok "a github security comment containing [$tag] is refused" 1
+  not_logged "…before gh [$tag]" "issue comment"
+  run update --id BG-41 --body "$probe" \
+    KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform KRU_TEST_SECURITY_ISSUE=1
+  ok "an update on a linear security issue containing [$tag] is refused" 1
+  not_logged "…and does not update [$tag]" "issueUpdate"
+done
+
+run file --kind bug --title "Blank page" --body $'steps to log in\nPOST /login\nproof of concept\nthe payload'
+ok "a bug body may name a repro, a payload, and a path" 0
+logged "…and still files" "issue create"
 
 run update --id BG-41 --body "see issues/token.md" \
   KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform KRU_TEST_SECURITY_ISSUE=1
@@ -802,6 +916,25 @@ if (leakIn("const token = abc")) fail("a spaced token assignment was treated as 
 if (!leakIn("AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI")) fail("multi-segment assignment missed")
 if (!leakIn("password: hunter2")) fail("colon assignment missed")
 if (!leakIn("password: \"hunter2\"")) fail("quoted colon assignment missed")
+if (!leakIn("{\"password\": \"hunter2\"}")) fail("json password missed")
+if (!leakIn("\x27client_secret\x27: \x27...\x27")) fail("yaml client_secret missed")
+if (!leakIn("\"access_token\"")) fail("quoted access_token missed")
+if (!leakIn("\"refresh_token\"")) fail("quoted refresh_token missed")
+if (!leakIn("\"AWS_SECRET_ACCESS_KEY\"")) fail("quoted AWS secret missed")
+if (!leakIn("api_key=abc")) fail("api_key assignment missed")
+if (!leakIn("{\"api_key\": \"abc\"}")) fail("json api_key missed")
+if (!leakIn("{\"apikey\": \"abc\"}")) fail("json apikey missed")
+if (!leakIn("private_key=abc")) fail("private_key assignment missed")
+if (!leakIn("{\"private_key\": \"abc\"}")) fail("json private_key missed")
+if (!leakIn("apikey: 0123456789abcdef")) fail("long apikey colon missed")
+if (!leakIn("API_KEY=0123456789abcdef")) fail("long API_KEY missed")
+if (!leakIn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")) fail("jwt missed")
+if (!leakIn("https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX")) fail("slack webhook missed")
+const generic = SECRET_PATTERNS.find((p) => p.id === "generic-api-key")
+if (!generic) fail("generic-api-key missing")
+const genericRe = new RegExp(generic.source, generic.flags || "")
+if (genericRe.test("apikey: 0123456789abcde")) fail("a 15-character api key met the 16-character rule")
+if (!genericRe.test("apikey: 0123456789abcdef")) fail("a 16-character api key missed the generic rule")
 if (leakIn("authToken=abc")) fail("a camelCase token assignment was treated as a leak")
 if (leakIn("secret: the")) fail("prose after a colon was treated as a leak")
 if (leakIn("The secret: consistency.")) fail("prose after a colon was treated as a leak")

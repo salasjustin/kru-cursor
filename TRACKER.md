@@ -18,7 +18,7 @@
 
 **Tracker text.** bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand
 
-A comment or an update on a security issue stays pointer-only, including when `--kind security` is given.
+A comment or an update on a security issue stays pointer-only, including when `--kind security` is given. In a security title, body, comment, or update the script refuses these anywhere, not only as headings: reproduc, steps to, repro, root cause, exploit, poc, proof of concept, payload, or an HTTP method followed by a path.
 
 **Linear settings are a team key and a project name.** For example `KRU_LINEAR_TEAM=BG` and `KRU_LINEAR_PROJECT=Connector`. Those values belong to the repo; this plugin hard-codes none. An id is only for a name that is not unique. `KRU_LINEAR_SECURITY_TEAM` (for example `SEC`) is optional and files security findings on that team.
 

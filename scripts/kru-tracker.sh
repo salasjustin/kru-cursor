@@ -112,9 +112,11 @@ kru_dir=$(cd "$(dirname "$0")" && pwd)
 TRACKER_TEXT='bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand'
 SECURITY_BODY_MAX=300
 SECURITY_TITLE_MAX=120
-# a heading, not the word inside a sentence. "plain repro is fine" has no colon
-# and is not a markdown heading, so a bug body may still carry one.
-SECURITY_SECTION='(^|[^[:alnum:]])([*#_[:space:]-]*)(repro|root cause|exploit)([*[:space:]]*):|^[[:space:]]*#{1,6}[[:space:]]*(repro|root cause|exploit)[[:space:]]*$'
+# anywhere in the text, not only as a heading. a bug or want may still say
+# these. a security title, body, comment, or update may not: reproduc, steps
+# to, repro, root cause, exploit, poc, proof of concept, payload, or an HTTP
+# method followed by a path (POST /login).
+SECURITY_POINTER='reproduc|steps[[:space:]]+to|repro|root[[:space:]]+cause|exploit|poc|proof[[:space:]]+of[[:space:]]+concept|payload|(^|[^[:alpha:]])(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)[[:space:]]+/'
 
 guard_text() {
   local text=$1 code
@@ -133,7 +135,7 @@ guard_text() {
 guard_security_pointer() {
   local text=$1 max=$2
   [ "${#text}" -le "$max" ] || die "$TRACKER_TEXT"
-  if printf '%s\n' "$text" | grep -Eiq "$SECURITY_SECTION"; then
+  if printf '%s\n' "$text" | grep -Eiq "$SECURITY_POINTER"; then
     die "$TRACKER_TEXT"
   fi
 }
