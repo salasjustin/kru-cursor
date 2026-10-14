@@ -136,6 +136,8 @@ const FORK_OWNED = new Set([
   "scripts/port-edits.test.sh",
   "scripts/kru-tracker.sh",
   "scripts/kru-tracker.test.sh",
+  "scripts/brief-drift.mjs",
+  "scripts/brief-drift.test.sh",
   "skills/kru-roster/release.md",
   "skills/kru-roster/fork-sync.md",
   "hooks/cursor-hook.sh",

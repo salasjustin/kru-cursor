@@ -123,6 +123,7 @@ one is overwritten by the next port, and `scripts/verify.sh`'s fresh-port check 
 | `skills/kru-roster/release.md`, `skills/kru-roster/fork-sync.md` | the fork's release (version `0.N.0+kruX.Y.Z`, tag, Cursor's marketplace) and sync runbooks. A new file inside a ported directory is hand-owned by listing it in `FORK_OWNED` (`scripts/port.mjs`): the port skips it and the fresh-port check lays it over upstream; the roster skill points at both through a port rule |
 | `scripts/cursor/edits.mjs`, `scripts/port-edits.test.sh` | the fork edits and their test (above) |
 | `scripts/kru-tracker.sh`, `scripts/kru-tracker.test.sh` | the work tracker (`KRU_TRACKER=github\|linear`). Fork-owned, so a fresh port lays the script over upstream and the edits point the skills at it. The test mocks `gh` and `curl`; a live Linear team is not required for `verify.sh` |
+| `scripts/brief-drift.mjs`, `scripts/brief-drift.test.sh` | the brief re-run's drift report. Fork-owned. The test feeds mocked tracker JSON; `list-effort` and `show` are covered in `kru-tracker.test.sh` |
 | `scripts/cursor/setup-1d.md` | `/kru-setup` §1d (grants, store repo, cloud environment), pulled in by a port rule |
 | `scripts/cursor/gates-report-path.md` | the review-report paragraph of `gates.md` |
 | `scripts/asset/xai.mjs`, `xai.test.mjs` | the asset generator's xAI backend and its tests; port rules hook it into upstream's `gen-asset.ts` and copy it in `run.sh` (`MODELS.md`) |

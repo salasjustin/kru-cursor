@@ -35,15 +35,20 @@
 # or `Linear: ENG-123`. merge closes the GitHub issue; a Linear issue closes
 # with `close`.
 #
-#   file    --kind bug|want|security --title T --body B   prints id<TAB>url
-#   list    --kind bug|want|security                      JSON [{id,title,body,url}]
-#   search  --kind bug|want|security --query Q            the same JSON, at most 10
-#   comment --id ID --body B                       prints id
-#   update  --id ID --body B                       prints id
-#   close   --id ID                                prints id
-#   link    --id ID                                the pull-request line
-#   ready                                          exit 0 when file would be accepted
-#   backend                                        prints github or linear
+#   file        --kind bug|want|security --title T --body B   prints id<TAB>url
+#   list        --kind bug|want|security                      JSON [{id,title,body,url}]
+#   list-effort --brief plan/<effort>/brief.md               JSON [{id,title,body,url,state}]
+#               issues whose body contains that path, completed included.
+#               state is open, done, or canceled. the path goes through the
+#               outbound guard before gh or the API.
+#   search      --kind bug|want|security --query Q            the same JSON, at most 10
+#   show        --id ID                                       one issue, list-effort shape
+#   comment     --id ID --body B                       prints id
+#   update      --id ID --body B                       prints id
+#   close       --id ID                                prints id
+#   link        --id ID                                the pull-request line
+#   ready                                              exit 0 when file would be accepted
+#   backend                                            prints github or linear
 #
 # sourcing defines nothing useful; run it.
 
@@ -67,7 +72,7 @@ refuse_security() {
 }
 
 usage() {
-  printf '%s\n' "usage: kru-tracker.sh backend|ready|file|list|search|comment|update|close|link ..." >&2
+  printf '%s\n' "usage: kru-tracker.sh backend|ready|file|list|list-effort|search|show|comment|update|close|link ..." >&2
   exit 1
 }
 
@@ -177,7 +182,7 @@ linear_id() {
 need_jq() { command -v jq >/dev/null 2>&1 || die "need jq on PATH"; }
 
 # --- arguments ----------------------------------------------------------------
-KIND="" TITLE="" BODY="" ID="" QUERY=""
+KIND="" TITLE="" BODY="" ID="" QUERY="" BRIEF=""
 KIND_SET=0 BODY_SET=0
 
 parse_args() {
@@ -188,6 +193,7 @@ parse_args() {
       --body) [ $# -ge 2 ] || die "--body needs a value"; BODY=$2; BODY_SET=1; shift 2 ;;
       --id) [ $# -ge 2 ] || die "--id needs a value"; ID=$2; shift 2 ;;
       --query) [ $# -ge 2 ] || die "--query needs a value"; QUERY=$2; shift 2 ;;
+      --brief) [ $# -ge 2 ] || die "--brief needs a value"; BRIEF=$2; shift 2 ;;
       *) die "unknown argument: $1" ;;
     esac
   done
@@ -248,6 +254,24 @@ github_number() {
 github_list() {
   local label=$1
   gh issue list --label "$label" --state open --limit 100 --json number,title,body,url | github_rows
+}
+
+# effort issues, open and closed. the client keeps a body that contains the
+# path; search is only the fetch. CLOSED is done — status lives here, not in
+# the brief.
+github_list_effort() {
+  local path=$1 raw
+  require_outbound "$path"
+  need_jq
+  raw=$(gh issue list --state all --limit 100 --search "$path in:body" --json number,title,body,url,state) || die "gh issue list failed"
+  printf '%s\n' "$raw" | jq -c --arg path "$path" '[.[] | select((.body // "") | contains($path)) | {id: (.number | tostring), title, body, url, state: (if ((.state // "") | ascii_upcase) == "CLOSED" then "done" else "open" end)}]'
+}
+
+github_show() {
+  local id=$1 raw
+  github_number "$id"
+  raw=$(gh issue view "$id" --json number,title,body,url,state) || die "no such issue"
+  printf '%s\n' "$raw" | jq -c '{id: (.number | tostring), title, body, url, state: (if ((.state // "") | ascii_upcase) == "CLOSED" then "done" else "open" end)}'
 }
 
 # labeled matches, plus open issues with no label. a label gh refuses is filed
@@ -409,6 +433,23 @@ linear_rows() {
   jq -c '[.issues.nodes[] | {id: .identifier, title, body: (.description // ""), url}]'
 }
 
+# the product project, every state. the client keeps a description that
+# contains the path. completed is done; canceled stays canceled.
+linear_list_effort() {
+  local path=$1 data
+  require_outbound "$path"
+  ensure_linear
+  data=$(linear_gql 'query($team:ID!, $project:ID!, $path:String!){ issues(first:100, filter:{team:{id:{eq:$team}}, project:{id:{eq:$project}}, description:{containsIgnoreCase:$path}}){ nodes { identifier title description url state { type } } } }' \
+    "$(jq -n --arg team "$_team_id" --arg project "$_project_id" --arg path "$path" '{team:$team, project:$project, path:$path}')") || exit $?
+  jq -c --arg path "$path" '[.issues.nodes[] | select((.description // "") | contains($path)) | {id: .identifier, title, body: (.description // ""), url, state: (if .state.type == "completed" then "done" elif .state.type == "canceled" then "canceled" else "open" end)}]' <<<"$data"
+}
+
+linear_show() {
+  local key=$1 data
+  data=$(linear_gql 'query($id:String!){ issue(id:$id){ identifier title description url state { type } } }' "$(jq -n --arg id "$key" '{id:$id}')") || exit $?
+  jq -ce 'def st: if .state.type == "completed" then "done" elif .state.type == "canceled" then "canceled" else "open" end; .issue | select(.identifier != null) | {id: .identifier, title, body: (.description // ""), url, state: st}' <<<"$data" || die "no such issue"
+}
+
 linear_list() {
   local label=$1 data
   if [ -n "$_project_id" ]; then
@@ -549,6 +590,32 @@ cmd_list() {
   esac
 }
 
+cmd_list_effort() {
+  # the brief path is the only text sent. outbound runs before gh or the API,
+  # same guard as a title or a body.
+  [ -n "$BRIEF" ] || die "list-effort needs --brief"
+  [ "$KIND_SET" = 0 ] || die "list-effort takes --brief, not --kind"
+  outbound "$BRIEF"
+  [[ "$BRIEF" =~ ^plan/[a-z0-9]+(-[a-z0-9]+)*/brief\.md$ ]] || die "a brief path is plan/<effort>/brief.md"
+  require_backend
+  cmd_ready
+  case "$BACKEND" in
+    github) github_list_effort "$BRIEF" ;;
+    linear) linear_list_effort "$BRIEF" ;;
+  esac
+}
+
+cmd_show() {
+  [ -n "$ID" ] || die "show needs --id"
+  require_backend
+  [ "$BACKEND" = linear ] && linear_id "$ID"
+  cmd_ready
+  case "$BACKEND" in
+    github) github_show "$ID" ;;
+    linear) linear_show "$ID" ;;
+  esac
+}
+
 cmd_search() {
   [ "$KIND_SET" = 1 ] || die "search needs --kind bug|want|security"
   [ -n "$QUERY" ] || die "search needs --query"
@@ -626,7 +693,9 @@ case "$cmd" in
   ready) [ $# -eq 0 ] || usage; cmd_ready ;;
   file) parse_args "$@"; cmd_file ;;
   list) parse_args "$@"; cmd_list ;;
+  list-effort) parse_args "$@"; cmd_list_effort ;;
   search) parse_args "$@"; cmd_search ;;
+  show) parse_args "$@"; cmd_show ;;
   comment) parse_args "$@"; cmd_comment ;;
   update) parse_args "$@"; cmd_update ;;
   close) parse_args "$@"; cmd_close ;;

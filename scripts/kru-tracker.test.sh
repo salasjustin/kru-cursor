@@ -24,14 +24,23 @@ case "$*" in
   *"repo view"*) printf '%s\n' true ;;
   *"issue create"*) printf '%s\n' "https://github.com/acme/web/issues/12" ;;
   *"issue list"*)
-    if [[ "$*" == *no:label* ]]; then
+    if [[ "$*" == *"plan/"* ]]; then
+      printf '%s\n' '[{"number":12,"title":"Invite","body":"Brief: plan/onboarding/brief.md","url":"https://github.com/acme/web/issues/12","state":"OPEN"},{"number":40,"title":"Extra","body":"Brief: plan/onboarding/brief.md","url":"https://github.com/acme/web/issues/40","state":"CLOSED"},{"number":41,"title":"Other","body":"unrelated","url":"https://github.com/acme/web/issues/41","state":"OPEN"}]'
+    elif [[ "$*" == *no:label* ]]; then
       printf '%s\n' '[{"number":13,"title":"Unlabeled login","body":"dropped label","url":"https://github.com/acme/web/issues/13"}]'
     else
       printf '%s\n' '[{"number":12,"title":"Flaky login","body":"value: 4","url":"https://github.com/acme/web/issues/12"}]'
     fi
     ;;
   *"issue view"*)
-    if [ "${KRU_TEST_SECURITY_ISSUE:-}" = 1 ]; then printf '%s\n' security
+    if [[ "$*" == *"number,title,body,url,state"* ]]; then
+      id=$(printf '%s\n' "$*" | sed -n 's/.*issue view \([0-9][0-9]*\).*/\1/p')
+      if [ "$id" = 404 ]; then
+        printf '%s\n' "not found" >&2
+        exit 1
+      fi
+      printf '%s\n' "{\"number\":$id,\"title\":\"Orphan\",\"body\":\"no link\",\"url\":\"https://github.com/acme/web/issues/$id\",\"state\":\"OPEN\"}"
+    elif [ "${KRU_TEST_SECURITY_ISSUE:-}" = 1 ]; then printf '%s\n' security
     else printf '%s\n' bug
     fi
     ;;
@@ -81,7 +90,11 @@ case "$q" in
   *issueLabels*) body='{"data":{"issueLabels":{"nodes":[{"id":"lab-bug","name":"Bug"},{"id":"lab-enh","name":"enhancement"}]}}}' ;;
   *issueCreate*) body='{"data":{"issueCreate":{"success":true,"issue":{"identifier":"BG-41","url":"https://linear.app/acme/issue/BG-41"}}}}' ;;
   *'issue(id:'*)
-    if [ "${KRU_TEST_SECURITY_ISSUE:-}" = 1 ]; then
+    if [ "$(jq -r .variables.id <<<"$data")" = "BG-404" ]; then
+      body='{"data":{"issue":null}}'
+    elif [[ "$q" == *description* ]]; then
+      body='{"data":{"issue":{"identifier":"BG-41","title":"Invite","description":"Brief: plan/onboarding/brief.md","url":"https://linear.app/acme/issue/BG-41","state":{"type":"completed"}}}}'
+    elif [ "${KRU_TEST_SECURITY_ISSUE:-}" = 1 ]; then
       body='{"data":{"issue":{"id":"11111111-1111-1111-1111-111111111111","identifier":"BG-41","url":"https://linear.app/acme/issue/BG-41","team":{"id":"team-1"},"state":{"type":"started"},"labels":{"nodes":[{"name":"security"}]}}}}'
     else
       body='{"data":{"issue":{"id":"11111111-1111-1111-1111-111111111111","identifier":"BG-41","url":"https://linear.app/acme/issue/BG-41","team":{"id":"team-1"},"state":{"type":"started"}}}}'
@@ -90,7 +103,13 @@ case "$q" in
   *commentCreate*) body='{"data":{"commentCreate":{"success":true}}}' ;;
   *workflowStates*) body='{"data":{"workflowStates":{"nodes":[{"id":"state-done","name":"Done","position":1}]}}}' ;;
   *issueUpdate*) body='{"data":{"issueUpdate":{"success":true}}}' ;;
-  *'issues(first:'*) body='{"data":{"issues":{"nodes":[{"identifier":"BG-41","title":"Flaky login","description":"value: 4","url":"https://linear.app/acme/issue/BG-41"}]}}}' ;;
+  *'issues(first:'*)
+    if [[ "$q" == *'$path:String!'* ]]; then
+      body='{"data":{"issues":{"nodes":[{"identifier":"BG-41","title":"Invite","description":"Brief: plan/onboarding/brief.md","url":"https://linear.app/acme/issue/BG-41","state":{"type":"completed"}},{"identifier":"BG-8","title":"Extra","description":"Brief: plan/onboarding/brief.md","url":"https://linear.app/acme/issue/BG-8","state":{"type":"started"}},{"identifier":"BG-9","title":"Dropped","description":"Brief: plan/onboarding/brief.md","url":"https://linear.app/acme/issue/BG-9","state":{"type":"canceled"}},{"identifier":"BG-7","title":"Other","description":"unrelated","url":"https://linear.app/acme/issue/BG-7","state":{"type":"started"}}]}}}'
+    else
+      body='{"data":{"issues":{"nodes":[{"identifier":"BG-41","title":"Flaky login","description":"value: 4","url":"https://linear.app/acme/issue/BG-41"}]}}}'
+    fi
+    ;;
   *) printf 'unexpected linear query\n' >&2; exit 1 ;;
 esac
 printf '%s' "$body" > "$out"
@@ -855,7 +874,7 @@ report "…and a missing key is not exit 4" "$(grep -qF "not exit 4" "$repo/skil
 
 # every command the dispatcher implements, and the user strings it sends.
 # outbound marks a string; the send functions refuse one that was not marked.
-expected_cmds=$(printf '%s\n' backend ready file list search comment update close link 'help|-h|--help')
+expected_cmds=$(printf '%s\n' backend ready file list list-effort search show comment update close link 'help|-h|--help')
 actual_cmds=$(awk '
   /^case "\$cmd" in$/ { on=1; next }
   on && /^esac$/ { exit }
@@ -881,7 +900,7 @@ report "update sends the body through outbound" "$(fn_body cmd_update | grep -qF
 for quiet in cmd_list cmd_ready cmd_close cmd_link; do
   report "$quiet sends no user text" "$(fn_body "$quiet" | grep -qF outbound && echo false || echo true)" "calls outbound"
 done
-for sender in github_file github_search github_comment github_update linear_file linear_search linear_comment linear_update; do
+for sender in github_file github_search github_comment github_update github_list_effort linear_file linear_search linear_comment linear_update linear_list_effort; do
   report "$sender refuses unchecked text" "$(fn_body "$sender" | grep -qF require_outbound && echo true || echo false)" "missing require_outbound"
 done
 
@@ -950,6 +969,48 @@ if (!leakIn("(415)555-0199")) fail("parenthesized phone missed")
 else
   report "privacy-scan and guard_text share one secret list" false "patterns diverged"
 fi
+
+run list-effort --brief plan/onboarding/brief.md
+is "github list-effort returns linked issues and maps closed to done" '[{"id":"12","title":"Invite","body":"Brief: plan/onboarding/brief.md","url":"https://github.com/acme/web/issues/12","state":"open"},{"id":"40","title":"Extra","body":"Brief: plan/onboarding/brief.md","url":"https://github.com/acme/web/issues/40","state":"done"}]'
+logged "…searches every state in the body" "issue list --state all --limit 100 --search plan/onboarding/brief.md in:body"
+
+run list-effort --brief 'plan/onboarding/brief.md user@example.com'
+ok "a brief path carrying an email is refused" 1
+err_has "…by the outbound guard" "customer emails"
+not_logged "…before gh" "issue"
+not_logged "…and before repo view" "repo view"
+
+run list-effort --brief README.md
+ok "list-effort wants a brief path" 1
+err_has "…and names the shape" "plan/<effort>/brief.md"
+not_logged "…and does not search" "issue list"
+
+run list-effort --brief plan/onboarding/brief.md --kind bug
+ok "list-effort does not take a kind" 1
+not_logged "…and does not search" "issue list"
+
+run show --id 99
+is "github show prints one issue" '{"id":"99","title":"Orphan","body":"no link","url":"https://github.com/acme/web/issues/99","state":"open"}'
+logged "…issue view" "issue view 99 --json number,title,body,url,state"
+
+run show --id 404
+ok "a missing github issue is an error" 1
+err_has "…and says so" "no such issue"
+
+run list-effort --brief plan/onboarding/brief.md \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+is "linear list-effort includes completed and canceled" '[{"id":"BG-41","title":"Invite","body":"Brief: plan/onboarding/brief.md","url":"https://linear.app/acme/issue/BG-41","state":"done"},{"id":"BG-8","title":"Extra","body":"Brief: plan/onboarding/brief.md","url":"https://linear.app/acme/issue/BG-8","state":"open"},{"id":"BG-9","title":"Dropped","body":"Brief: plan/onboarding/brief.md","url":"https://linear.app/acme/issue/BG-9","state":"canceled"}]'
+logged "…sends the path as a variable" '"path":"plan/onboarding/brief.md"'
+not_logged "…and does not skip completed" "nin:"
+
+run show --id BG-41 \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+is "linear show maps completed to done" '{"id":"BG-41","title":"Invite","body":"Brief: plan/onboarding/brief.md","url":"https://linear.app/acme/issue/BG-41","state":"done"}'
+
+run show --id BG-404 \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a missing linear issue is an error" 1
+err_has "…and says so" "no such issue"
 
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
