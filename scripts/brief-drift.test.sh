@@ -20,11 +20,12 @@ report() {
 
 run() {
   local brief=$1 issues=$2
+  shift 2
   printf '%s\n' "$brief" > "$t/brief.md"
   printf '%s\n' "$issues" > "$t/issues.json"
   cp "$t/brief.md" "$t/brief.before"
   err=$(mktemp)
-  out=$(node "$drift" --path "$path" --brief "$t/brief.md" --issues "$t/issues.json" 2>"$err")
+  out=$(env -u KRU_LINEAR_TEAM -u KRU_LINEAR_SECURITY_TEAM "$@" node "$drift" --path "$path" --brief "$t/brief.md" --issues "$t/issues.json" 2>"$err")
   code=$?
   err_out=$(cat "$err")
   rm -f "$err"
@@ -163,6 +164,59 @@ run '# Onboarding
 ' '[{"id":"40","body":"Brief: plan/onboarding/brief.md","state":"canceled"}]'
 is "a non-numeric token is a planned item, and a canceled issue is not done" $'plan/onboarding/brief.md\n(b) linked, not listed: #40\n(d) planned, no issue: ship the invite email — nope'
 
+run '# Onboarding
+
+## Tracker
+- ship the first slice — slice-1
+' '[{"id":"12","body":"Brief: plan/onboarding/brief.md","state":"open"}]'
+is "slice-1 is a planned item, not a Linear id" $'plan/onboarding/brief.md\n(b) linked, not listed: #12\n(d) planned, no issue: ship the first slice — slice-1'
+lacks "…and it is not reported missing" "slice-1 (missing)"
+
+run '# Onboarding
+
+## Tracker
+- missing one — BG-99
+' '[]' KRU_LINEAR_TEAM=BG
+is "the configured team key makes BG-99 an id" $'plan/onboarding/brief.md\n(a) listed, missing or not linked: BG-99 (missing)'
+
+run '# Onboarding
+
+## Tracker
+- missing one — BG-99
+' '[]'
+is "without a known prefix BG-99 stays planned" $'plan/onboarding/brief.md\n(d) planned, no issue: missing one — BG-99'
+
+run '# Onboarding
+
+## Tracker
+- other — BG-99
+' '[{"id":"BG-8","body":"Brief: plan/onboarding/brief.md","state":"open"}]'
+is "a prefix on a returned issue is known" $'plan/onboarding/brief.md\n(a) listed, missing or not linked: BG-99 (missing)\n(b) linked, not listed: BG-8'
+
+run '# Onboarding
+
+## Tracker
+- finding — SEC-3
+' '[]' KRU_LINEAR_SECURITY_TEAM=SEC
+is "the security team key is a known prefix" $'plan/onboarding/brief.md\n(a) listed, missing or not linked: SEC-3 (missing)'
+
+run '# Onboarding
+
+## Tracker
+- ship the first slice — slice-1
+' '[]' KRU_LINEAR_TEAM=BG
+is "a team key does not accept a different prefix" $'plan/onboarding/brief.md\n(d) planned, no issue: ship the first slice — slice-1'
+
+run '# Onboarding
+' '[
+  {"id":"43","body":"my-plan/onboarding/brief.md","state":"done"},
+  {"id":"44","body":"plan/onboarding/brief.md-old","state":"done"},
+  {"id":"45","body":"See plan/onboarding/brief.md.","state":"done"}
+]'
+is "a hyphen is part of the path, and a sentence period still links" $'plan/onboarding/brief.md\n(b) linked, not listed: #45\n(c) done, never planned: #45'
+lacks "a prefixed hyphen is not a link" "#43"
+lacks "a trailing hyphen is not a link" "#44"
+
 printf '%s\n' '# Onboarding' > "$t/brief.md"
 printf '%s\n' '[]' > "$t/issues.json"
 out=$(node "$drift" --path 'plan/not a slug/brief.md' --brief "$t/brief.md" --issues "$t/issues.json" 2>"$t/err")
@@ -181,6 +235,22 @@ code=$?
 err_out=$(cat "$t/err")
 ok "issues JSON that is not an array is an error" 1
 report "…without echoing the payload" "$(case "$err_out" in *'not json'*) echo false ;; *) echo true ;; esac)" "err [$err_out]"
+
+repo=$(cd "$here/.." && pwd)
+brief_bullet=$(grep -F 'is prose, not typed' "$repo/TRACKER.md" | head -1)
+report "the brief artifact does not say it has no id" "$(case "$brief_bullet" in *"no id"*) echo false ;; *) echo true ;; esac)" "bullet [$brief_bullet]"
+report "…and points issue ids at Tracker" "$(case "$brief_bullet" in *'Issue ids live in `## Tracker`'* ) echo true ;; *) echo false ;; esac)" "bullet [$brief_bullet]"
+
+skill_line=$(grep -F '**`Tracker`**' "$repo/skills/kru-brief/SKILL.md")
+tracker_rest=${skill_line#*\`Tracker\`}
+report "the skill lists Tracker, then Open questions, then Done when" "$(case "$tracker_rest" in *'Open questions'*'Done when'*) echo true ;; *) echo false ;; esac)" "line [$skill_line]"
+report "…and Done when does not precede Open questions" "$(case "$tracker_rest" in *'Done when'*'Open questions'*) echo false ;; *) echo true ;; esac)" "line [$skill_line]"
+
+template=$(awk 'BEGIN{p=0} /^## Tracker$/{p=1} p{print} /^## Done when$/{if(p) exit}' "$repo/TRACKER.md")
+report "the template lists Tracker, then Open questions, then Done when" "$(printf '%s\n' "$template" | awk 'BEGIN{t=0;o=0;d=0;bad=0} /^## Tracker$/{t=NR} /^## Open questions$/{o=NR} /^## Done when$/{d=NR} END{if(t&&o&&d&&t<o&&o<d) print "true"; else print "false"}')" "template [$template]"
+
+skill=$(grep -F 'list_issues' "$repo/skills/kru-brief/SKILL.md")
+report "the skill sets a list_issues limit and follows the cursor" "$(case "$skill" in *'limit` 250'*'Follow `cursor`'* ) echo true ;; *) echo false ;; esac)" "skill [$skill]"
 
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

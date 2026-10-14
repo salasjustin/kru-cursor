@@ -57,7 +57,15 @@ case "$*" in
     fi
     ;;
   *"api graphql"*)
-    if [[ "$*" == *"after=page-2"* ]]; then
+    if [ "${KRU_TEST_GH_LOOSE:-}" = 1 ]; then
+      if [[ "$*" == *"after=page-3"* ]]; then
+        printf '%s\n' '{"data":{"search":{"pageInfo":{"hasNextPage":false,"endCursor":null},"nodes":[{"number":12,"title":"Invite","body":"Brief: plan/onboarding/brief.md","url":"https://github.com/acme/web/issues/12","state":"OPEN"}]}}}'
+      elif [[ "$*" == *"after=page-2"* ]]; then
+        printf '%s\n' '{"data":{"search":{"pageInfo":{"hasNextPage":true,"endCursor":"page-3"},"nodes":[{"number":44,"title":"Old","body":"plan/onboarding/brief.md-old","url":"https://github.com/acme/web/issues/44","state":"OPEN"}]}}}'
+      else
+        printf '%s\n' '{"data":{"search":{"pageInfo":{"hasNextPage":true,"endCursor":"page-2"},"nodes":[{"number":43,"title":"Other","body":"my-plan/onboarding/brief.md","url":"https://github.com/acme/web/issues/43","state":"OPEN"}]}}}'
+      fi
+    elif [[ "$*" == *"after=page-2"* ]]; then
       printf '%s\n' '{"data":{"search":{"pageInfo":{"hasNextPage":false,"endCursor":null},"nodes":[{"number":40,"title":"Extra","body":"Brief: plan/onboarding/brief.md","url":"https://github.com/acme/web/issues/40","state":"CLOSED","stateReason":"COMPLETED"}]}}}'
     else
       printf '%s\n' '{"data":{"search":{"pageInfo":{"hasNextPage":true,"endCursor":"page-2"},"nodes":[{"number":12,"title":"Invite","body":"Brief: plan/onboarding/brief.md","url":"https://github.com/acme/web/issues/12","state":"OPEN"},{"number":41,"title":"Other","body":"unrelated","url":"https://github.com/acme/web/issues/41","state":"OPEN"},{"number":50,"title":"Wontfix","body":"Brief: plan/onboarding/brief.md","url":"https://github.com/acme/web/issues/50","state":"CLOSED","stateReason":"NOT_PLANNED"}]}}}'
@@ -129,7 +137,15 @@ case "$q" in
   *'issues(first:'*)
     if [[ "$q" == *'$path:String!'* ]]; then
       after=$(jq -r '.variables.after // empty' <<<"$data")
-      if [ "$after" = "page-2" ]; then
+      if [ "${KRU_TEST_LINEAR_LOOSE:-}" = 1 ]; then
+        if [ "$after" = "page-3" ]; then
+          body='{"data":{"issues":{"pageInfo":{"hasNextPage":false,"endCursor":null},"nodes":[{"identifier":"BG-41","title":"Invite","description":"Brief: plan/onboarding/brief.md","url":"https://linear.app/acme/issue/BG-41","state":{"type":"completed"}}]}}}'
+        elif [ "$after" = "page-2" ]; then
+          body='{"data":{"issues":{"pageInfo":{"hasNextPage":true,"endCursor":"page-3"},"nodes":[{"identifier":"BG-44","title":"Old","description":"plan/onboarding/brief.md-old","url":"https://linear.app/acme/issue/BG-44","state":{"type":"started"}}]}}}'
+        else
+          body='{"data":{"issues":{"pageInfo":{"hasNextPage":true,"endCursor":"page-2"},"nodes":[{"identifier":"BG-43","title":"Other","description":"my-plan/onboarding/brief.md","url":"https://linear.app/acme/issue/BG-43","state":{"type":"started"}}]}}}'
+        fi
+      elif [ "$after" = "page-2" ]; then
         body='{"data":{"issues":{"pageInfo":{"hasNextPage":false,"endCursor":null},"nodes":[{"identifier":"BG-8","title":"Extra","description":"Brief: plan/onboarding/brief.md","url":"https://linear.app/acme/issue/BG-8","state":{"type":"started"}}]}}}'
       else
         body='{"data":{"issues":{"pageInfo":{"hasNextPage":true,"endCursor":"page-2"},"nodes":[{"identifier":"BG-41","title":"Invite","description":"Brief: plan/onboarding/brief.md","url":"https://linear.app/acme/issue/BG-41","state":{"type":"completed"}},{"identifier":"BG-9","title":"Dropped","description":"Brief: plan/onboarding/brief.md","url":"https://linear.app/acme/issue/BG-9","state":{"type":"canceled"}},{"identifier":"BG-7","title":"Other","description":"unrelated","url":"https://linear.app/acme/issue/BG-7","state":{"type":"started"}}]}}}'
@@ -175,6 +191,7 @@ run() {
     -u CLAUDE_PLUGIN_OPTION_LINEAR_API_KEY \
     -u KRU_TEST_REFUSE_LABEL -u KRU_TEST_PROJECTS -u KRU_TEST_SECURITY_ISSUE \
     -u KRU_TEST_GH_ERROR -u KRU_TEST_CURL_FAIL \
+    -u KRU_TEST_GH_LOOSE -u KRU_TEST_LINEAR_LOOSE \
     PATH="$bin:$PATH" KRU_TEST_LOG="$sandbox/log" \
     ${envs[@]+"${envs[@]}"} bash "$tracker" "${args[@]}" 2>"$err")
   code=$?
@@ -1017,6 +1034,12 @@ logged "…and follows the next page" "after=page-2"
 not_logged "…past a single page of issue list" "issue list --limit 100"
 no_writes "github list-effort"
 
+run list-effort --brief plan/onboarding/brief.md KRU_TEST_GH_LOOSE=1
+is "github list-effort follows every page before the exact path check" '[{"id":"12","title":"Invite","body":"Brief: plan/onboarding/brief.md","url":"https://github.com/acme/web/issues/12","state":"open"}]'
+logged "…through the second page" "after=page-2"
+logged "…and the third" "after=page-3"
+no_writes "github list-effort loose search"
+
 run list-effort --brief 'plan/onboarding/brief.md user@example.com'
 ok "a brief path carrying an email is refused" 1
 err_has "…by the outbound guard" "customer emails"
@@ -1071,6 +1094,13 @@ logged "…sends the path as a variable" '"path":"plan/onboarding/brief.md"'
 logged "…and follows the next page" '"after":"page-2"'
 not_logged "…and does not skip completed" "nin:"
 no_writes "linear list-effort"
+
+run list-effort --brief plan/onboarding/brief.md \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform KRU_TEST_LINEAR_LOOSE=1
+is "linear list-effort follows every page before the exact path check" '[{"id":"BG-41","title":"Invite","body":"Brief: plan/onboarding/brief.md","url":"https://linear.app/acme/issue/BG-41","state":"done"}]'
+logged "…through the second page" '"after":"page-2"'
+logged "…and the third" '"after":"page-3"'
+no_writes "linear list-effort loose search"
 
 run show --id BG-41 \
   KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform

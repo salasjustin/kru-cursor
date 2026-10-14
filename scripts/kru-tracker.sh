@@ -41,7 +41,8 @@
 #   file        --kind bug|want|security --title T --body B   prints id<TAB>url
 #   list        --kind bug|want|security                      JSON [{id,title,body,url}]
 #   list-effort --brief plan/<effort>/brief.md               JSON [{id,title,body,url,state}]
-#               issues whose body contains that path, every page.
+#               issues whose body contains that path. search ignores / and .,
+#               so follow the cursor until it ends, then keep an exact path.
 #               state is open, done, or canceled. a GitHub issue closed as
 #               not_planned is canceled. the path goes through the outbound
 #               guard before gh or the API.
@@ -285,10 +286,15 @@ github_list() {
 # CLOSED is done, except not_planned, which is canceled. status lives here.
 github_state_jq='if ((.state // "") | ascii_upcase) != "CLOSED" then "open" elif ((.stateReason // "") | ascii_upcase) == "NOT_PLANNED" then "canceled" else "done" end'
 
-# effort issues, every page. the client keeps a body that contains the path.
-# search is only the fetch. a stuck cursor is an error, not a short list.
+# true when the text contains the path on a boundary. "-" continues a path,
+# so my-plan/… and …brief.md-old do not count. a sentence period does.
+path_link_defs='def pc: test("^[A-Za-z0-9_./-]$"); def after_ok: if . == "" then true elif startswith(".") and ((.[1:2] == "") or (.[1:2] | test("^[A-Za-z0-9_/-]$") | not)) then true else (.[0:1] | pc | not) end; def linked($path): def walk($from): (.[$from:] | index($path)) as $rel | if $rel == null then false else ($from + $rel) as $at | (if $at == 0 then "" else .[$at-1:$at] end) as $before | .[$at + ($path|length):] as $after | if (($before == "") or ($before | pc | not)) and ($after | after_ok) then true else walk($at + 1) end end; walk(0);'
+
+# GitHub search treats / and . as spaces, so the page size applies before the
+# exact path check. follow the cursor until it ends. a stuck cursor is an
+# error, not a short list.
 github_list_effort() {
-  local path=$1 repo cursor="" page=0 raw nodes has next acc="[]"
+  local path=$1 repo cursor="" raw nodes has next acc="[]"
   require_outbound "$path"
   need_jq
   repo=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>"$kru_tmp/gh.err") || {
@@ -297,8 +303,6 @@ github_list_effort() {
   }
   local query='query($q:String!, $after:String){ search(first:100, after:$after, type:ISSUE, query:$q){ pageInfo { hasNextPage endCursor } nodes { ... on Issue { number title body url state stateReason } } } }'
   while :; do
-    page=$((page + 1))
-    [ "$page" -le 50 ] || tracker_error "gh issue search did not finish"
     if [ -n "$cursor" ]; then
       raw=$(gh api graphql -f query="$query" -f q="repo:${repo} is:issue ${path} in:body" -f after="$cursor" 2>"$kru_tmp/gh.err") || {
         cat "$kru_tmp/gh.err" >&2
@@ -310,7 +314,7 @@ github_list_effort() {
         tracker_error "gh issue search failed"
       }
     fi
-    nodes=$(printf '%s\n' "$raw" | jq -ce --arg path "$path" '[.data.search.nodes[]? | select(.number != null) | select((.body // "") | contains($path)) | {id: (.number | tostring), title, body, url, state: ('"$github_state_jq"')}]') || tracker_error "could not read the GitHub search"
+    nodes=$(printf '%s\n' "$raw" | jq -ce --arg path "$path" "${path_link_defs}"'[.data.search.nodes[]? | select(.number != null) | select((.body // "") | linked($path)) | {id: (.number | tostring), title, body, url, state: ('"$github_state_jq"')}]') || tracker_error "could not read the GitHub search"
     acc=$(jq -nc --argjson a "$acc" --argjson b "$nodes" '$a + $b') || tracker_error "could not read the GitHub search"
     has=$(printf '%s\n' "$raw" | jq -r '.data.search.pageInfo.hasNextPage // false') || tracker_error "could not read the GitHub search"
     [ "$has" = true ] || break
@@ -504,19 +508,18 @@ linear_rows() {
   jq -c '[.issues.nodes[] | {id: .identifier, title, body: (.description // ""), url}]'
 }
 
-# the product project, every state, every page. the client keeps a description
+# the product project, every state. the page size applies before the exact
+# path check, so follow the cursor until it ends, then keep a description
 # that contains the path. completed is done; canceled stays canceled.
 linear_list_effort() {
-  local path=$1 data cursor="" page=0 nodes has next acc="[]"
+  local path=$1 data cursor="" nodes has next acc="[]"
   require_outbound "$path"
   ensure_linear
   GQL_ERROR_IS_TRACKER=1
   local query='query($team:ID!, $project:ID!, $path:String!, $after:String){ issues(first:100, after:$after, filter:{team:{id:{eq:$team}}, project:{id:{eq:$project}}, description:{containsIgnoreCase:$path}}){ pageInfo { hasNextPage endCursor } nodes { identifier title description url state { type } } } }'
   while :; do
-    page=$((page + 1))
-    [ "$page" -le 50 ] || tracker_error "Linear issue search did not finish"
     data=$(linear_gql "$query" "$(jq -n --arg team "$_team_id" --arg project "$_project_id" --arg path "$path" --arg after "$cursor" '{team:$team, project:$project, path:$path, after:(if $after == "" then null else $after end)}')") || exit $?
-    nodes=$(jq -c --arg path "$path" '[.issues.nodes[] | select((.description // "") | contains($path)) | {id: .identifier, title, body: (.description // ""), url, state: (if .state.type == "completed" then "done" elif .state.type == "canceled" then "canceled" else "open" end)}]' <<<"$data") || tracker_error "could not read the Linear issues"
+    nodes=$(jq -c --arg path "$path" "${path_link_defs}"'[.issues.nodes[] | select((.description // "") | linked($path)) | {id: .identifier, title, body: (.description // ""), url, state: (if .state.type == "completed" then "done" elif .state.type == "canceled" then "canceled" else "open" end)}]' <<<"$data") || tracker_error "could not read the Linear issues"
     acc=$(jq -nc --argjson a "$acc" --argjson b "$nodes" '$a + $b') || tracker_error "could not read the Linear issues"
     has=$(jq -r '.issues.pageInfo.hasNextPage // false' <<<"$data") || tracker_error "could not read the Linear issues"
     [ "$has" = true ] || break

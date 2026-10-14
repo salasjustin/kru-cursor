@@ -12,6 +12,8 @@
 // issues JSON is an array of {id, title, body, url, state}. state completed or
 // closed counts as done. a canceled issue is kept: unlisted, it is (b), and
 // it is never (c). two objects with one id keep the one whose body links.
+// a trailing TEAM-N is a Linear id only for KRU_LINEAR_TEAM,
+// KRU_LINEAR_SECURITY_TEAM, or a prefix already on an issue. slice-1 is (d).
 
 import { readFileSync } from "node:fs"
 
@@ -83,6 +85,15 @@ function normState(state) {
   return "open"
 }
 
+// a path character continues the path. "-" is one, so my-plan/… and …brief.md-old
+// are different paths. a sentence-ending period still counts.
+const PATH_CHAR = /[A-Za-z0-9_./-]/
+
+function boundaryAfter(after) {
+  if (after[0] === "." && (after.length === 1 || !/[A-Za-z0-9_/-]/.test(after[1]))) return true
+  return !PATH_CHAR.test(after[0])
+}
+
 function links(body, path) {
   const b = String(body ?? "")
   let from = 0
@@ -91,16 +102,30 @@ function links(body, path) {
     if (at === -1) return false
     const before = at === 0 ? "" : b[at - 1]
     const after = b.slice(at + path.length)
-    // a following ".bak" is a different path; a sentence period still counts
-    const beforeOk = before === "" || !/[A-Za-z0-9_/]/.test(before)
-    const afterOk = after === "" || (/^[^A-Za-z0-9_/]/.test(after) && !/^\.[A-Za-z0-9]/.test(after))
+    const beforeOk = before === "" || !PATH_CHAR.test(before)
+    const afterOk = after === "" || boundaryAfter(after)
     if (beforeOk && afterOk) return true
     from = at + 1
   }
   return false
 }
 
-function trackerItems(markdown) {
+function configuredPrefixes() {
+  const out = new Set()
+  for (const name of ["KRU_LINEAR_TEAM", "KRU_LINEAR_SECURITY_TEAM"]) {
+    const raw = String(process.env[name] ?? "").trim()
+    if (/^[A-Za-z][A-Za-z0-9]*$/.test(raw)) out.add(raw.toUpperCase())
+  }
+  return out
+}
+
+function linearPrefix(id) {
+  const n = normId(id)
+  if (!n || !n.key.startsWith("lin:")) return null
+  return n.display.slice(0, n.display.lastIndexOf("-"))
+}
+
+function trackerItems(markdown, prefixes) {
   const items = []
   let inSection = false
   let fence = false
@@ -121,18 +146,20 @@ function trackerItems(markdown) {
     const plain = line.match(/^- (.*)$/)
     const hit = box || plain
     if (!hit) continue
-    items.push(parseItem(hit[1]))
+    items.push(parseItem(hit[1], prefixes))
   }
   return items
 }
 
-function parseItem(raw) {
-  let text = String(raw).trim()
-  text = text.replace(/(`?(?:#\d+|[A-Za-z][A-Za-z0-9]*-\d+)`?)\s+`?(?:done|open|closed|todo|completed|canceled|cancelled)`?\s*$/i, "$1").trim()
+function parseItem(raw, prefixes) {
+  const original = String(raw).trim()
+  let text = original.replace(/(`?(?:#\d+|[A-Za-z][A-Za-z0-9]*-\d+)`?)\s+`?(?:done|open|closed|todo|completed|canceled|cancelled)`?\s*$/i, "$1").trim()
   const idMatch = text.match(/`?(#\d+|[A-Za-z][A-Za-z0-9]*-\d+)`?$/i)
-  if (!idMatch) return { text, id: null }
+  if (!idMatch) return { text: original, id: null }
   const id = normId(idMatch[0].replace(/`/g, ""))
-  if (!id) return { text, id: null }
+  // slice-1 is not an issue id. a Linear id needs the configured team key,
+  // the security team key, or a prefix that already appears on an issue.
+  if (!id || (id.key.startsWith("lin:") && !prefixes.has(linearPrefix(id.display)))) return { text: original, id: null }
   const label = text.slice(0, idMatch.index).replace(/[\s—–-]+$/u, "").trim()
   return { text: label, id }
 }
@@ -147,10 +174,16 @@ function sortIds(displays) {
   })
 }
 
+const prefixes = configuredPrefixes()
+for (const issue of issues) {
+  const prefix = issue && typeof issue === "object" ? linearPrefix(issue.id) : null
+  if (prefix) prefixes.add(prefix)
+}
+
 const listed = []
 const listedSet = new Set()
 const planned = []
-for (const item of trackerItems(brief)) {
+for (const item of trackerItems(brief, prefixes)) {
   if (item.id) {
     if (!listedSet.has(item.id.key)) {
       listedSet.add(item.id.key)
