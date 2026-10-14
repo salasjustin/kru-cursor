@@ -2,8 +2,9 @@
 // import it. a copy in either file is a drift the tracker test refuses.
 //
 // lin_api_ is case-insensitive, suffix length >= 8, hyphens allowed.
-// password=/secret=/token= is the assignment with no space before '=', so a
-// `const token = …` in vendored docs is not a hit. the tracker flattens
+// an assignment is the word password, secret, or token inside the name, with
+// no space before '='. API_TOKEN=, DB_PASSWORD=, and SECRET_KEY= count; a
+// `const token = …` does not, because of the space. the tracker flattens
 // newlines before these run, so a key split across lines is one token.
 
 export const SECRET_PATTERNS = [
@@ -18,14 +19,17 @@ export const SECRET_PATTERNS = [
   { id: "cursor-api-key", source: String.raw`\bkey_[0-9a-f]{40,}\b` },
   { id: "bearer-token", source: String.raw`\bBearer\s+[A-Za-z0-9._~+/-]{24,}={0,2}` },
   { id: "linear-api-key", source: String.raw`\blin_api_[A-Za-z0-9-]{8,}`, flags: "i" },
-  { id: "assignment", source: String.raw`\b(?:password|secret|token)=[^\s]+`, flags: "i" },
+  // _ is not a word boundary, so API_TOKEN= and DB_PASSWORD= need an explicit
+  // separator. SECRET_KEY= is the same word with a _suffix before '='.
+  // a letter glued on the front (authToken=) is not this shape.
+  { id: "assignment", source: String.raw`(?:^|[^A-Za-z0-9])(?:[A-Za-z0-9]*_)?(?:password|secret|token)(?:_[A-Za-z0-9]+)?=[^\s]+`, flags: "i" },
 ]
 
 // customer data. the privacy scan allow-lists placeholder mailboxes; the
 // tracker does not. a phone is the tracker rule only — the scan does not
 // treat a number in vendored docs as a leak.
 export const EMAIL_SOURCE = String.raw`[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}`
-export const PHONE_SOURCE = String.raw`(?:\+\d{1,3}[-. ]?)?\(?\d{3}\)?[-. ]\d{3}[-. ]\d{4}`
+export const PHONE_SOURCE = String.raw`(?:\+\d{1,3}[-. ]?)?\(?\d{3}\)?[-. ]?\d{3}[-. ]\d{4}(?!\d)`
 
 export function secretRegs() {
   return SECRET_PATTERNS.map((p) => ({ id: p.id, re: new RegExp(p.source, p.flags || "") }))

@@ -1,7 +1,7 @@
 #!/bin/bash
 # kru-tracker.sh: the work-tracker setting. github is the default, including
 # when KRU_TRACKER is unset or empty; linear is opt-in.
-# A security finding goes to Linear, internal to the team. tracker text is a pointer to the store file; never secrets, keys, credentials, customer emails/phones or repro evidence, in any field, comment or update; MCP-path sessions apply the same rule by hand.
+# A security finding goes to Linear, internal to the team. bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand.
 # On GitHub it is refused. gh and curl are mocks, so nothing here reaches a network.
 # run: bash scripts/kru-tracker.test.sh
 set -u
@@ -205,7 +205,7 @@ not_logged "…and does not close" "issue close"
 
 run comment --id 12 --body "ghp_abcdefghijklmnopqrstuvwxyz1234"
 ok "a comment body that carries a token is refused" 1
-err_has "…and names the tracker-text rule" "pointer to the store file"
+err_has "…and names the tracker-text rule" "link to the store file"
 not_logged "…before gh" "issue comment"
 
 run update --id 12 --body "lin_api_abcdefghijklmnopqrst"
@@ -322,7 +322,7 @@ not_logged "…and does not attach the product project" '"projectId"'
 run file --kind security --title "token in the log" --body "ghp_abcdefghijklmnopqrstuvwxyz1234" \
   KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
 ok "a security body that carries a token is refused" 1
-err_has "…and names the tracker-text rule" "pointer to the store file"
+err_has "…and names the tracker-text rule" "link to the store file"
 not_logged "…before any API call" "issueCreate"
 
 run file --kind security --title "ghp_abcdefghijklmnopqrstuvwxyz1234" --body "$SEC_BODY" \
@@ -420,6 +420,76 @@ not_logged "…before gh" "issue create"
 
 run file --kind want --title "callback" --body "call +1-415-555-0199"
 ok "a phone number in a want body is refused" 1
+
+run file --kind bug --title "token" --body "API_TOKEN=abc"
+ok "an API_TOKEN assignment in a bug body is refused" 1
+not_logged "…before gh" "issue create"
+
+run file --kind bug --title "db" --body "DB_PASSWORD=hunter2"
+ok "a DB_PASSWORD assignment in a bug body is refused" 1
+
+run file --kind want --title "key" --body "SECRET_KEY=xyz"
+ok "a SECRET_KEY assignment in a want body is refused" 1
+
+run file --kind bug --title "phone" --body "call (415)555-0199"
+ok "a parenthesized phone number in a bug body is refused" 1
+
+run search --kind bug --query "see a@ex.com"
+ok "a github search query that names an email is refused" 1
+not_logged "…before gh" "issue list"
+
+run search --kind want --query "ghp_abcdefghijklmnopqrstuvwxyz1234"
+ok "a github search query that carries a token is refused" 1
+not_logged "…before gh" "issue list"
+
+run search --kind bug --query $'lin_api_abcd\nefghijkl'
+ok "a github search query with a newline-split lin_api_ key is refused" 1
+not_logged "…before gh" "issue list"
+
+run search --kind bug --query "see a@ex.com" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a linear search query that names an email is refused" 1
+not_logged "…before any API call" "query"
+
+run search --kind want --query "ghp_abcdefghijklmnopqrstuvwxyz1234" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a linear search query that carries a token is refused" 1
+not_logged "…before any API call" "query"
+
+run search --kind bug --query $'lin_api_abcd\nefghijkl' \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a linear search query with a newline-split lin_api_ key is refused" 1
+not_logged "…before any API call" "query"
+
+run file --kind security --title "token in the log" --body $'See issues/token.md\n**Repro:** open /login' \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a security body with a Repro section is refused" 1
+err_has "…and names the pointer-only rule" "pointer-only"
+not_logged "…before any API call" "query"
+
+run file --kind security --title "token in the log" --body "**Root cause:** the check" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a security body with a Root cause section is refused" 1
+
+run file --kind security --title "token in the log" --body "**Exploit:** send the payload" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a security body with an Exploit section is refused" 1
+
+long=$(printf 'x%.0s' {1..301})
+run file --kind security --title "token in the log" --body "$long" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a security body longer than 300 characters is refused" 1
+not_logged "…before any API call" "query"
+
+short=$(printf 'x%.0s' {1..300})
+run file --kind security --title "token in the log" --body "$short" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a 300-character security pointer is filed" 0
+logged "…and creates the issue" "issueCreate"
+
+run file --kind bug --title "Blank page" --body $'**Observed:** blank page\n**Repro:** open /login\n**Call sites:** src/login.ts:4'
+ok "a bug body may carry a plain repro" 0
+logged "…and still files" "issue create"
 
 run file --kind bug --title "short" --body "lin_api_abcdefg"
 ok "a 7-character lin_api_ suffix is not a key" 0
@@ -527,7 +597,7 @@ for pair in "${policy[@]}"; do
   f=${pair%%|*} n=${pair#*|}
   report "$f files security on Linear" "$(grep -qF "$n" "$repo/$f" && echo true || echo false)" "missing [$n]"
 done
-RULE='tracker text is a pointer to the store file; never secrets, keys, credentials, customer emails/phones or repro evidence, in any field, comment or update; MCP-path sessions apply the same rule by hand'
+RULE='bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand'
 for f in skills/kru-lead/SKILL.md skills/kru-lead/references/reconcile.md TRACKER.md skills/kru-issue/SKILL.md scripts/cursor/edits.mjs; do
   report "$f states the tracker-text rule" "$(grep -qF "$RULE" "$repo/$f" && echo true || echo false)" "missing the rule"
 done
@@ -543,6 +613,38 @@ report "the lead no longer keeps security off Linear" "$(grep -qF "or to Linear"
 report "the lead fork edit no longer keeps security off Linear" "$(grep -qF "or to Linear" "$repo/scripts/cursor/edits.mjs" && echo false || echo true)" "edit still says or to Linear"
 report "kru-issue files security through MCP without the script" "$(grep -qF "do not call the script" "$repo/skills/kru-issue/SKILL.md" && echo true || echo false)" "missing"
 report "…and a missing key is not exit 4" "$(grep -qF "not exit 4" "$repo/skills/kru-issue/SKILL.md" && echo true || echo false)" "missing"
+
+# every command the dispatcher implements, and the user strings it sends.
+# outbound marks a string; the send functions refuse one that was not marked.
+expected_cmds=$(printf '%s\n' backend ready file list search comment update close link 'help|-h|--help')
+actual_cmds=$(awk '
+  /^case "\$cmd" in$/ { on=1; next }
+  on && /^esac$/ { exit }
+  on && /^  \*\)/ { next }
+  on && /^  [^ )]+\)/ {
+    name=$1
+    sub(/\).*/, "", name)
+    print name
+  }
+' "$repo/scripts/kru-tracker.sh")
+report "the dispatcher commands match the census" "$([ "$actual_cmds" = "$expected_cmds" ] && echo true || echo false)" "got [$actual_cmds]"
+fn_body() {
+  awk -v fn="$1" '
+    index($0, fn "()")==1 { p=1 }
+    p && index($0, fn "()")!=1 && /^[A-Za-z_][A-Za-z0-9_]*\(\)/ { exit }
+    p { print }
+  ' "$repo/scripts/kru-tracker.sh"
+}
+report "file sends the title and the body through outbound" "$(fn_body cmd_file | grep -qF 'outbound "$TITLE"' && fn_body cmd_file | grep -qF 'outbound "$BODY" body' && echo true || echo false)" "missing"
+report "search sends the query through outbound" "$(fn_body cmd_search | grep -qF 'outbound "$QUERY"' && echo true || echo false)" "missing"
+report "comment sends the body through outbound" "$(fn_body cmd_comment | grep -qF 'outbound "$BODY" body' && echo true || echo false)" "missing"
+report "update sends the body through outbound" "$(fn_body cmd_update | grep -qF 'outbound "$BODY" body' && echo true || echo false)" "missing"
+for quiet in cmd_list cmd_ready cmd_close cmd_link; do
+  report "$quiet sends no user text" "$(fn_body "$quiet" | grep -qF outbound && echo false || echo true)" "calls outbound"
+done
+for sender in github_file github_search github_comment github_update linear_file linear_search linear_comment linear_update; do
+  report "$sender refuses unchecked text" "$(fn_body "$sender" | grep -qF require_outbound && echo true || echo false)" "missing require_outbound"
+done
 
 if (cd "$repo" && node --input-type=module -e '
 import { readFileSync } from "node:fs"
@@ -568,7 +670,12 @@ if (scan.includes("lin_api_")) fail("privacy-scan copies lin_api_")
 if (!leakIn("lin_api_abcd\nefghijkl")) fail("newline-split lin_api_ was missed")
 if (leakIn("lin_api_abcdefg")) fail("a 7-character suffix was treated as a key")
 if (!leakIn("password=hunter2")) fail("password assignment missed")
+if (!leakIn("API_TOKEN=abc")) fail("API_TOKEN assignment missed")
+if (!leakIn("DB_PASSWORD=hunter2")) fail("DB_PASSWORD assignment missed")
+if (!leakIn("SECRET_KEY=xyz")) fail("SECRET_KEY assignment missed")
+if (leakIn("const token = abc")) fail("a spaced token assignment was treated as a leak")
 if (!leakIn("+1-415-555-0199")) fail("phone missed")
+if (!leakIn("(415)555-0199")) fail("parenthesized phone missed")
 '); then
   report "privacy-scan and guard_text share one secret list" true ""
 else

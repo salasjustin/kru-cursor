@@ -16,7 +16,7 @@
 
 **The work tracker.** GitHub (`KRU_TRACKER` unset, empty, or `github`) files, lists, updates, comments and closes through `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh"`. Linear (`KRU_TRACKER=linear`) prefers the connected Linear MCP tools when this session has them. The script's API is the fallback, and `LINEAR_API_KEY` is optional — never commit one, and never read one from a plugin option. `backend` prints `github` or `linear`. `link --id` always goes through the script: it prints `Fixes #<n>` or `Linear: <id>` and needs no key. On the GitHub tracker, `--kind security` is refused (exit 3). On Linear it is filed (*Security on Linear*).
 
-**Tracker text.** tracker text is a pointer to the store file; never secrets, keys, credentials, customer emails/phones or repro evidence, in any field, comment or update; MCP-path sessions apply the same rule by hand
+**Tracker text.** bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand
 
 **Linear settings are a team key and a project name.** For example `KRU_LINEAR_TEAM=BG` and `KRU_LINEAR_PROJECT=Connector`. Those values belong to the repo; this plugin hard-codes none. An id is only for a name that is not unique. `KRU_LINEAR_SECURITY_TEAM` (for example `SEC`) is optional and files security findings on that team.
 

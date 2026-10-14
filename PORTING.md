@@ -187,10 +187,11 @@ The scan fails on tokens and keys; on emails outside the reserved example domain
   port rule; the eval prompt that named a client is dropped with `evals/`.
 - **History:** this fork keeps upstream's history unchanged — it is already public, and a shared
   history is what makes `git merge upstream/main` work. The scan finds reviewed lines in it, all
-  in upstream commits and all removed from this tree (`82976d23` `evals/homepage-copy/prompt.md`,
-  `b10943af` `skills/lead/references/lossless-doc-compaction.md`, and example `password=` / `token=` /
-  `secret=` flags in that commit's Cloudflare docs), and six gitleaks hits that are all
-  documentation placeholders in vendored Cloudflare docs. No real secret.
+  in upstream commits and removed from this tree or left as vendored examples (`82976d23` `evals/homepage-copy/prompt.md`,
+  `b10943af` `skills/lead/references/lossless-doc-compaction.md`, example `password=` / `token=` /
+  `API_TOKEN=` assignments in that commit's Cloudflare and Turborepo docs, and `94dcd7bf` Turso
+  `auth_token=` examples). The current tree's vendored copies of those docs are the same examples.
+  Six gitleaks hits are documentation placeholders in vendored Cloudflare docs. No real secret.
 
 ## License
 

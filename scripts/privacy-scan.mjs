@@ -104,6 +104,9 @@ const PATH_OK = [
   { id: "*", path: /^(scripts\/privacy-scan\.mjs|scripts\/leak-patterns\.mjs|scripts\/guard-text\.mjs|PORTING\.md)$/ },
   // the tracker test spells the probes guard_text must refuse
   { id: "*", path: /^scripts\/kru-tracker\.test\.sh$/ },
+  // vendored docs show example env assignments (API_TOKEN=, auth_token=). the
+  // tracker still refuses that shape; these files are upstream examples.
+  { id: "assignment", path: /^skills\/kru-(cloudflare|turborepo|turso-cloud|turso-db)\// },
   // the store-resolver test pins a fictional owner's store repo (`acme/kru-store`)
   { id: "private-repo", path: /^scripts\/kru-store\.test\.sh$/, line: /acme\/kru-store/ },
 ]
@@ -115,6 +118,9 @@ const HISTORY_REVIEWED = [
   { id: "client-data", commit: "82976d23", file: /^evals\/homepage-copy\/prompt\.md$/, why: "upstream eval prompt naming a public nonprofit platform as the example client; evals/ is dropped from this tree" },
   { id: "client-data", commit: "b10943af", file: /^(skills\/lead\/)?references\/lossless-doc-compaction\.md$/, why: "upstream reference naming the public repo its procedure was exercised on; rewritten in this tree by scripts/port.mjs" },
   { id: "assignment", commit: "b10943af", file: /^skills\/cloudflare\/references\//, why: "upstream cloudflare docs showing example CLI flags and catalog tokens, not a credential this repo holds; gone from this tree" },
+  { id: "assignment", commit: "b10943af", file: /^skills\/turborepo\//, why: "upstream turborepo docs showing example TURBO_TOKEN assignments, not a credential this repo holds" },
+  { id: "assignment", commit: "94dcd7bf", file: /^skills\/turso-/, why: "upstream turso docs showing example auth_token assignments, not a credential this repo holds" },
+  { id: "assignment", commit: "e411cc68", file: /^scripts\/kru-tracker\.sh$/, why: "the previous credential regex named secret before an equals sign; the line is not a credential" },
 ]
 
 function allowed(id, path, line, value) {

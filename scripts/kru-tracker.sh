@@ -18,9 +18,9 @@
 # anything else in KRU_TRACKER is a refusal (exit 2), not a fall-through to
 # GitHub. on github, a security finding is refused (exit 3): the store's
 # issues/, or a GitHub private security advisory and that advisory's private
-# fork. on linear it is filed, internal to the team. tracker text is a pointer
-# to the store file; never secrets, keys, credentials, customer emails/phones
-# or repro evidence, in any field, comment or update.
+# fork. on linear it is filed, internal to the team. bug and want issues may
+# carry a plain repro; a security issue is a short pointer to the store file.
+# the sentence is TRACKER_TEXT, the same one TRACKER.md states once.
 # exit 4 means this process can't take an item. on linear with no key, that is
 # the API fallback only — a session whose Linear MCP tools are connected files
 # there instead (TRACKER.md) and does not treat exit 4 as a reason to use the
@@ -105,7 +105,8 @@ label_for() {
 # scripts/leak-patterns.mjs — the same list scripts/privacy-scan.mjs uses.
 # newlines are flattened there, so a key split across lines is one token.
 kru_dir=$(cd "$(dirname "$0")" && pwd)
-TRACKER_TEXT='tracker text is a pointer to the store file; never secrets, keys, credentials, customer emails/phones or repro evidence, in any field, comment or update; MCP-path sessions apply the same rule by hand'
+TRACKER_TEXT='bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand'
+SECURITY_BODY_MAX=300
 
 guard_text() {
   local text=$1 code
@@ -116,6 +117,36 @@ guard_text() {
     1) die "$TRACKER_TEXT" ;;
     *) die "could not check tracker text" ;;
   esac
+}
+
+# a security body is a short pointer. bug and want bodies are not checked here.
+guard_security_body() {
+  local text=$1
+  [ "${#text}" -le "$SECURITY_BODY_MAX" ] || die "$TRACKER_TEXT"
+  if printf '%s\n' "$text" | grep -Eiq '(^|[^[:alnum:]])([*#_[:space:]-]*)(repro|root cause|exploit)([*[:space:]]*):|^[[:space:]]*#{1,6}[[:space:]]*(repro|root cause|exploit)[[:space:]]*$'; then
+    die "$TRACKER_TEXT"
+  fi
+}
+
+# the only way a user string reaches gh or Linear. send functions call
+# require_outbound and refuse a string that never came through here, so a
+# command cannot skip the check by passing TITLE, BODY, or QUERY itself.
+outbound() {
+  local text=$1 role=${2:-}
+  guard_text "$text"
+  if [ "$role" = body ] && [ "${KIND:-}" = security ]; then
+    guard_security_body "$text"
+  fi
+  printf '%s\0' "$text" >> "$kru_tmp/outbound"
+}
+
+require_outbound() {
+  local text=$1 rec
+  [ -f "$kru_tmp/outbound" ] || die "refusing to send tracker text that was not checked"
+  while IFS= read -r -d '' rec || [ -n "$rec" ]; do
+    [ "$rec" = "$text" ] && return 0
+  done < "$kru_tmp/outbound"
+  die "refusing to send tracker text that was not checked"
 }
 
 linear_id() {
@@ -165,6 +196,8 @@ github_id_from_url() {
 
 github_file() {
   local label=$1 title=$2 body=$3 url
+  require_outbound "$title"
+  require_outbound "$body"
   if url=$(gh issue create --label "$label" --title "$title" --body "$body" 2>"$kru_tmp/gh.err"); then
     :
   elif grep -qi 'label' "$kru_tmp/gh.err"; then
@@ -201,14 +234,15 @@ github_list() {
 # pass is capped so it cannot pull the whole repo.
 github_search() {
   local label=$1 query=$2 labeled bare
+  require_outbound "$query"
   need_jq
   labeled=$(gh issue list --label "$label" --state open --limit 10 --search "$query" --json number,title,body,url) || die "gh issue list failed"
   bare=$(gh issue list --state open --limit 20 --search "no:label $query" --json number,title,body,url) || die "gh issue list failed"
   jq -n --argjson a "$labeled" --argjson b "$bare" '$a + $b | unique_by(.number)' | github_rows
 }
 
-github_comment() { github_number "$1"; gh issue comment "$1" --body "$2" >/dev/null || die "gh issue comment failed"; printf '%s\n' "$1"; }
-github_update() { github_number "$1"; gh issue edit "$1" --body "$2" >/dev/null || die "gh issue edit failed"; printf '%s\n' "$1"; }
+github_comment() { github_number "$1"; require_outbound "$2"; gh issue comment "$1" --body "$2" >/dev/null || die "gh issue comment failed"; printf '%s\n' "$1"; }
+github_update() { github_number "$1"; require_outbound "$2"; gh issue edit "$1" --body "$2" >/dev/null || die "gh issue edit failed"; printf '%s\n' "$1"; }
 github_close() { github_number "$1"; gh issue close "$1" >/dev/null || die "gh issue close failed"; printf '%s\n' "$1"; }
 
 # --- linear -------------------------------------------------------------------
@@ -340,6 +374,7 @@ linear_list() {
 
 linear_search() {
   local label=$1 query=$2 data
+  require_outbound "$query"
   if [ -n "$_project_id" ]; then
     data=$(linear_gql 'query($team:ID!, $project:ID!, $label:String!, $q:String!){ issues(first:10, filter:{team:{id:{eq:$team}}, project:{id:{eq:$project}}, labels:{name:{eqIgnoreCase:$label}}, state:{type:{nin:[completed, canceled]}}, or:[{title:{containsIgnoreCase:$q}}, {description:{containsIgnoreCase:$q}}]}){ nodes { identifier title description url } } }' \
       "$(jq -n --arg team "$_team_id" --arg project "$_project_id" --arg label "$label" --arg q "$query" '{team:$team, project:$project, label:$label, q:$q}')") || exit $?
@@ -358,6 +393,8 @@ linear_issue() {
 
 linear_file() {
   local label=$1 title=$2 body=$3 lid data id url input
+  require_outbound "$title"
+  require_outbound "$body"
   lid=$(linear_label_id "$label" create) || exit $?
   if [ -n "$_project_id" ]; then
     input=$(jq -n --arg team "$_team_id" --arg project "$_project_id" --arg title "$title" --arg body "$body" --arg label "$lid" '{input:{teamId:$team, projectId:$project, title:$title, description:$body, labelIds:[$label]}}')
@@ -373,6 +410,7 @@ linear_file() {
 
 linear_comment() {
   local key=$1 body=$2 issue uuid
+  require_outbound "$body"
   issue=$(linear_issue "$key") || exit $?
   uuid=$(jq -r '.id' <<<"$issue")
   linear_gql 'mutation($input:CommentCreateInput!){ commentCreate(input:$input){ success } }' \
@@ -382,6 +420,7 @@ linear_comment() {
 
 linear_update() {
   local key=$1 body=$2 issue uuid
+  require_outbound "$body"
   issue=$(linear_issue "$key") || exit $?
   uuid=$(jq -r '.id' <<<"$issue")
   linear_gql 'mutation($id:String!, $input:IssueUpdateInput!){ issueUpdate(id:$id, input:$input){ success } }' \
@@ -420,8 +459,8 @@ cmd_file() {
   [ "$KIND_SET" = 1 ] || die "file needs --kind bug|want|security"
   [ -n "$TITLE" ] || die "file needs --title"
   [ "$BODY_SET" = 1 ] || die "file needs --body"
-  guard_text "$TITLE"
-  guard_text "$BODY"
+  outbound "$TITLE"
+  outbound "$BODY" body
   require_backend
   local label
   label=$(label_for "$KIND") || exit $?
@@ -449,6 +488,7 @@ cmd_list() {
 cmd_search() {
   [ "$KIND_SET" = 1 ] || die "search needs --kind bug|want|security"
   [ -n "$QUERY" ] || die "search needs --query"
+  outbound "$QUERY"
   require_backend
   local label
   label=$(label_for "$KIND") || exit $?
@@ -463,7 +503,7 @@ cmd_search() {
 cmd_comment() {
   [ -n "$ID" ] || die "comment needs --id"
   [ "$BODY_SET" = 1 ] || die "comment needs --body"
-  guard_text "$BODY"
+  outbound "$BODY" body
   require_backend
   [ "$BACKEND" = linear ] && linear_id "$ID"
   cmd_ready
@@ -476,7 +516,7 @@ cmd_comment() {
 cmd_update() {
   [ -n "$ID" ] || die "update needs --id"
   [ "$BODY_SET" = 1 ] || die "update needs --body"
-  guard_text "$BODY"
+  outbound "$BODY" body
   require_backend
   [ "$BACKEND" = linear ] && linear_id "$ID"
   cmd_ready
