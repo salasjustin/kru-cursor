@@ -160,6 +160,7 @@ documented counterpart exists. The port still counts the leftovers (`WATCH` in `
   that name ([skills](https://cursor.com/docs/skills)). `lead` still triages a card if one arrives.
   The closed ledger still records the mod.
 - **`/kru-eval-review`.** Still audits a `claude plugin eval` suite. Cursor has no eval runner.
+- **wayfinder's `prototype` skill.** `skills/kru-wayfinder/SKILL.md` still says to call a skill named `prototype`. It is not vendored here and it is not a Cursor built-in ([skills](https://cursor.com/docs/skills)). `grilling` and `domain-modeling` are vendored. The sentence is left as written.
 - **Per-seat models in the CLI.** `cursor-agent` 2026.10.01 runs a plugin's agents on the parent's
   model (`MODELS.md`).
 - **Task input and plugin hooks on cloud agents are partly undocumented.** The shape of `tool_input`
