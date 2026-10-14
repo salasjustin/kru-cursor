@@ -49,7 +49,7 @@ body=""
 case "$q" in
   *'team(id:'*) body='{"data":{"team":{"id":"team-1"}}}' ;;
   *'teams(filter'*)
-    if [ "$(jq -r .variables.key <<<"$data")" = ENG ]; then
+    if [ "$(jq -r .variables.key <<<"$data")" = BG ]; then
       body='{"data":{"teams":{"nodes":[{"id":"team-1"}]}}}'
     else
       body='{"data":{"teams":{"nodes":[]}}}'
@@ -66,12 +66,12 @@ case "$q" in
     fi
     ;;
   *issueLabels*) body='{"data":{"issueLabels":{"nodes":[{"id":"lab-bug","name":"Bug"},{"id":"lab-enh","name":"enhancement"}]}}}' ;;
-  *issueCreate*) body='{"data":{"issueCreate":{"success":true,"issue":{"identifier":"ENG-41","url":"https://linear.app/acme/issue/ENG-41"}}}}' ;;
-  *'issue(id:'*) body='{"data":{"issue":{"id":"11111111-1111-1111-1111-111111111111","identifier":"ENG-41","url":"https://linear.app/acme/issue/ENG-41","team":{"id":"team-1"},"state":{"type":"started"}}}}' ;;
+  *issueCreate*) body='{"data":{"issueCreate":{"success":true,"issue":{"identifier":"BG-41","url":"https://linear.app/acme/issue/BG-41"}}}}' ;;
+  *'issue(id:'*) body='{"data":{"issue":{"id":"11111111-1111-1111-1111-111111111111","identifier":"BG-41","url":"https://linear.app/acme/issue/BG-41","team":{"id":"team-1"},"state":{"type":"started"}}}}' ;;
   *commentCreate*) body='{"data":{"commentCreate":{"success":true}}}' ;;
   *workflowStates*) body='{"data":{"workflowStates":{"nodes":[{"id":"state-done","name":"Done","position":1}]}}}' ;;
   *issueUpdate*) body='{"data":{"issueUpdate":{"success":true}}}' ;;
-  *'issues(first:'*) body='{"data":{"issues":{"nodes":[{"identifier":"ENG-41","title":"Flaky login","description":"value: 4","url":"https://linear.app/acme/issue/ENG-41"}]}}}' ;;
+  *'issues(first:'*) body='{"data":{"issues":{"nodes":[{"identifier":"BG-41","title":"Flaky login","description":"value: 4","url":"https://linear.app/acme/issue/BG-41"}]}}}' ;;
   *) printf 'unexpected linear query\n' >&2; exit 1 ;;
 esac
 printf '%s' "$body" > "$out"
@@ -179,7 +179,7 @@ logged "github close" "issue close 12"
 run link --id 12
 is "a github pull request closes with Fixes" "Fixes #12"
 
-run link --id ENG-41
+run link --id BG-41
 ok "a Linear id is not a github Fixes line" 1
 
 run file --kind security --title "token in the log" --body "secret"
@@ -188,18 +188,28 @@ err_has "…and names the private destinations" "private security advisory"
 not_logged "…and does not call gh" "issue"
 
 run ready KRU_TRACKER=linear
-ok "linear without a key is not ready" 4
-err_has "…names the key and the MCP fallback" "LINEAR_API_KEY"
-err_has "…names MCP" "Linear MCP"
+ok "linear without a team key is not ready" 4
+err_has "…names the team key" "KRU_LINEAR_TEAM"
 not_logged "…and does not call the API" "query"
 
-run ready KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=ENG
-ok "linear without a project is not ready" 4
+run ready KRU_TRACKER=linear KRU_LINEAR_TEAM=BG
+ok "linear without a project name is not ready" 4
+err_has "…names the project" "KRU_LINEAR_PROJECT"
+
+run ready KRU_TRACKER=linear KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Connector
+ok "linear without a key defers to MCP" 4
+err_has "…the key is optional" "optional"
+err_has "…names MCP" "Linear MCP"
+err_has "…names the project name" "project name"
+not_logged "…and does not call the API" "query"
+
+run ready KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG
+ok "linear with a key still needs a project name" 4
 err_has "…names the project" "KRU_LINEAR_PROJECT"
 
 run file --kind bug --title "Flaky login" --body "severity: medium" \
-  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=ENG KRU_LINEAR_PROJECT=Platform
-is "linear file prints the identifier and url" $'ENG-41\thttps://linear.app/acme/issue/ENG-41'
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+is "linear file prints the identifier and url" $'BG-41\thttps://linear.app/acme/issue/BG-41'
 quiet_key "the key is not printed"
 logged "…the create carries the team, the project and the bug label" '"teamId":"team-1"'
 logged "…project id" '"projectId":"proj-1"'
@@ -211,45 +221,45 @@ else
 fi
 
 run file --kind want --title "Remember me" --body "value: 4" \
-  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=eng KRU_LINEAR_PROJECT=Platform
-logged "a lowercase team key is retried in uppercase" '"key":"ENG"'
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=bg KRU_LINEAR_PROJECT=Platform
+logged "a lowercase team key is retried in uppercase" '"key":"BG"'
 logged "a want uses the enhancement label" "lab-enh"
 
 run list --kind want \
-  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=ENG KRU_LINEAR_PROJECT=Platform
-is "linear list uses the identifier as id" '[{"id":"ENG-41","title":"Flaky login","body":"value: 4","url":"https://linear.app/acme/issue/ENG-41"}]'
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+is "linear list uses the identifier as id" '[{"id":"BG-41","title":"Flaky login","body":"value: 4","url":"https://linear.app/acme/issue/BG-41"}]'
 
 run search --kind bug --query "flaky" \
-  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=ENG KRU_LINEAR_PROJECT=Platform
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
 logged "linear search is the team, the project and the query" '"q":"flaky"'
 
-run comment --id ENG-41 --body "more" \
-  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=ENG KRU_LINEAR_PROJECT=Platform
-is "linear comment prints the identifier" ENG-41
+run comment --id BG-41 --body "more" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+is "linear comment prints the identifier" BG-41
 logged "…commentCreate uses the issue uuid" '"issueId":"11111111-1111-1111-1111-111111111111"'
 
-run update --id ENG-41 --body "value: 5" \
-  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=ENG KRU_LINEAR_PROJECT=Platform
+run update --id BG-41 --body "value: 5" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
 logged "linear update writes the description" '"description":"value: 5"'
 
-run close --id ENG-41 \
-  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=ENG KRU_LINEAR_PROJECT=Platform
-is "linear close prints the identifier" ENG-41
+run close --id BG-41 \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+is "linear close prints the identifier" BG-41
 logged "…and sets the completed state" '"stateId":"state-done"'
 
-run link --id ENG-41 KRU_TRACKER=linear
-is "a linear pull request links the identifier" "Linear: ENG-41"
+run link --id BG-41 KRU_TRACKER=linear
+is "a linear pull request links the identifier" "Linear: BG-41"
 
 run link --id 12 KRU_TRACKER=linear
 ok "a github number is not a Linear link" 1
 
 run file --kind security --title "leaked token" --body "x" \
-  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=ENG KRU_LINEAR_PROJECT=Platform
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
 ok "security is refused on linear" 3
 not_logged "…before any API call" "query"
 quiet_key "…and the key stays unprinted"
 
-run ready KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=ENG KRU_LINEAR_PROJECT=Platform KRU_TEST_PROJECTS=2
+run ready KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform KRU_TEST_PROJECTS=2
 ok "two projects with one name are not ready" 4
 err_has "…asks for the project id" "project id"
 
@@ -259,7 +269,7 @@ is "a claude plugin option fills KRU_TRACKER when unset" linear
 run backend KRU_TRACKER=github CLAUDE_PLUGIN_OPTION_KRU_TRACKER=linear
 is "an exported KRU_TRACKER beats the plugin option" github
 
-run ready KRU_TRACKER=linear CLAUDE_PLUGIN_OPTION_LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=ENG KRU_LINEAR_PROJECT=Platform
+run ready KRU_TRACKER=linear CLAUDE_PLUGIN_OPTION_LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
 ok "the API key is never taken from a plugin option" 4
 err_has "…still asks for the environment key" "LINEAR_API_KEY"
 
@@ -275,7 +285,9 @@ report "no skill, seat, hook, reference or fork edit calls gh issue directly" \
   "$([ -z "$banned" ] && echo true || echo false)" "$banned"
 
 needles=(
-  "TRACKER.md|KRU_TRACKER"
+  "TRACKER.md|KRU_LINEAR_PROJECT=Connector"
+  "TRACKER.md|Linear MCP"
+  "README.md|LINEAR_API_KEY"
   "PORTING.md|KRU_TRACKER"
   "README.md|KRU_LINEAR_TEAM"
   "references/store.md|kru-tracker.sh"

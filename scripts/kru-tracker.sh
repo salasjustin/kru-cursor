@@ -3,22 +3,26 @@
 # calls `gh` or the Linear API itself and drifts from the setting.
 #
 #   KRU_TRACKER          github (default: unset or empty) | linear
-#   KRU_LINEAR_TEAM      Linear team key (ENG) or id — required for linear
-#   KRU_LINEAR_PROJECT   Linear project name or id — required for linear
-#   LINEAR_API_KEY       Linear API key, from the environment only. never
+#   KRU_LINEAR_TEAM      Linear team key (BG) — required for linear
+#   KRU_LINEAR_PROJECT   Linear project name (Connector) — required for linear
+#   LINEAR_API_KEY       optional. the API fallback when Linear MCP tools are
+#                        not connected. from the environment only: never
 #                        committed, never read from a plugin option, never printed
 #
 # anything else in KRU_TRACKER is a refusal (exit 2), not a fall-through to
 # GitHub. a security finding is refused on both settings (exit 3): the store's
 # issues/, or a GitHub private security advisory and that advisory's private
-# fork. exit 4 means the chosen tracker can't take an item — the caller falls
-# back to the store and repeats the reason.
+# fork. exit 4 means this process can't take an item. on linear with no key,
+# that is the API fallback only — a session whose Linear MCP tools are
+# connected files there instead (TRACKER.md → Linear MCP) and does not treat
+# exit 4 as a reason to use the store.
 #
-# linear calls https://api.linear.app/graphql. when LINEAR_API_KEY is unset and
-# the Linear MCP server is connected, TRACKER.md allows the same file, list,
-# search, comment, update and close operations through its tools (same team,
-# same project, labels bug and enhancement, still never security). this script
-# is the path the tests cover and the path when MCP is absent.
+# one workspace, one team, key BG. one project per product, by name: Platform,
+# Connector, Standalone, Nonprofits API, Kru. the setting is the team key
+# and the project name.
+#
+# prefer those MCP tools when the agent has them. this script calls
+# https://api.linear.app/graphql only as the fallback, and only with a key.
 #
 # pull requests stay on GitHub. `link --id` prints the body line: `Fixes #<n>`
 # or `Linear: ENG-123`. merge closes the GitHub issue; a Linear issue closes
@@ -169,10 +173,14 @@ github_close() { gh issue close "$1" >/dev/null || die "gh issue close failed"; 
 _team_id=""
 _project_id=""
 
+linear_key_missing() {
+  not_ready "LINEAR_API_KEY is unset. The key is optional. When Linear MCP tools are connected, use those — team key ${KRU_LINEAR_TEAM:-<KRU_LINEAR_TEAM>}, project name ${KRU_LINEAR_PROJECT:-<KRU_LINEAR_PROJECT>}, labels bug and enhancement — and do not fall back to the store. This script is the API fallback for when those tools are not connected, so this tracker is not ready. Never commit a key. Never send a security finding."
+}
+
 linear_gql() {
   local query=$1 vars=$2 payload code
-  [ -n "${LINEAR_API_KEY:-}" ] || not_ready "LINEAR_API_KEY is unset. Export it (never commit it). When the Linear MCP server is connected, file, list, search, comment, update and close through its tools instead — team ${KRU_LINEAR_TEAM:-<KRU_LINEAR_TEAM>}, project ${KRU_LINEAR_PROJECT:-<KRU_LINEAR_PROJECT>}, labels bug and enhancement — and still never send a security finding."
-  command -v curl >/dev/null 2>&1 || not_ready "curl is not on PATH; the Linear API needs it. When the Linear MCP server is connected, use its tools instead."
+  [ -n "${LINEAR_API_KEY:-}" ] || linear_key_missing
+  command -v curl >/dev/null 2>&1 || not_ready "curl is not on PATH. When Linear MCP tools are connected, use those instead; the key is optional. Otherwise this tracker is not ready."
   need_jq
   payload=$(jq -nc --arg q "$query" --argjson v "$vars" '{query:$q, variables:$v}') || die "could not encode the Linear request"
   code=$(curl -sS --max-time 30 --proto '=https' -o "$kru_tmp/body" -w '%{http_code}' \
@@ -189,7 +197,7 @@ linear_gql() {
 
 linear_team_id() {
   local raw=${KRU_LINEAR_TEAM:-} data id
-  [ -n "$raw" ] || not_ready "KRU_LINEAR_TEAM is unset"
+  [ -n "$raw" ] || not_ready "KRU_LINEAR_TEAM is unset. Set the team key, for example BG."
   if is_uuid "$raw"; then
     data=$(linear_gql 'query($id:String!){ team(id:$id){ id } }' "$(jq -n --arg id "$raw" '{id:$id}')") || exit $?
     id=$(jq -r '.team.id // empty' <<<"$data")
@@ -213,7 +221,7 @@ linear_team_id() {
 
 linear_project_id() {
   local raw=${KRU_LINEAR_PROJECT:-} data id count
-  [ -n "$raw" ] || not_ready "KRU_LINEAR_PROJECT is unset"
+  [ -n "$raw" ] || not_ready "KRU_LINEAR_PROJECT is unset. Set the project name, for example Connector."
   if is_uuid "$raw"; then
     data=$(linear_gql 'query($id:String!){ project(id:$id){ id } }' "$(jq -n --arg id "$raw" '{id:$id}')") || exit $?
     id=$(jq -r '.project.id // empty' <<<"$data")
@@ -234,8 +242,10 @@ ensure_linear() {
 }
 
 linear_ready() {
-  [ -n "${LINEAR_API_KEY:-}" ] || not_ready "LINEAR_API_KEY is unset. Export it (never commit it). When the Linear MCP server is connected, file, list, search, comment, update and close through its tools instead — team ${KRU_LINEAR_TEAM:-<KRU_LINEAR_TEAM>}, project ${KRU_LINEAR_PROJECT:-<KRU_LINEAR_PROJECT>}, labels bug and enhancement — and still never send a security finding."
-  command -v curl >/dev/null 2>&1 || not_ready "curl is not on PATH; the Linear API needs it. When the Linear MCP server is connected, use its tools instead."
+  [ -n "${KRU_LINEAR_TEAM:-}" ] || not_ready "KRU_LINEAR_TEAM is unset. Set the team key, for example BG."
+  [ -n "${KRU_LINEAR_PROJECT:-}" ] || not_ready "KRU_LINEAR_PROJECT is unset. Set the project name, for example Connector."
+  [ -n "${LINEAR_API_KEY:-}" ] || linear_key_missing
+  command -v curl >/dev/null 2>&1 || not_ready "curl is not on PATH. When Linear MCP tools are connected, use those instead; the key is optional. Otherwise this tracker is not ready."
   ensure_linear
 }
 
