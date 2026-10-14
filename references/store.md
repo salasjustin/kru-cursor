@@ -7,7 +7,7 @@ The team writes two kinds of durable state, and they have different lifetimes:
 - **Project** — one project's plan of record: `TODOS.md`, `issues/`, `notes/`, `plan/`
   (`TRACKER.md` owns its layout).
 
-The project root is the private half of tracking: security findings and the team's scratch todos live here, while normal bugs and product wants go to the work tracker (`bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh"`, GitHub unless `KRU_TRACKER=linear`). Which goes where is `TRACKER.md` → *Where each thing is tracked*. On Linear, prefer the connected MCP tools; an API key is optional (*Linear MCP*). Security never goes to Linear.
+The project root is the private half of tracking: security findings and the team's scratch todos live here, while normal bugs and product wants go to the work tracker (`bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh"`, GitHub unless `KRU_TRACKER=linear`). Which goes where is `TRACKER.md` → *Where each thing is tracked*. On Linear, prefer the connected MCP tools; an API key is optional (*Linear MCP*). A security finding stays in this store on the GitHub tracker. On Linear the tracker issue points at the store file and does not carry the evidence (*Security on Linear*).
 
 **`scripts/kru-store.sh` resolves both.** It is the single source of truth for where the store sits:
 

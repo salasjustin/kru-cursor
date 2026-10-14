@@ -49,11 +49,11 @@ body=""
 case "$q" in
   *'team(id:'*) body='{"data":{"team":{"id":"team-1"}}}' ;;
   *'teams(filter'*)
-    if [ "$(jq -r .variables.key <<<"$data")" = BG ]; then
-      body='{"data":{"teams":{"nodes":[{"id":"team-1"}]}}}'
-    else
-      body='{"data":{"teams":{"nodes":[]}}}'
-    fi
+    case "$(jq -r .variables.key <<<"$data")" in
+      BG) body='{"data":{"teams":{"nodes":[{"id":"team-1"}]}}}' ;;
+      SEC) body='{"data":{"teams":{"nodes":[{"id":"team-sec"}]}}}' ;;
+      *) body='{"data":{"teams":{"nodes":[]}}}' ;;
+    esac
     ;;
   *'project(id:'*) body='{"data":{"project":{"id":"proj-1"}}}' ;;
   *'projects(filter'*)
@@ -65,6 +65,7 @@ case "$q" in
       body='{"data":{"projects":{"nodes":[{"id":"proj-1"}]}}}'
     fi
     ;;
+  *issueLabelCreate*) body='{"data":{"issueLabelCreate":{"success":true,"issueLabel":{"id":"lab-sec"}}}}' ;;
   *issueLabels*) body='{"data":{"issueLabels":{"nodes":[{"id":"lab-bug","name":"Bug"},{"id":"lab-enh","name":"enhancement"}]}}}' ;;
   *issueCreate*) body='{"data":{"issueCreate":{"success":true,"issue":{"identifier":"BG-41","url":"https://linear.app/acme/issue/BG-41"}}}}' ;;
   *'issue(id:'*) body='{"data":{"issue":{"id":"11111111-1111-1111-1111-111111111111","identifier":"BG-41","url":"https://linear.app/acme/issue/BG-41","team":{"id":"team-1"},"state":{"type":"started"}}}}' ;;
@@ -102,9 +103,10 @@ run() {
   : > "$sandbox/log"
   : > "$sandbox/log.headers"
   err=$(mktemp)
-  out=$(env -u KRU_TRACKER -u KRU_LINEAR_TEAM -u KRU_LINEAR_PROJECT -u LINEAR_API_KEY \
+  out=$(env -u KRU_TRACKER -u KRU_LINEAR_TEAM -u KRU_LINEAR_PROJECT -u KRU_LINEAR_SECURITY_TEAM -u LINEAR_API_KEY \
     -u CLAUDE_PLUGIN_OPTION_KRU_TRACKER -u CLAUDE_PLUGIN_OPTION_KRU_LINEAR_TEAM \
-    -u CLAUDE_PLUGIN_OPTION_KRU_LINEAR_PROJECT -u CLAUDE_PLUGIN_OPTION_LINEAR_API_KEY \
+    -u CLAUDE_PLUGIN_OPTION_KRU_LINEAR_PROJECT -u CLAUDE_PLUGIN_OPTION_KRU_LINEAR_SECURITY_TEAM \
+    -u CLAUDE_PLUGIN_OPTION_LINEAR_API_KEY \
     -u KRU_TEST_REFUSE_LABEL -u KRU_TEST_PROJECTS \
     PATH="$bin:$PATH" KRU_TEST_LOG="$sandbox/log" \
     ${envs[@]+"${envs[@]}"} bash "$tracker" "${args[@]}" 2>"$err")
@@ -253,11 +255,30 @@ is "a linear pull request links the identifier" "Linear: BG-41"
 run link --id 12 KRU_TRACKER=linear
 ok "a github number is not a Linear link" 1
 
-run file --kind security --title "leaked token" --body "x" \
+SEC_BODY='A token is written to the log. Evidence: the private store file issues/token-in-the-log.md'
+run file --kind security --title "token in the log" --body "$SEC_BODY" \
   KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
-ok "security is refused on linear" 3
-not_logged "…before any API call" "query"
+is "linear security on the main team prints the identifier" $'BG-41\thttps://linear.app/acme/issue/BG-41'
+logged "…uses the main team and the product project" '"teamId":"team-1"'
+logged "…project" '"projectId":"proj-1"'
+logged "…and the security label" '"labelIds":["lab-sec"]'
 quiet_key "…and the key stays unprinted"
+
+run file --kind security --title "token in the log" --body "$SEC_BODY" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform KRU_LINEAR_SECURITY_TEAM=SEC
+logged "a security team replaces the main team" '"teamId":"team-sec"'
+not_logged "…and does not attach the product project" '"projectId"'
+
+run file --kind security --title "token in the log" --body "ghp_abcdefghijklmnopqrst" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a security body that carries a token is refused" 1
+err_has "…and names the body rule" "pointer to where the evidence is kept"
+not_logged "…before any API call" "issueCreate"
+
+run list --kind security \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform KRU_LINEAR_SECURITY_TEAM=sec
+logged "a lowercase security team key is retried in uppercase" '"key":"SEC"'
+not_logged "…list on that team has no product project" '"project"'
 
 run ready KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform KRU_TEST_PROJECTS=2
 ok "two projects with one name are not ready" 4
@@ -285,7 +306,8 @@ report "no skill, seat, hook, reference or fork edit calls gh issue directly" \
   "$([ -z "$banned" ] && echo true || echo false)" "$banned"
 
 needles=(
-  "TRACKER.md|KRU_LINEAR_PROJECT=Connector"
+  "TRACKER.md|KRU_LINEAR_SECURITY_TEAM"
+  "skills/kru-issue/SKILL.md|pointer"
   "TRACKER.md|Linear MCP"
   "README.md|LINEAR_API_KEY"
   "PORTING.md|KRU_TRACKER"

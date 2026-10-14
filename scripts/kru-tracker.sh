@@ -2,24 +2,27 @@
 # the work tracker: bugs and product wants. one command so a skill never
 # calls `gh` or the Linear API itself and drifts from the setting.
 #
-#   KRU_TRACKER          github (default: unset or empty) | linear
-#   KRU_LINEAR_TEAM      Linear team key (BG) — required for linear
-#   KRU_LINEAR_PROJECT   Linear project name (Connector) — required for linear
-#   LINEAR_API_KEY       optional. the API fallback when Linear MCP tools are
-#                        not connected. from the environment only: never
-#                        committed, never read from a plugin option, never printed
+#   KRU_TRACKER                 github (default: unset or empty) | linear
+#   KRU_LINEAR_TEAM             Linear team key — required for linear.
+#                               an example is BG, not a default.
+#   KRU_LINEAR_PROJECT          Linear project name — required for linear.
+#                               an example is Connector, not a default.
+#   KRU_LINEAR_SECURITY_TEAM    optional. linear only. security findings go
+#                               to this team. unset: the main team, with the
+#                               label security, in KRU_LINEAR_PROJECT.
+#   LINEAR_API_KEY              optional. the API fallback when Linear MCP
+#                               tools are not connected. from the environment
+#                               only: never committed, never read from a
+#                               plugin option, never printed
 #
 # anything else in KRU_TRACKER is a refusal (exit 2), not a fall-through to
-# GitHub. a security finding is refused on both settings (exit 3): the store's
+# GitHub. on github, a security finding is refused (exit 3): the store's
 # issues/, or a GitHub private security advisory and that advisory's private
-# fork. exit 4 means this process can't take an item. on linear with no key,
-# that is the API fallback only — a session whose Linear MCP tools are
-# connected files there instead (TRACKER.md → Linear MCP) and does not treat
-# exit 4 as a reason to use the store.
-#
-# one workspace, one team, key BG. one project per product, by name: Platform,
-# Connector, Standalone, Nonprofits API, Kru. the setting is the team key
-# and the project name.
+# fork. on linear it is filed, and its body may only be a description and a
+# pointer to where the evidence is kept. exit 4 means this process can't take
+# an item. on linear with no key, that is the API fallback only — a session
+# whose Linear MCP tools are connected files there instead (TRACKER.md) and
+# does not treat exit 4 as a reason to use the store.
 #
 # prefer those MCP tools when the agent has them. this script calls
 # https://api.linear.app/graphql only as the fallback, and only with a key.
@@ -28,9 +31,9 @@
 # or `Linear: ENG-123`. merge closes the GitHub issue; a Linear issue closes
 # with `close`.
 #
-#   file    --kind bug|want --title T --body B     prints id<TAB>url
-#   list    --kind bug|want                        JSON [{id,title,body,url}]
-#   search  --kind bug|want --query Q              the same JSON, at most 10
+#   file    --kind bug|want|security --title T --body B   prints id<TAB>url
+#   list    --kind bug|want|security                      JSON [{id,title,body,url}]
+#   search  --kind bug|want|security --query Q            the same JSON, at most 10
 #   comment --id ID --body B                       prints id
 #   update  --id ID --body B                       prints id
 #   close   --id ID                                prints id
@@ -43,7 +46,7 @@
 set -u
 set -o pipefail
 
-for _kru_key in KRU_TRACKER KRU_LINEAR_TEAM KRU_LINEAR_PROJECT; do
+for _kru_key in KRU_TRACKER KRU_LINEAR_TEAM KRU_LINEAR_PROJECT KRU_LINEAR_SECURITY_TEAM; do
   _kru_opt="CLAUDE_PLUGIN_OPTION_$_kru_key"
   [ -z "${!_kru_key:-}" ] && [ -n "${!_kru_opt:-}" ] && export "$_kru_key=${!_kru_opt}"
 done
@@ -55,7 +58,7 @@ trap 'rm -rf "$kru_tmp"' EXIT
 die() { printf 'kru tracker: %s\n' "$*" >&2; exit 1; }
 not_ready() { printf 'kru tracker: %s\n' "$*" >&2; exit 4; }
 refuse_security() {
-  printf '%s\n' "kru tracker: a security finding stays in the store's issues/ or a GitHub private security advisory (or that advisory's private fork). It is never filed on the work tracker — not a public GitHub issue, and not Linear." >&2
+  printf '%s\n' "kru tracker: on the GitHub tracker a security finding stays in the store's issues/ or a GitHub private security advisory (or that advisory's private fork). It is never a public GitHub issue." >&2
   exit 3
 }
 
@@ -87,9 +90,22 @@ label_for() {
   case "$1" in
     bug) printf bug ;;
     want) printf enhancement ;;
-    security) refuse_security ;;
-    *) die "kind must be bug or want" ;;
+    security)
+      if [ "$BACKEND" = linear ]; then printf security
+      else refuse_security
+      fi
+      ;;
+    *) die "kind must be bug, want, or security" ;;
   esac
+}
+
+# a security body is a description and a pointer. credential-shaped text is
+# refused. the skill owns the rest: no customer data, no pasted evidence.
+security_body_ok() {
+  local body=$1
+  if printf '%s' "$body" | grep -Eq -- '-----BEGIN [A-Z ]*PRIVATE KEY-----|\bgh[pousr]_[A-Za-z0-9]{20,}|\bgithub_pat_[A-Za-z0-9_]{20,}|\bsk-[A-Za-z0-9_-]{16,}|\bAKIA[0-9A-Z]{16}|\bxox[abposr]-[A-Za-z0-9-]{10,}'; then
+    die "a security issue body is a description and a pointer to where the evidence is kept. It must not include a secret, a key, or customer data."
+  fi
 }
 
 need_jq() { command -v jq >/dev/null 2>&1 || die "need jq on PATH"; }
@@ -174,7 +190,7 @@ _team_id=""
 _project_id=""
 
 linear_key_missing() {
-  not_ready "LINEAR_API_KEY is unset. The key is optional. When Linear MCP tools are connected, use those — team key ${KRU_LINEAR_TEAM:-<KRU_LINEAR_TEAM>}, project name ${KRU_LINEAR_PROJECT:-<KRU_LINEAR_PROJECT>}, labels bug and enhancement — and do not fall back to the store. This script is the API fallback for when those tools are not connected, so this tracker is not ready. Never commit a key. Never send a security finding."
+  not_ready "LINEAR_API_KEY is unset. The key is optional. When Linear MCP tools are connected, use those — team key ${KRU_LINEAR_TEAM:-<KRU_LINEAR_TEAM>}, project name ${KRU_LINEAR_PROJECT:-<KRU_LINEAR_PROJECT>}, labels bug and enhancement; a security finding uses ${KRU_LINEAR_SECURITY_TEAM:-the main team} and the label security — and do not fall back to the store. This script is the API fallback for when those tools are not connected, so this tracker is not ready. Never commit a key. A security body is a description and a pointer, never a secret."
 }
 
 linear_gql() {
@@ -196,8 +212,8 @@ linear_gql() {
 }
 
 linear_team_id() {
-  local raw=${KRU_LINEAR_TEAM:-} data id
-  [ -n "$raw" ] || not_ready "KRU_LINEAR_TEAM is unset. Set the team key, for example BG."
+  local raw=$1 what=${2:-KRU_LINEAR_TEAM} data id
+  [ -n "$raw" ] || not_ready "$what is unset. Set the team key, for example BG."
   if is_uuid "$raw"; then
     data=$(linear_gql 'query($id:String!){ team(id:$id){ id } }' "$(jq -n --arg id "$raw" '{id:$id}')") || exit $?
     id=$(jq -r '.team.id // empty' <<<"$data")
@@ -237,8 +253,20 @@ linear_project_id() {
 }
 
 ensure_linear() {
-  [ -n "$_team_id" ] || { _team_id=$(linear_team_id) || exit $?; }
+  [ -n "$_team_id" ] || { _team_id=$(linear_team_id "$KRU_LINEAR_TEAM" KRU_LINEAR_TEAM) || exit $?; }
   [ -n "$_project_id" ] || { _project_id=$(linear_project_id) || exit $?; }
+}
+
+# security uses KRU_LINEAR_SECURITY_TEAM when set, and then no product project
+# (that project belongs to the main team). otherwise the main team, the
+# product project, and the label security.
+use_security_scope() {
+  [ "$KIND" = security ] || return 0
+  [ "$BACKEND" = linear ] || return 0
+  if [ -n "${KRU_LINEAR_SECURITY_TEAM:-}" ]; then
+    _team_id=$(linear_team_id "$KRU_LINEAR_SECURITY_TEAM" KRU_LINEAR_SECURITY_TEAM) || exit $?
+    _project_id=""
+  fi
 }
 
 linear_ready() {
@@ -271,15 +299,25 @@ linear_rows() {
 
 linear_list() {
   local label=$1 data
-  data=$(linear_gql 'query($team:ID!, $project:ID!, $label:String!){ issues(first:100, filter:{team:{id:{eq:$team}}, project:{id:{eq:$project}}, labels:{name:{eqIgnoreCase:$label}}, state:{type:{nin:[completed, canceled]}}}){ nodes { identifier title description url } } }' \
-    "$(jq -n --arg team "$_team_id" --arg project "$_project_id" --arg label "$label" '{team:$team, project:$project, label:$label}')") || exit $?
+  if [ -n "$_project_id" ]; then
+    data=$(linear_gql 'query($team:ID!, $project:ID!, $label:String!){ issues(first:100, filter:{team:{id:{eq:$team}}, project:{id:{eq:$project}}, labels:{name:{eqIgnoreCase:$label}}, state:{type:{nin:[completed, canceled]}}}){ nodes { identifier title description url } } }' \
+      "$(jq -n --arg team "$_team_id" --arg project "$_project_id" --arg label "$label" '{team:$team, project:$project, label:$label}')") || exit $?
+  else
+    data=$(linear_gql 'query($team:ID!, $label:String!){ issues(first:100, filter:{team:{id:{eq:$team}}, labels:{name:{eqIgnoreCase:$label}}, state:{type:{nin:[completed, canceled]}}}){ nodes { identifier title description url } } }' \
+      "$(jq -n --arg team "$_team_id" --arg label "$label" '{team:$team, label:$label}')") || exit $?
+  fi
   linear_rows <<<"$data"
 }
 
 linear_search() {
   local label=$1 query=$2 data
-  data=$(linear_gql 'query($team:ID!, $project:ID!, $label:String!, $q:String!){ issues(first:10, filter:{team:{id:{eq:$team}}, project:{id:{eq:$project}}, labels:{name:{eqIgnoreCase:$label}}, state:{type:{nin:[completed, canceled]}}, or:[{title:{containsIgnoreCase:$q}}, {description:{containsIgnoreCase:$q}}]}){ nodes { identifier title description url } } }' \
-    "$(jq -n --arg team "$_team_id" --arg project "$_project_id" --arg label "$label" --arg q "$query" '{team:$team, project:$project, label:$label, q:$q}')") || exit $?
+  if [ -n "$_project_id" ]; then
+    data=$(linear_gql 'query($team:ID!, $project:ID!, $label:String!, $q:String!){ issues(first:10, filter:{team:{id:{eq:$team}}, project:{id:{eq:$project}}, labels:{name:{eqIgnoreCase:$label}}, state:{type:{nin:[completed, canceled]}}, or:[{title:{containsIgnoreCase:$q}}, {description:{containsIgnoreCase:$q}}]}){ nodes { identifier title description url } } }' \
+      "$(jq -n --arg team "$_team_id" --arg project "$_project_id" --arg label "$label" --arg q "$query" '{team:$team, project:$project, label:$label, q:$q}')") || exit $?
+  else
+    data=$(linear_gql 'query($team:ID!, $label:String!, $q:String!){ issues(first:10, filter:{team:{id:{eq:$team}}, labels:{name:{eqIgnoreCase:$label}}, state:{type:{nin:[completed, canceled]}}, or:[{title:{containsIgnoreCase:$q}}, {description:{containsIgnoreCase:$q}}]}){ nodes { identifier title description url } } }' \
+      "$(jq -n --arg team "$_team_id" --arg label "$label" --arg q "$query" '{team:$team, label:$label, q:$q}')") || exit $?
+  fi
   linear_rows <<<"$data"
 }
 
@@ -290,10 +328,14 @@ linear_issue() {
 }
 
 linear_file() {
-  local label=$1 title=$2 body=$3 lid data id url
+  local label=$1 title=$2 body=$3 lid data id url input
   lid=$(linear_label_id "$label" create) || exit $?
-  data=$(linear_gql 'mutation($input:IssueCreateInput!){ issueCreate(input:$input){ success issue { identifier url } } }' \
-    "$(jq -n --arg team "$_team_id" --arg project "$_project_id" --arg title "$title" --arg body "$body" --arg label "$lid" '{input:{teamId:$team, projectId:$project, title:$title, description:$body, labelIds:[$label]}}')") || exit $?
+  if [ -n "$_project_id" ]; then
+    input=$(jq -n --arg team "$_team_id" --arg project "$_project_id" --arg title "$title" --arg body "$body" --arg label "$lid" '{input:{teamId:$team, projectId:$project, title:$title, description:$body, labelIds:[$label]}}')
+  else
+    input=$(jq -n --arg team "$_team_id" --arg title "$title" --arg body "$body" --arg label "$lid" '{input:{teamId:$team, title:$title, description:$body, labelIds:[$label]}}')
+  fi
+  data=$(linear_gql 'mutation($input:IssueCreateInput!){ issueCreate(input:$input){ success issue { identifier url } } }' "$input") || exit $?
   id=$(jq -r '.issueCreate.issue.identifier // empty' <<<"$data")
   url=$(jq -r '.issueCreate.issue.url // empty' <<<"$data")
   [ -n "$id" ] && [ -n "$url" ] || die "Linear did not return an issue"
@@ -346,12 +388,15 @@ cmd_ready() {
 }
 
 cmd_file() {
-  [ "$KIND_SET" = 1 ] || die "file needs --kind bug|want"
+  [ "$KIND_SET" = 1 ] || die "file needs --kind bug|want|security"
   [ -n "$TITLE" ] || die "file needs --title"
   [ "$BODY_SET" = 1 ] || die "file needs --body"
+  require_backend
   local label
   label=$(label_for "$KIND") || exit $?
+  [ "$KIND" = security ] && { security_body_ok "$BODY" || exit $?; }
   cmd_ready
+  use_security_scope
   case "$BACKEND" in
     github) github_file "$label" "$TITLE" "$BODY" ;;
     linear) linear_file "$label" "$TITLE" "$BODY" ;;
@@ -359,10 +404,12 @@ cmd_file() {
 }
 
 cmd_list() {
-  [ "$KIND_SET" = 1 ] || die "list needs --kind bug|want"
+  [ "$KIND_SET" = 1 ] || die "list needs --kind bug|want|security"
+  require_backend
   local label
   label=$(label_for "$KIND") || exit $?
   cmd_ready
+  use_security_scope
   case "$BACKEND" in
     github) github_list "$label" ;;
     linear) linear_list "$label" ;;
@@ -370,11 +417,13 @@ cmd_list() {
 }
 
 cmd_search() {
-  [ "$KIND_SET" = 1 ] || die "search needs --kind bug|want"
+  [ "$KIND_SET" = 1 ] || die "search needs --kind bug|want|security"
   [ -n "$QUERY" ] || die "search needs --query"
+  require_backend
   local label
   label=$(label_for "$KIND") || exit $?
   cmd_ready
+  use_security_scope
   case "$BACKEND" in
     github) github_search "$label" "$QUERY" ;;
     linear) linear_search "$label" "$QUERY" ;;

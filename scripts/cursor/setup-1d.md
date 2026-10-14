@@ -41,12 +41,15 @@ the store with the GitHub access the cloud agent already has; where that access 
 private store, store-sync prints one line and the run continues on its own copy.
 
 **The work tracker, when the human team watches Linear.** Bugs and product wants stay GitHub
-issues until the repo opts in (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*). One workspace, one team whose key is `BG`, and one project per product — Platform, Connector,
-Standalone, Nonprofits API, Kru. On a yes, the user adds
-`KRU_TRACKER=linear`, `KRU_LINEAR_TEAM=BG`, and `KRU_LINEAR_PROJECT` set to that product's project
-name (`Connector`, for example). Prefer the connected Linear MCP tools. `LINEAR_API_KEY` is
-optional, only for the script when those tools are not connected, and a secret if it is set —
-never a line in the repo. Pull requests stay on GitHub. A security finding never goes to Linear.
+issues until the repo opts in (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*). On a yes, the
+user adds `KRU_TRACKER=linear`, `KRU_LINEAR_TEAM` (a team key, for example `BG`), and
+`KRU_LINEAR_PROJECT` (a project name, for example `Connector`). Those names are the repo's.
+`KRU_LINEAR_SECURITY_TEAM` is optional (for example `SEC`); unset, a security finding uses the
+main team and the label `security`. Its Linear body is a description and a pointer to where the
+evidence is kept — no secret, key, or customer data (`TRACKER.md` → *Security on Linear*). On the
+GitHub tracker a security finding stays in the store or a private advisory. Prefer the connected
+Linear MCP tools. `LINEAR_API_KEY` is optional, only for the script when those tools are not
+connected, and a secret if it is set — never a line in the repo. Pull requests stay on GitHub.
 Unset, and GitHub stays the tracker.
 
 **The cloud environment is a record in the repo.** Cursor builds a cloud agent's machine from
