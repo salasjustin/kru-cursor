@@ -1,5 +1,7 @@
 # The sync lane — designing out of the repo's real components
 
+**Cursor has no claude.ai/design project, so do not run this lane.** The in-session surface is `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`, with `.dc.html` artboards when `/canvas` isn't available. The procedure below stays so a repo that already has a `.design-sync/` can still be read. Standing a new one up is a gap (`PORTING.md`).
+
 Behind `ui-practice.md` → *The sync lane*. Read it when the tree has a `.design-sync/`, and before standing one up.
 
 `/design-sync` publishes a bundle of the repo's **real** components to a claude.ai/design project, where screens get designed out of the actual parts. It is the only surface that does, and everything it buys is paid for in maintenance.
@@ -13,7 +15,7 @@ Two conditions gate it:
 - **React.** The converter takes React components (a Storybook or a bare package). Another stack gets the canvas, the token file and its gate, and settles a look there.
 - **A maintained build.** A bundle is a workspace package with a preview harness, an export surface, a stylesheet build and a notes file — its own piece of work, on its own maintenance schedule (*The bundle*, below).
 
-Where every design turn is an engineer's own, `/design` is the whole practice: it reads the tree fresh each time, so there is nothing to push and nothing to go stale.
+Where every design turn is an engineer's own, `/kru-design` with `/canvas` is the whole practice: it reads the tree fresh each time, so there is nothing to push and nothing to go stale.
 
 ## The loop
 

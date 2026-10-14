@@ -144,6 +144,7 @@ const FORK_OWNED = new Set([
   "hooks/seat-guard.sh",
   "hooks/first-turn.sh",
   "hooks/cursor-state.sh",
+  "skills/kru-design/SKILL.md",
 ])
 const FORK_OWNED_DIRS = /^(scripts\/cursor\/|\.cursor-plugin\/|rules\/|commands\/|\.github\/)/
 
@@ -184,7 +185,10 @@ const RULES = [
   R(/`\.claude-plugin\/marketplace\.json`/g, "`.cursor-plugin/marketplace.json`"),
   R(/\.claude-plugin\/plugin\.json/g, ".cursor-plugin/plugin.json"),
   R(/\.claude-plugin\/marketplace\.json/g, ".cursor-plugin/marketplace.json"),
-  // ↑ the layout and the names: everything above also runs on PATHS_ONLY files
+  // ↑ the layout and the names: everything above also runs on PATHS_ONLY files.
+  // claude.md is PATHS_ONLY, so the Cursor sweep has to land before this mark.
+  // The heading in the replacement must not be the heading this matches.
+  R(/^# claude — what shipped to Claude Code[\s\S]*$/, () => block("update-sweep.md"), { files: /^skills\/kru-update\/claude\.md$/, required: /https:\/\/cursor\.com\/changelog/ }),
   PATHS_END,
 
   // --- the hooks (shell) -----------------------------------------------------
@@ -490,9 +494,58 @@ const RULES = [
   R(/\bSubagentStop\b/g, "subagentStop", { md: true }),
   R(/\bPreToolUse\b/g, "preToolUse", { md: true }),
   R(/\bPostToolUse\b/g, "postToolUse", { md: true }),
-  // the design surface upstream publishes to is claude.ai's; the seats still
-  // name it, and PORTING.md → Known gaps says what cursor has instead
-  // (counted by WATCH below, never rewritten)
+  // the design surface. upstream publishes Claude Design through the Artifact
+  // tool; here the seat drafts .dc.html and publishes with /canvas (kru-design).
+  // specific phrases first, then the generic name, so a later rule still sees
+  // the words it replaces. the sync lane and ArtifactData stay (PORTING.md).
+  R(/## The canvas — a picture of the system, not an instance of it\n\n`\/design` publishes Claude Design's editor as an Artifact:[\s\S]*?promising a synced project's fidelity from it\.\n/, () => block("ui-canvas.md"), { md: true, files: /^references\/ui-practice\.md$/, required: /cursor\.com\/docs\/agent\/tools\/canvas/ }),
+  R(/\(`\/design`, or the (?:user|PM)'s own claude\.ai\/design session\)/g, "(`/kru-design`, publishing with `/canvas`, or the `.dc.html` artboards when `/canvas` isn't available)", { md: true, required: /publishing with `\/canvas`/ }),
+  R(/or hand the two over for the user's own claude\.ai\/design session where they'd rather/g, "or hand over the `.dc.html` paths when `/canvas` isn't available", { md: true, required: /`\.dc\.html` paths when `\/canvas` isn't available/ }),
+  R(/A user who would rather work in their own claude\.ai\/design session gets the two artifacts handed over in one line instead; say plainly you're waiting\. Either way put everything non-styling in flight meanwhile \(scaffold, toolchain, data layer\) — a canvas turn is short, a user's own session is not\./g, "When `/canvas` isn't available, the `.dc.html` paths are handed over in one line instead; say plainly you're waiting on the PM to open them. Either way put everything non-styling in flight meanwhile (scaffold, toolchain, data layer) — a canvas turn is short, opening the files locally is not.", { md: true, files: /^references\/ui-practice\.md$/, required: /waiting on the PM to open them/ }),
+  R(/\*\*`\/design` is the surface\.\*\* `ui-designer` drafts the artboards from the repo and publishes the canvas; the lead hands the user the link\. They reshape it in the editor and \*\*Save\*\* republishes\. Any stack, no setup, and the design gate — \*\*the user's eye on a render\*\* — lands in the same turn instead of out of band \(\*The canvas\*, below\)\./g, "**`/canvas` is the surface.** `ui-designer` drafts the `.dc.html` artboards from the repo and publishes them with `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`; the lead hands the PM the chat card. The PM reshapes it by asking, by editing the source, or with Design Mode ([changelog](https://cursor.com/changelog/canvas-improvements)). Any stack, no setup, and the design gate — **the PM's eye on a render** — lands in the same turn instead of out of band (*The canvas*, below). When `/canvas` isn't available, the `.dc.html` paths are the surface.", { md: true, files: /^references\/ui-practice\.md$/, required: /`\/canvas` is the surface/ }),
+  R(/\| \*\*Claude Design\*\* — the canvas \(`\/design`\) or a synced design project \| the look, and every value in it \|/g, "| **The canvas** — `/canvas` via `/kru-design`, or the `.dc.html` artboards when `/canvas` isn't available | the look, and every value in it |", { md: true, files: /^references\/ui-practice\.md$/, required: /`\/canvas` via `\/kru-design`/ }),
+  R(/— `\/design` reading the tree, or the synced bundle where the repo has one\./g, "— `/kru-design` reading the tree and publishing with `/canvas`. A `.design-sync/` is documented in `design-sync.md`, and Cursor has no host for that lane.", { md: true, files: /^references\/ui-practice\.md$/, required: /Cursor has no host for that lane/ }),
+  R(/Where every design turn is an engineer's own, `\/design` is the whole practice/g, "Where every design turn is an engineer's own, `/kru-design` with `/canvas` is the whole practice", { md: true, files: /^references\/design-sync\.md$/, required: /`\/kru-design` with `\/canvas` is the whole practice/ }),
+  R(/^(# The sync lane — designing out of the repo's real components\n)(?!\n\*\*Cursor has no claude\.ai\/design project)/m, "$1\n**Cursor has no claude.ai/design project, so do not run this lane.** The in-session surface is `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`, with `.dc.html` artboards when `/canvas` isn't available. The procedure below stays so a repo that already has a `.design-sync/` can still be read. Standing a new one up is a gap (`PORTING.md`).\n", { md: true, files: /^references\/design-sync\.md$/, required: /do not run this lane/ }),
+  R(/\*\*The sync lane is the addition a repo earns\.\*\* Where someone who doesn't write code/g, "**The sync lane is the addition a repo earns, and Cursor has no host for it (known gap).** Where someone who doesn't write code", { md: true, files: /^references\/ui-practice\.md$/, required: /Cursor has no host for it/ }),
+  R(/- \*\*The values and the look\*\* — Claude Design \(`\/design`\), transcribed once by a builder; the verdict is the user's glance\./g, "- **The values and the look** — the canvas (`/canvas`, drafted by `/kru-design`; [canvas](https://cursor.com/docs/agent/tools/canvas)), transcribed once by a builder; the verdict is the PM's glance. The `.dc.html` artboards are the fallback when `/canvas` isn't available.", { md: true, files: /^skills\/kru-design-system\/SKILL\.md$/, required: /the verdict is the PM's glance/ }),
+  R(/are \*\*Claude Design's\*\*, settled by the user/g, "are **the canvas's**, settled by the PM", { md: true, required: /settled by the PM/ }),
+  R(/from Claude Design where the user made one there/g, "from the canvas where the PM made one there", { md: true, required: /from the canvas where the PM made one there/ }),
+  R(/product calls are made in Claude Design or by the user/g, "product calls are made on the canvas or by the PM", { md: true, required: /made on the canvas or by the PM/ }),
+  R(/made in \*\*Claude Design\*\*/g, "made on **the canvas**", { md: true }),
+  R(/made in Claude Design/g, "made on the canvas", { md: true }),
+  R(/once in Claude Design/g, "once on the canvas", { md: true }),
+  R(/whatever Claude Design returned/g, "whatever the canvas returned", { md: true }),
+  R(/what Claude Design returned/g, "what the canvas returned", { md: true }),
+  R(/what Claude Design settled/g, "what the canvas settled", { md: true }),
+  R(/any Claude Design output/g, "any canvas output", { md: true }),
+  R(/from \*\*Claude Design\*\*/g, "from **the canvas**", { md: true }),
+  R(/, and never read `payload\.template\.html` into context/g, ". Don't restate the skill, and don't paste artboard markup into the return", { md: true, files: /^agents\/ui-designer\.md$/, required: /don't paste artboard markup/ }),
+  R(/`design` skill/g, "`kru-design` skill", { md: true }),
+  R(/the published link and what you drafted/g, "the canvas card (or the `.dc.html` paths when `/canvas` isn't available) and what you drafted", { md: true, files: /^agents\/ui-designer\.md$/, required: /the canvas card/ }),
+  R(/in a Claude artifact/g, "in a mermaid render", { md: true, files: /^agents\/ux-designer\.md$/ }),
+  R(/\*\*bundled `\/design` skill\*\* \(ships with the Cursor CLI — Claude Design's canvas editor published as an Artifact\)/g, "**`/kru-design`** plus Cursor's `/canvas` ([skills](https://cursor.com/docs/skills), [canvas](https://cursor.com/docs/agent/tools/canvas))", { md: true, files: /^SOURCES\.md$/, required: /plus Cursor's `\/canvas`/ }),
+  R(/\*\*Never vendored\*\*: a ~2 MiB payload pinned to its own runtime contract and versioned with the CLI, so it is referenced by name like `Explore`\/Plan mode\/`\/review`\./g, "**Not a vendored editor.** `/canvas` is Cursor's built-in React artifact ([changelog, 2026-04-15](https://cursor.com/changelog/04-15-26)), referenced by name like `Explore`/Plan mode/`/review`. This plugin's `kru-design` skill tells the agent the layout. There is no separate publish API.", { md: true, files: /^SOURCES\.md$/, required: /Not a vendored editor/ }),
+  R(/A React repo where non-engineers design against the system can add the \*\*sync lane\*\* on top — claude\.ai\/design \+ `\/design-sync`, the one surface that designs out of the repo's real components/g, "A React repo where non-engineers design against the system keeps the **sync lane** documented (`/design-sync`) — Cursor has no host for a synced design project, so that lane is a gap and is not run; `/canvas` reads the tree instead", { md: true, files: /^SOURCES\.md$/, required: /that lane is a gap and is not run/ }),
+  R(/bundled `\/design` skill \(Claude Design's canvas editor\)/g, "`/kru-design` plus `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas))", { md: true, files: /^ROSTER\.md$/, required: /`\/kru-design` plus `\/canvas`/ }),
+  R(/and skills \(`\/review`, `\/run`\)/g, "and skills (`/review`, the Browser subagent — [browser](https://cursor.com/docs/agent/tools/browser))", { md: true, files: /^ROSTER\.md$/, required: /the Browser subagent/ }),
+  R(/`\/design` \(\*\*bundled, never vendored\*\* — Claude Design's canvas editor as an Artifact; the lead's design surface in every repo, on any stack\. A React repo whose non-engineers design against the system adds the sync lane on top — `\/design-sync`, `\$\{CURSOR_PLUGIN_ROOT\}\/references\/design-sync\.md`\), `\/review`, `\/tdd`, `\/diagnosing-bugs`, `\/verify`, `\/run`,/g, "`/kru-design` (the artboards and the `/canvas` publish — [canvas](https://cursor.com/docs/agent/tools/canvas); the lead's design surface in every repo, on any stack. `.dc.html` is the fallback when `/canvas` isn't available. The sync lane, `/design-sync`, has no Cursor host — ${CURSOR_PLUGIN_ROOT}/references/design-sync.md), `/review`, `/kru-tdd`, `/kru-diagnosing-bugs`, the Browser subagent ([browser](https://cursor.com/docs/agent/tools/browser)),", { md: true, files: /^ROSTER\.md$/, required: /the artboards and the `\/canvas` publish/ }),
+  R(/- Behavior: `\/run` to confirm it actually works\./g, "- Behavior: the Browser subagent to confirm it actually works ([browser](https://cursor.com/docs/agent/tools/browser), [subagents](https://cursor.com/docs/subagents)). Cursor's own `/run` is Shell Mode, an alias of `/shell` ([slash commands](https://cursor.com/docs/cli/reference/slash-commands)), which does not confirm a running product.", { md: true, files: /^skills\/kru-lead\/references\/gates\.md$/, required: /the Browser subagent to confirm it actually works/ }),
+  R(/`\/research` subagents/g, "Cursor subagents ([subagents](https://cursor.com/docs/subagents))", { md: true, required: /cursor\.com\/docs\/subagents/ }),
+  R(/Resolved by a subagent that calls the Skill tool with "research"\./g, "Resolved by a Cursor subagent for a long research task ([subagents](https://cursor.com/docs/subagents)).", { md: true, files: /^skills\/kru-wayfinder\/SKILL\.md$/, required: /Resolved by a Cursor subagent/ }),
+  R(/spin up a subagent that calls the Skill tool with "research" to resolve it in parallel/g, "spin up a Cursor subagent ([subagents](https://cursor.com/docs/subagents)) to resolve it in parallel", { md: true, files: /^skills\/kru-wayfinder\/SKILL\.md$/, required: /spin up a Cursor subagent/ }),
+  R(/What the count can't say is which of that cost buys nothing: `\/skill-doctor` lists the loaded skills that go unused and what each charges in context\. It's a slash command, so name it for the user to type and read its list against the same `always-on` column\. `\/doctor prompt-audit` reads the prompt text itself: run in this repo it audits the installed plugin's skills and agents for patterns written for older models, and only reports\. Name it for the user to type too; a hit becomes an edit only through `writing-for-agents` → `CALIBRATION\.md`\./g, "What the count can't say is how that cost splits: Cursor's context usage report breaks tokens across the system prompt, tool definitions, rules and skills ([changelog](https://cursor.com/changelog/canvas-improvements)). No built-in lists unused skills or audits prompts written for older models. Those two reads stay a gap (`PORTING.md`).", { md: true, files: /^skills\/kru-roster\/audit\.md$/, required: /context usage report/ }),
+  R(/Every candidate is confirmed against the binary, the diff, or the skill's own lines before it reaches a verdict\./g, "Every candidate is confirmed against [Cursor's docs](https://cursor.com/docs) and the [changelog](https://cursor.com/changelog), the diff, or the skill's own lines before it reaches a verdict.", { md: true, files: /^skills\/kru-update\/SKILL\.md$/, required: /cursor\.com\/changelog/ }),
+  R(/A bare version number \(`2\.1\.240`\) is `claude 2\.1\.240`\./g, "A bare changelog date (`2026-04-15`) is `claude 2026-04-15`.", { md: true, files: /^skills\/kru-update\/SKILL\.md$/, required: /A bare changelog date/ }),
+  R(/a candidate frontmatter key is confirmed against the zod schema in the binary \(`claude plugin validate` passes on any unknown agent key, so it answers a different question\), a subcommand against its `--help`/g, "a candidate frontmatter key is confirmed against [Cursor's plugin docs](https://cursor.com/docs/plugins) and the [changelog](https://cursor.com/changelog) (there is no `claude` binary to grep), a subcommand against the installed CLI's `--help` where that command exists", { md: true, files: /^ROSTER\.md$/, required: /there is no `claude` binary to grep/ }),
+  R(/claude mcp list/g, "agent mcp list", { md: true, files: /^skills\/kru-setup\/sheet\.md$/, required: /agent mcp list/ }),
+  R(/in claude\.ai artifacts or any browser/g, "in any browser", { md: true, files: /^skills\/kru-algorithmic-art\/SKILL\.md$/, required: /works immediately in any browser/ }),
+  R(/in claude\.ai or any browser/g, "in any browser", { md: true, files: /^skills\/kru-algorithmic-art\/SKILL\.md$/, required: /works immediately in any browser/ }),
+  R(/1\. \*\*In claude\.ai\*\*: Displayed as an interactive artifact - runs instantly\n2\. \*\*As a file\*\*: Save and open in any browser - no server needed/g, "1. **In a browser**: save the HTML file and open it. No server. This file is not a Cursor canvas ([canvas](https://cursor.com/docs/agent/tools/canvas) is React)", { md: true, files: /^skills\/kru-algorithmic-art\/SKILL\.md$/, required: /This file is not a Cursor canvas/ }),
+  R(/\*\*Single HTML Artifact\*\*/g, "**Single HTML file**", { md: true, files: /^skills\/kru-algorithmic-art\/SKILL\.md$/ }),
+  R(/\*\*3\. Single Artifact Structure\*\*/g, "**3. Single file structure**", { md: true, files: /^skills\/kru-algorithmic-art\/SKILL\.md$/ }),
+  R(/(?<!design bundle for )\bClaude Design\b/g, "the canvas", { md: true }),
+  R(/\bthe canvas decides\b/g, "The canvas decides", { md: true, required: /The canvas decides/ }),
   // the version-and-wiring map: no claude manifests here
   R(/\*\*both\*\* `plugin\.json` and `marketplace\.json` descriptions/g, "**both** `.cursor-plugin/plugin.json` and `.cursor-plugin/marketplace.json` descriptions", { md: true }),
   R(/(?<![./])`plugin\.json`(?! version)/g, "`.cursor-plugin/plugin.json`", { md: true }),
@@ -540,7 +593,17 @@ const FORBIDDEN_OK = /^skills\/kru-update\/(claude|reviewed)\.md$/
 
 // surfaces cursor has no equivalent for. the port can't rewrite them — each is
 // a judgment call recorded in PORTING.md — so it counts and warns.
-const WATCH = [/\bClaude Design\b/, /\bclaude\.ai\b/, /(^|[\s`(])\/design\b/, /\bArtifact\b/, /(^|[\s`(])\/(run|simplify|research|verify)\b/]
+const WATCH = [
+  /\bClaude Design\b/,
+  /\bclaude\.ai\b/,
+  /(^|[\s`(])\/design(?!-)\b/,
+  /\bArtifact\b(?! Signing)/,
+  /(^|[\s`(])\/run(?!\/)\b/,
+  /(^|[\s`(])\/(simplify|research|verify)\b/,
+  /\/skill-doctor\b/,
+  /\/doctor prompt-audit\b/,
+  /You should know/,
+]
 
 // ---------------------------------------------------------------------------
 const log = (...a) => !QUIET && console.log(...a)

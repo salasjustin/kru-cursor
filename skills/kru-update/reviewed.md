@@ -1,5 +1,11 @@
 # Reviewed — the marks and the standing verdicts
 
+## Cursor
+
+### Swept through
+
+**unset** — no Cursor changelog day has been swept yet. The next `/kru-update claude` reads [Cursor's changelog](https://cursor.com/changelog) (`claude.md`). The Claude Code ledger below is closed.
+
 ## Claude Code
 
 ### Swept through

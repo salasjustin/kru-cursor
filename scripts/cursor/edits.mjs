@@ -594,8 +594,8 @@ EDITS.push(E(
 // --- t10: seat prompts say PM where they mean the requester ------------------
 EDITS.push(E(
   "agents/ui-designer.md",
-  "Claude Design decides the look inside the frame you draft; the user decides whether it's any good.",
-  "Claude Design decides the look inside the frame you draft; the PM decides whether it's any good.",
+  "The canvas decides the look inside the frame you draft; the user decides whether it's any good.",
+  "The canvas decides the look inside the frame you draft; the PM decides whether it's any good.",
   "t10: the requester is the PM; end-user lines untouched",
 ))
 EDITS.push(E(
@@ -618,8 +618,8 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "agents/ui-designer.md",
-  "- **You have no user channel.** The `design` skill asks one design question",
-  "- **You have no channel to the PM.** The `design` skill asks one design question",
+  "- **You have no user channel.** The `kru-design` skill asks one design question",
+  "- **You have no channel to the PM.** The `kru-design` skill asks one design question",
   "t10: the requester is the PM; end-user lines untouched",
 ))
 EDITS.push(E(
@@ -636,8 +636,8 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "agents/ui-designer.md",
-  "- **The look is Claude Design's and the verdict is the user's.**",
-  "- **The look is Claude Design's and the verdict is the PM's.**",
+  "- **The look is the canvas's and the verdict is the user's.**",
+  "- **The look is the canvas's and the verdict is the PM's.**",
   "t10: the requester is the PM; end-user lines untouched",
 ))
 EDITS.push(E(
@@ -649,7 +649,7 @@ EDITS.push(E(
 EDITS.push(E(
   "agents/ux-designer.md",
   "(`/design`, or the user's own claude.ai/design session)",
-  "(`/design`, or the PM's own claude.ai/design session)",
+  "(`/kru-design`, publishing with `/canvas`, or the `.dc.html` artboards when `/canvas` isn't available)",
   "t10: the requester is the PM; end-user lines untouched",
 ))
 EDITS.push(E(
@@ -795,6 +795,13 @@ EDITS.push(E(
   "No answer → say so in one line and return to whatever was in flight.\n\n## 3. Apply what they picked",
   "No answer → say so in one line and return to whatever was in flight.\n\nHeadless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), return the batch under *Questions for the PM*. `/kru-todos-loop` and `/kru-issues-loop` pay their own gates in advance; this pick stays in that return.\n\n## 3. Apply what they picked",
   "review: headless returns the batch; a brief has no loop that pays the gate",
+))
+
+EDITS.push(E(
+  "skills/kru-update/reviewed.md",
+  "# Reviewed — the marks and the standing verdicts\n\n## Claude Code",
+  "# Reviewed — the marks and the standing verdicts\n\n## Cursor\n\n### Swept through\n\n**unset** — no Cursor changelog day has been swept yet. The next `/kru-update claude` reads [Cursor's changelog](https://cursor.com/changelog) (`claude.md`). The Claude Code ledger below is closed.\n\n## Claude Code",
+  "cursor sweep mark starts unset; the Claude Code ledger stays closed",
 ))
 
 // the port's cloud probe also treats /run/cursor/api.sock as a cloud vm, which

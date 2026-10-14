@@ -17,7 +17,7 @@ Each sweep reads what shipped, keeps only what touches a surface the team stands
 
 **Verdicts, not edits.** A sweep is reads — the binary, a diff, a registry, release notes — and it writes one file: `reviewed.md`, beside it. Everything it surfaces lands through `/kru-roster`: a Cursor adoption is a wiring change (`skills/kru-roster/SKILL.md` → *Wiring map*); a vendored re-sync or a library re-verification is `/kru-roster author <name>` → *Refresh*, the session that downloads, installs and reproduces. A `Reproduced on` pin and a provenance sha move only there.
 
-**The thing on disk is the authority; the announcement is the lead.** A changelog entry can be gated off this install, an upstream commit can touch only files the copy excludes, a release note can name an API the skill never claims. Every candidate is confirmed against the binary, the diff, or the skill's own lines before it reaches a verdict.
+**The thing on disk is the authority; the announcement is the lead.** A changelog entry can be gated off this install, an upstream commit can touch only files the copy excludes, a release note can name an API the skill never claims. Every candidate is confirmed against [Cursor's docs](https://cursor.com/docs) and the [changelog](https://cursor.com/changelog), the diff, or the skill's own lines before it reaches a verdict.
 
 ## Dispatch
 
@@ -30,7 +30,7 @@ Read the file for the requested sweep, then run it.
 | `vendored [skill]` | upstream of every vendored skill (or the one named) | `vendored.md` |
 | `libs [skill]` | the packages every first-party library skill is reproduced on (or the one named) | `libs.md` |
 
-A bare version number (`2.1.240`) is `claude 2.1.240`.
+A bare changelog date (`2026-04-15`) is `claude 2026-04-15`.
 
 ## The verdicts
 
