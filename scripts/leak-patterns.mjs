@@ -3,9 +3,11 @@
 //
 // lin_api_ is case-insensitive, suffix length >= 8, hyphens allowed.
 // an assignment is the word password, secret, or token inside the name, with
-// no space before '='. API_TOKEN=, DB_PASSWORD=, and SECRET_KEY= count; a
-// `const token = …` does not, because of the space. the tracker flattens
-// newlines before these run, so a key split across lines is one token.
+// no space before '=' or ':'. AWS_SECRET_ACCESS_KEY=, API_TOKEN=, and
+// `password: hunter2` count; a `const token = …` does not, because of the
+// space before '='. leakIn tries the original text, a copy whose newlines are
+// spaces, and a copy whose newlines are deleted, so a key on its own line
+// keeps its word boundary and a key split across lines is one token.
 
 export const SECRET_PATTERNS = [
   { id: "github-token", source: String.raw`\b(gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,})\b` },
@@ -20,9 +22,13 @@ export const SECRET_PATTERNS = [
   { id: "bearer-token", source: String.raw`\bBearer\s+[A-Za-z0-9._~+/-]{24,}={0,2}` },
   { id: "linear-api-key", source: String.raw`\blin_api_[A-Za-z0-9-]{8,}`, flags: "i" },
   // _ is not a word boundary, so API_TOKEN= and DB_PASSWORD= need an explicit
-  // separator. SECRET_KEY= is the same word with a _suffix before '='.
-  // a letter glued on the front (authToken=) is not this shape.
-  { id: "assignment", source: String.raw`(?:^|[^A-Za-z0-9])(?:[A-Za-z0-9]*_)?(?:password|secret|token)(?:_[A-Za-z0-9]+)?=[^\s]+`, flags: "i" },
+  // separator. more than one _segment is the same name (AWS_SECRET_ACCESS_KEY=).
+  // ':' is the same assignment as '=', and a space belongs after it
+  // (`password: hunter2`). a colon value has to look like a credential — a
+  // digit, quotes, or ${ — so prose ("secret: the") is not one. a letter
+  // glued on the front (authToken=) is not this shape, and neither is a
+  // space before '=' (`const token = …`).
+  { id: "assignment", source: String.raw`(?:^|[^A-Za-z0-9])(?:[A-Za-z0-9]+_)*(?:password|secret|token)(?:_[A-Za-z0-9]+)*(?:=[^\s]+|:\s*(?:'[^'\s]+'|"[^"\s]+"|\$\{[^\s]+|[^\s]*[0-9][^\s]*))`, flags: "i" },
 ]
 
 // customer data. the privacy scan allow-lists placeholder mailboxes; the
@@ -35,17 +41,20 @@ export function secretRegs() {
   return SECRET_PATTERNS.map((p) => ({ id: p.id, re: new RegExp(p.source, p.flags || "") }))
 }
 
-// newlines are removed first, so a token split across lines is matched whole.
+// the newline-deleted copy. a key split across lines is one token there.
+// leakIn also scans the original and a copy whose newlines are spaces: deleting
+// the break glues the previous word onto the key and drops the \b in front of it.
 export function flatten(text) {
   return String(text).replace(/[\r\n]/g, "")
 }
 
 export function leakIn(text) {
-  const flat = flatten(text)
+  const raw = String(text)
+  const versions = [raw, raw.replace(/[\r\n]+/g, " "), flatten(raw)]
   const regs = [
     ...secretRegs().map((p) => p.re),
     new RegExp(EMAIL_SOURCE),
     new RegExp(PHONE_SOURCE),
   ]
-  return regs.some((re) => re.test(flat))
+  return versions.some((version) => regs.some((re) => re.test(version)))
 }

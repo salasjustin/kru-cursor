@@ -18,18 +18,20 @@
 
 **Tracker text.** bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand
 
+A comment or an update on a security issue stays pointer-only, including when `--kind security` is given.
+
 **Linear settings are a team key and a project name.** For example `KRU_LINEAR_TEAM=BG` and `KRU_LINEAR_PROJECT=Connector`. Those values belong to the repo; this plugin hard-codes none. An id is only for a name that is not unique. `KRU_LINEAR_SECURITY_TEAM` (for example `SEC`) is optional and files security findings on that team.
 
 **Linear MCP, when those tools are connected.** Use them. Do not call the script for file, list, search, comment, update or close, and do not require `LINEAR_API_KEY`. A missing key is not a reason to fall back to the store. Pass `team` the team key and `project` the project name. Label `bug` for a bug and `enhancement` for a want. A security finding follows *Security on Linear*, not those labels. What you send follows *Tracker text*. Skip completed and canceled issues. Keep the identifier (a shape like `ABC-123`).
 - **file** — `save_issue` with `team`, `project`, `title`, `description`, and `labels`.
 - **search** — `list_issues` with `team`, `project`, `label`, and `query`.
 - **list** — `list_issues` with `team`, `project`, and `label`.
-- **comment** — `save_comment` with `issueId` (the identifier) and `body`.
-- **update** — `save_issue` with `id` and `description`.
+- **comment** — `save_comment` with `issueId` (the identifier) and `body`. A comment on a security issue stays pointer-only.
+- **update** — `save_issue` with `id` and `description`. An update on a security issue stays pointer-only.
 - **close** — `save_issue` with `id` and `state` `Done`.
 The pull request still gets the line `link --id` prints. Merge does not close a Linear issue, so the landing slice closes it: MCP `state` `Done`, or the script's `close --id` when MCP is absent.
 
-**Security on Linear.** This applies only when `backend` is `linear`. The GitHub tracker is unchanged: the finding stays in the store's `issues/` or a GitHub private security advisory, and `--kind security` is refused. On Linear, file it with the label `security`. Team is `KRU_LINEAR_SECURITY_TEAM` when set, and then there is no product project. Unset, the team is `KRU_LINEAR_TEAM` and the project is `KRU_LINEAR_PROJECT`. MCP: `save_issue` with `team`, `title`, `description`, and `labels: ["security"]`, plus `project` only on that fallback. The script: `file --kind security`. What you send follows *Tracker text*.
+**Security on Linear.** This applies only when `backend` is `linear`. The GitHub tracker is unchanged: the finding stays in the store's `issues/` or a GitHub private security advisory, and `--kind security` is refused. On Linear, file it with the label `security`. Team is `KRU_LINEAR_SECURITY_TEAM` when set, and then there is no product project. Unset, the team is `KRU_LINEAR_TEAM` and the project is `KRU_LINEAR_PROJECT`. MCP: `save_issue` with `team`, `title`, `description`, and `labels: ["security"]`, plus `project` only on that fallback. The script: `file --kind security`. What you send follows *Tracker text*. A comment or an update on that issue stays pointer-only too.
 
 **The script, when MCP is not connected.** `ready` exits 0 when this process can file: GitHub, or Linear with `LINEAR_API_KEY` plus a team key and a project name the API can resolve. Exit 4 means fall back — a bug to `issues/`, a want to `TODOS.md` — and the capture repeats the reason. `file` prints the id and the url separated by a tab. `list` and `search` print a JSON array of `{id, title, body, url}`. `comment`, `update` and `close` take `--id` and print the id. A missing key is exit 4 only on this path.
 

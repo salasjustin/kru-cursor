@@ -107,6 +107,13 @@ const PATH_OK = [
   // vendored docs show example env assignments (API_TOKEN=, auth_token=). the
   // tracker still refuses that shape; these files are upstream examples.
   { id: "assignment", path: /^skills\/kru-(cloudflare|turborepo|turso-cloud|turso-db)\// },
+  // the sync workflow passes GitHub's own installation token through. the
+  // expression is not a credential stored in this repo.
+  { id: "assignment", path: /^\.github\/workflows\/sync-upstream\.yml$/, line: /GH_TOKEN:\s*\$\{\{\s*github\.token\s*\}\}/ },
+  // vendored examples of a colon assignment. the tracker still refuses the shape.
+  { id: "assignment", path: /^skills\/kru-conform\/SKILL\.md$/, line: /password: 'hunter2'/ },
+  { id: "assignment", path: /^skills\/kru-hono\/SKILL\.md$/, line: /password: 'secret'/ },
+  { id: "assignment", path: /^skills\/kru-react-hook-form\/SKILL\.md$/, line: /secret: 'typed-then-hidden'/ },
   // the store-resolver test pins a fictional owner's store repo (`acme/kru-store`)
   { id: "private-repo", path: /^scripts\/kru-store\.test\.sh$/, line: /acme\/kru-store/ },
 ]
@@ -121,6 +128,9 @@ const HISTORY_REVIEWED = [
   { id: "assignment", commit: "b10943af", file: /^skills\/turborepo\//, why: "upstream turborepo docs showing example TURBO_TOKEN assignments, not a credential this repo holds" },
   { id: "assignment", commit: "94dcd7bf", file: /^skills\/turso-/, why: "upstream turso docs showing example auth_token assignments, not a credential this repo holds" },
   { id: "assignment", commit: "e411cc68", file: /^scripts\/kru-tracker\.sh$/, why: "the previous credential regex named secret before an equals sign; the line is not a credential" },
+  { id: "assignment", commit: "cb005e14", file: /^skills\/conform\/SKILL\.md$/, why: "upstream conform docs showing an example password assignment, not a credential this repo holds" },
+  { id: "assignment", commit: "94dcd7bf", file: /^skills\/hono\/SKILL\.md$/, why: "upstream hono docs showing an example basicAuth password, not a credential this repo holds" },
+  { id: "assignment", commit: "60f7ccb6", file: /^skills\/react-hook-form\/SKILL\.md$/, why: "upstream react-hook-form docs showing an example field named secret, not a credential this repo holds" },
 ]
 
 function allowed(id, path, line, value) {

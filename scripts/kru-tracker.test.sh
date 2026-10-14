@@ -30,6 +30,11 @@ case "$*" in
       printf '%s\n' '[{"number":12,"title":"Flaky login","body":"value: 4","url":"https://github.com/acme/web/issues/12"}]'
     fi
     ;;
+  *"issue view"*)
+    if [ "${KRU_TEST_SECURITY_ISSUE:-}" = 1 ]; then printf '%s\n' security
+    else printf '%s\n' bug
+    fi
+    ;;
   *"issue comment"*|*"issue edit"*|*"issue close"*) ;;
   *) printf 'unexpected gh: %s\n' "$*" >&2; exit 1 ;;
 esac
@@ -75,7 +80,13 @@ case "$q" in
   *issueLabelCreate*) body='{"data":{"issueLabelCreate":{"success":true,"issueLabel":{"id":"lab-sec"}}}}' ;;
   *issueLabels*) body='{"data":{"issueLabels":{"nodes":[{"id":"lab-bug","name":"Bug"},{"id":"lab-enh","name":"enhancement"}]}}}' ;;
   *issueCreate*) body='{"data":{"issueCreate":{"success":true,"issue":{"identifier":"BG-41","url":"https://linear.app/acme/issue/BG-41"}}}}' ;;
-  *'issue(id:'*) body='{"data":{"issue":{"id":"11111111-1111-1111-1111-111111111111","identifier":"BG-41","url":"https://linear.app/acme/issue/BG-41","team":{"id":"team-1"},"state":{"type":"started"}}}}' ;;
+  *'issue(id:'*)
+    if [ "${KRU_TEST_SECURITY_ISSUE:-}" = 1 ]; then
+      body='{"data":{"issue":{"id":"11111111-1111-1111-1111-111111111111","identifier":"BG-41","url":"https://linear.app/acme/issue/BG-41","team":{"id":"team-1"},"state":{"type":"started"},"labels":{"nodes":[{"name":"security"}]}}}}'
+    else
+      body='{"data":{"issue":{"id":"11111111-1111-1111-1111-111111111111","identifier":"BG-41","url":"https://linear.app/acme/issue/BG-41","team":{"id":"team-1"},"state":{"type":"started"}}}}'
+    fi
+    ;;
   *commentCreate*) body='{"data":{"commentCreate":{"success":true}}}' ;;
   *workflowStates*) body='{"data":{"workflowStates":{"nodes":[{"id":"state-done","name":"Done","position":1}]}}}' ;;
   *issueUpdate*) body='{"data":{"issueUpdate":{"success":true}}}' ;;
@@ -115,7 +126,7 @@ run() {
     -u CLAUDE_PLUGIN_OPTION_KRU_TRACKER -u CLAUDE_PLUGIN_OPTION_KRU_LINEAR_TEAM \
     -u CLAUDE_PLUGIN_OPTION_KRU_LINEAR_PROJECT -u CLAUDE_PLUGIN_OPTION_KRU_LINEAR_SECURITY_TEAM \
     -u CLAUDE_PLUGIN_OPTION_LINEAR_API_KEY \
-    -u KRU_TEST_REFUSE_LABEL -u KRU_TEST_PROJECTS \
+    -u KRU_TEST_REFUSE_LABEL -u KRU_TEST_PROJECTS -u KRU_TEST_SECURITY_ISSUE \
     PATH="$bin:$PATH" KRU_TEST_LOG="$sandbox/log" \
     ${envs[@]+"${envs[@]}"} bash "$tracker" "${args[@]}" 2>"$err")
   code=$?
@@ -495,6 +506,117 @@ run file --kind bug --title "short" --body "lin_api_abcdefg"
 ok "a 7-character lin_api_ suffix is not a key" 0
 logged "…and still files" "issue create"
 
+# a secret that already sits on the next line. deleting the newline glues the
+# previous word on and the word boundary in front of the key disappears.
+boundary_probes=(
+  $'The leaked token\nghp_abcdefghijklmnopqrstuvwxyz1234'
+  $'key\nAKIA0123456789ABCDEF\nwas in the log'
+  $'see\nlin_api_abcdefgh'
+  $'here\nsk-abcdefghijklmnopqrstuvwx'
+  $'notes\nSECRET_KEY=hunter2'
+)
+for probe in "${boundary_probes[@]}"; do
+  tag=${probe%%$'\n'*}
+  run file --kind bug --title "note" --body "$probe"
+  ok "github file refuses a next-line secret [$tag]" 1
+  not_logged "…before gh [$tag]" "issue create"
+  run search --kind bug --query "$probe"
+  ok "github search refuses a next-line secret [$tag]" 1
+  not_logged "…before gh [$tag]" "issue list"
+  run comment --id 12 --body "$probe"
+  ok "github comment refuses a next-line secret [$tag]" 1
+  not_logged "…before gh [$tag]" "issue comment"
+  run update --id 12 --body "$probe"
+  ok "github update refuses a next-line secret [$tag]" 1
+  not_logged "…before gh [$tag]" "issue edit"
+  run file --kind bug --title "note" --body "$probe" \
+    KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+  ok "linear file refuses a next-line secret [$tag]" 1
+  not_logged "…before any API call [$tag]" "query"
+  run search --kind bug --query "$probe" \
+    KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+  ok "linear search refuses a next-line secret [$tag]" 1
+  not_logged "…before any API call [$tag]" "query"
+  run comment --id BG-41 --body "$probe" \
+    KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+  ok "linear comment refuses a next-line secret [$tag]" 1
+  not_logged "…before any API call [$tag]" "query"
+  run update --id BG-41 --body "$probe" \
+    KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+  ok "linear update refuses a next-line secret [$tag]" 1
+  not_logged "…before any API call [$tag]" "query"
+done
+
+run file --kind bug --title "aws" --body "AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI"
+ok "a multi-segment AWS secret assignment is refused" 1
+not_logged "…before gh" "issue create"
+
+run file --kind want --title "login" --body "password: hunter2"
+ok "a colon assignment with a space after it is refused" 1
+not_logged "…before gh" "issue create"
+
+run file --kind security --title "**Exploit:** in the title" --body "see issues/token.md" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a security title with an Exploit section is refused" 1
+err_has "…and names the pointer-only rule" "pointer-only"
+not_logged "…before any API call" "query"
+
+run file --kind security --title "**Repro:** open /login" --body "see issues/token.md"
+ok "a security title with a Repro section is refused on github before the advisory exit" 1
+not_logged "…and does not call gh" "issue"
+
+long_title=$(printf 't%.0s' {1..121})
+run file --kind security --title "$long_title" --body "see issues/token.md" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a security title longer than 120 characters is refused" 1
+not_logged "…before any API call" "query"
+
+ok_title=$(printf 't%.0s' {1..120})
+run file --kind security --title "$ok_title" --body "see issues/token.md" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a 120-character security title is filed" 0
+logged "…and creates the issue" "issueCreate"
+
+run comment --kind security --id 12 --body $'**Repro:** open /login'
+ok "a github comment with --kind security and a Repro section is refused" 1
+not_logged "…before gh" "issue comment"
+
+run update --kind security --id BG-41 --body $'**Root cause:** the check' \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a linear update with --kind security and a Root cause section is refused" 1
+not_logged "…before any API call" "query"
+
+run comment --id 12 --body $'**Repro:** open /login' KRU_TEST_SECURITY_ISSUE=1
+ok "a comment on a github security issue with a Repro section is refused" 1
+not_logged "…and does not comment" "issue comment"
+
+run update --id 12 --body $'**Exploit:** send the payload' KRU_TEST_SECURITY_ISSUE=1
+ok "an update on a github security issue with an Exploit section is refused" 1
+not_logged "…and does not edit" "issue edit"
+
+run comment --id BG-41 --body $'**Repro:** open /login' \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform KRU_TEST_SECURITY_ISSUE=1
+ok "a comment on a linear security issue with a Repro section is refused" 1
+not_logged "…and does not comment" "commentCreate"
+
+run update --id BG-41 --body $'**Exploit:** send the payload' \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform KRU_TEST_SECURITY_ISSUE=1
+ok "an update on a linear security issue with an Exploit section is refused" 1
+not_logged "…and does not update" "issueUpdate"
+
+run comment --id 12 --body $'**Repro:** open /login'
+ok "a comment on a normal github issue may carry a repro" 0
+logged "…and still comments" "issue comment"
+
+run comment --id 12 --body "see issues/token.md" KRU_TEST_SECURITY_ISSUE=1
+ok "a short pointer comment on a github security issue is sent" 0
+logged "…and still comments" "issue comment"
+
+run update --id BG-41 --body "see issues/token.md" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform KRU_TEST_SECURITY_ISSUE=1
+ok "a short pointer update on a linear security issue is sent" 0
+logged "…and still updates" "issueUpdate"
+
 run comment --id "BG-41;touch" --body "more" \
   KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
 ok "a Linear comment id must match the link grammar" 1
@@ -609,6 +731,9 @@ report "kru-issue line 18 states the rule" "$(sed -n '18p' "$repo/skills/kru-iss
 report "kru-issue line 43 states the rule" "$(sed -n '43p' "$repo/skills/kru-issue/SKILL.md" | grep -qF "$RULE" && echo true || echo false)" "line 43"
 header=$(sed -n '1,7p' "$repo/scripts/kru-tracker.test.sh" | sed 's/^# *//')
 report "the test header states the rule" "$(printf '%s\n' "$header" | grep -qF "$RULE" && echo true || echo false)" "header [$header]"
+report "the lead puts a period after the tracker-text rule" "$(sed -n '9p' "$repo/skills/kru-lead/SKILL.md" | grep -qF 'hand. It never' && echo true || echo false)" "missing period"
+report "the lead fork edit puts a period after the tracker-text rule" "$(grep -qF 'hand. It never' "$repo/scripts/cursor/edits.mjs" && echo true || echo false)" "missing period"
+report "TRACKER.md keeps comments on a security issue pointer-only" "$(grep -qF 'A comment or an update on a security issue stays pointer-only' "$repo/TRACKER.md" && echo true || echo false)" "missing"
 report "the lead no longer keeps security off Linear" "$(grep -qF "or to Linear" "$repo/skills/kru-lead/SKILL.md" && echo false || echo true)" "still says or to Linear"
 report "the lead fork edit no longer keeps security off Linear" "$(grep -qF "or to Linear" "$repo/scripts/cursor/edits.mjs" && echo false || echo true)" "edit still says or to Linear"
 report "kru-issue files security through MCP without the script" "$(grep -qF "do not call the script" "$repo/skills/kru-issue/SKILL.md" && echo true || echo false)" "missing"
@@ -674,6 +799,17 @@ if (!leakIn("API_TOKEN=abc")) fail("API_TOKEN assignment missed")
 if (!leakIn("DB_PASSWORD=hunter2")) fail("DB_PASSWORD assignment missed")
 if (!leakIn("SECRET_KEY=xyz")) fail("SECRET_KEY assignment missed")
 if (leakIn("const token = abc")) fail("a spaced token assignment was treated as a leak")
+if (!leakIn("AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI")) fail("multi-segment assignment missed")
+if (!leakIn("password: hunter2")) fail("colon assignment missed")
+if (!leakIn("password: \"hunter2\"")) fail("quoted colon assignment missed")
+if (leakIn("authToken=abc")) fail("a camelCase token assignment was treated as a leak")
+if (leakIn("secret: the")) fail("prose after a colon was treated as a leak")
+if (leakIn("The secret: consistency.")) fail("prose after a colon was treated as a leak")
+if (!leakIn("The leaked token\nghp_abcdefghijklmnopqrstuvwxyz1234")) fail("next-line ghp_ was missed")
+if (!leakIn("key\nAKIA0123456789ABCDEF\nwas in the log")) fail("next-line AKIA was missed")
+if (!leakIn("see\nlin_api_abcdefgh")) fail("next-line lin_api_ was missed")
+if (!leakIn("here\nsk-abcdefghijklmnopqrstuvwx")) fail("next-line sk- was missed")
+if (!leakIn("notes\nSECRET_KEY=hunter2")) fail("next-line SECRET_KEY was missed")
 if (!leakIn("+1-415-555-0199")) fail("phone missed")
 if (!leakIn("(415)555-0199")) fail("parenthesized phone missed")
 '); then

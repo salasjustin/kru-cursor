@@ -20,7 +20,9 @@
 # issues/, or a GitHub private security advisory and that advisory's private
 # fork. on linear it is filed, internal to the team. bug and want issues may
 # carry a plain repro; a security issue is a short pointer to the store file.
-# the sentence is TRACKER_TEXT, the same one TRACKER.md states once.
+# a comment or an update on a security issue stays pointer-only, including
+# when --kind security is given. the sentence is TRACKER_TEXT, the same one
+# TRACKER.md states once.
 # exit 4 means this process can't take an item. on linear with no key, that is
 # the API fallback only — a session whose Linear MCP tools are connected files
 # there instead (TRACKER.md) and does not treat exit 4 as a reason to use the
@@ -103,10 +105,16 @@ label_for() {
 
 # one guard, every outbound field, every kind, every command. the patterns are
 # scripts/leak-patterns.mjs — the same list scripts/privacy-scan.mjs uses.
-# newlines are flattened there, so a key split across lines is one token.
+# that check scans the original text, a copy with newlines turned into spaces,
+# and a copy with newlines deleted, so a key on the next line keeps its word
+# boundary and a key split across lines is one token.
 kru_dir=$(cd "$(dirname "$0")" && pwd)
 TRACKER_TEXT='bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand'
 SECURITY_BODY_MAX=300
+SECURITY_TITLE_MAX=120
+# a heading, not the word inside a sentence. "plain repro is fine" has no colon
+# and is not a markdown heading, so a bug body may still carry one.
+SECURITY_SECTION='(^|[^[:alnum:]])([*#_[:space:]-]*)(repro|root cause|exploit)([*[:space:]]*):|^[[:space:]]*#{1,6}[[:space:]]*(repro|root cause|exploit)[[:space:]]*$'
 
 guard_text() {
   local text=$1 code
@@ -119,23 +127,34 @@ guard_text() {
   esac
 }
 
-# a security body is a short pointer. bug and want bodies are not checked here.
-guard_security_body() {
-  local text=$1
-  [ "${#text}" -le "$SECURITY_BODY_MAX" ] || die "$TRACKER_TEXT"
-  if printf '%s\n' "$text" | grep -Eiq '(^|[^[:alnum:]])([*#_[:space:]-]*)(repro|root cause|exploit)([*[:space:]]*):|^[[:space:]]*#{1,6}[[:space:]]*(repro|root cause|exploit)[[:space:]]*$'; then
+# a security title, body, comment, or update is a short pointer. a comment or
+# an update on a security issue stays pointer-only, including when --kind
+# security is given. bug and want text is not checked here.
+guard_security_pointer() {
+  local text=$1 max=$2
+  [ "${#text}" -le "$max" ] || die "$TRACKER_TEXT"
+  if printf '%s\n' "$text" | grep -Eiq "$SECURITY_SECTION"; then
     die "$TRACKER_TEXT"
   fi
 }
 
+guard_security_body() { guard_security_pointer "$1" "$SECURITY_BODY_MAX"; }
+guard_security_title() { guard_security_pointer "$1" "$SECURITY_TITLE_MAX"; }
+
 # the only way a user string reaches gh or Linear. send functions call
 # require_outbound and refuse a string that never came through here, so a
 # command cannot skip the check by passing TITLE, BODY, or QUERY itself.
+# --kind security pointer-checks a title and a body here. a comment or an
+# update whose target issue is security is pointer-checked at the send, after
+# the label is read, because --kind may be unset.
 outbound() {
   local text=$1 role=${2:-}
   guard_text "$text"
-  if [ "$role" = body ] && [ "${KIND:-}" = security ]; then
-    guard_security_body "$text"
+  if [ "${KIND:-}" = security ]; then
+    case "$role" in
+      body) guard_security_body "$text" ;;
+      title) guard_security_title "$text" ;;
+    esac
   fi
   printf '%s\0' "$text" >> "$kru_tmp/outbound"
 }
@@ -241,8 +260,36 @@ github_search() {
   jq -n --argjson a "$labeled" --argjson b "$bare" '$a + $b | unique_by(.number)' | github_rows
 }
 
-github_comment() { github_number "$1"; require_outbound "$2"; gh issue comment "$1" --body "$2" >/dev/null || die "gh issue comment failed"; printf '%s\n' "$1"; }
-github_update() { github_number "$1"; require_outbound "$2"; gh issue edit "$1" --body "$2" >/dev/null || die "gh issue edit failed"; printf '%s\n' "$1"; }
+github_issue_is_security() {
+  local labels
+  labels=$(gh issue view "$1" --json labels --jq '[.labels[].name] | join(",")') || die "could not read the GitHub issue"
+  printf '%s\n' "$labels" | grep -qi security
+}
+
+# the label, not --kind. a security issue's comment or update stays pointer-only.
+github_guard_security_issue() {
+  local id=$1 body=$2
+  github_issue_is_security "$id" || return 0
+  guard_security_body "$body"
+}
+
+github_comment() {
+  local id=$1 body=$2
+  github_number "$id"
+  require_outbound "$body"
+  github_guard_security_issue "$id" "$body"
+  gh issue comment "$id" --body "$body" >/dev/null || die "gh issue comment failed"
+  printf '%s\n' "$id"
+}
+
+github_update() {
+  local id=$1 body=$2
+  github_number "$id"
+  require_outbound "$body"
+  github_guard_security_issue "$id" "$body"
+  gh issue edit "$id" --body "$body" >/dev/null || die "gh issue edit failed"
+  printf '%s\n' "$id"
+}
 github_close() { github_number "$1"; gh issue close "$1" >/dev/null || die "gh issue close failed"; printf '%s\n' "$1"; }
 
 # --- linear -------------------------------------------------------------------
@@ -387,8 +434,21 @@ linear_search() {
 
 linear_issue() {
   local key=$1 data
-  data=$(linear_gql 'query($id:String!){ issue(id:$id){ id identifier url team { id } state { type } } }' "$(jq -n --arg id "$key" '{id:$id}')") || exit $?
+  data=$(linear_gql 'query($id:String!){ issue(id:$id){ id identifier url team { id } state { type } labels { nodes { name } } } }' "$(jq -n --arg id "$key" '{id:$id}')") || exit $?
   jq -e '.issue | select(.id != null)' <<<"$data" || die "no Linear issue $key"
+}
+
+linear_issue_is_security() {
+  local hit
+  hit=$(jq -r '[.labels.nodes[]?.name // empty | ascii_downcase] | map(select(index("security") != null)) | length' <<<"$1") || die "could not read Linear labels"
+  [ "$hit" != 0 ]
+}
+
+# the label, not --kind. a security issue's comment or update stays pointer-only.
+linear_guard_security_issue() {
+  local issue=$1 body=$2
+  linear_issue_is_security "$issue" || return 0
+  guard_security_body "$body"
 }
 
 linear_file() {
@@ -412,6 +472,7 @@ linear_comment() {
   local key=$1 body=$2 issue uuid
   require_outbound "$body"
   issue=$(linear_issue "$key") || exit $?
+  linear_guard_security_issue "$issue" "$body"
   uuid=$(jq -r '.id' <<<"$issue")
   linear_gql 'mutation($input:CommentCreateInput!){ commentCreate(input:$input){ success } }' \
     "$(jq -n --arg id "$uuid" --arg body "$body" '{input:{issueId:$id, body:$body}}')" >/dev/null || exit $?
@@ -422,6 +483,7 @@ linear_update() {
   local key=$1 body=$2 issue uuid
   require_outbound "$body"
   issue=$(linear_issue "$key") || exit $?
+  linear_guard_security_issue "$issue" "$body"
   uuid=$(jq -r '.id' <<<"$issue")
   linear_gql 'mutation($id:String!, $input:IssueUpdateInput!){ issueUpdate(id:$id, input:$input){ success } }' \
     "$(jq -n --arg id "$uuid" --arg body "$body" '{id:$id, input:{description:$body}}')" >/dev/null || exit $?
@@ -459,7 +521,7 @@ cmd_file() {
   [ "$KIND_SET" = 1 ] || die "file needs --kind bug|want|security"
   [ -n "$TITLE" ] || die "file needs --title"
   [ "$BODY_SET" = 1 ] || die "file needs --body"
-  outbound "$TITLE"
+  outbound "$TITLE" title
   outbound "$BODY" body
   require_backend
   local label

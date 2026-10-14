@@ -190,7 +190,9 @@ The scan fails on tokens and keys; on emails outside the reserved example domain
   in upstream commits and removed from this tree or left as vendored examples (`82976d23` `evals/homepage-copy/prompt.md`,
   `b10943af` `skills/lead/references/lossless-doc-compaction.md`, example `password=` / `token=` /
   `API_TOKEN=` assignments in that commit's Cloudflare and Turborepo docs, and `94dcd7bf` Turso
-  `auth_token=` examples). The current tree's vendored copies of those docs are the same examples.
+  `auth_token=` examples, plus colon assignments in upstream `cb005e14` conform, `94dcd7bf` hono,
+  and `60f7ccb6` react-hook-form docs). The current tree's vendored copies of those docs are the
+  same examples. The sync workflow's `GH_TOKEN` lines are GitHub's own `${{ github.token }}`.
   Six gitleaks hits are documentation placeholders in vendored Cloudflare docs. No real secret.
 
 ## License
