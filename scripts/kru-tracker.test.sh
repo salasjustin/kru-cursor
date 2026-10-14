@@ -1,7 +1,7 @@
 #!/bin/bash
 # kru-tracker.sh: the work-tracker setting. github is the default, including
 # when KRU_TRACKER is unset or empty; linear is opt-in.
-# A security finding goes to Linear, internal to the team: the title and body carry no secret, key, or customer data, and the evidence stays in the store file.
+# A security finding goes to Linear, internal to the team. tracker text is a pointer to the store file; never secrets, keys, credentials, customer emails/phones or repro evidence, in any field, comment or update; MCP-path sessions apply the same rule by hand.
 # On GitHub it is refused. gh and curl are mocks, so nothing here reaches a network.
 # run: bash scripts/kru-tracker.test.sh
 set -u
@@ -98,13 +98,14 @@ report() {
 contains() { case "$2" in *"$1"*) return 0 ;; esac; return 1; }
 
 # every KRU_* / LINEAR_* / plugin option is stripped, so the parent environment
-# cannot make a case pass. PATH points at the mocks first.
+# cannot make a case pass. PATH points at the mocks first. only those prefixes
+# are environment; a body may contain '=' (password=…) and stay an argument.
 run() {
-  local args=() envs=() seen=false a
+  local args=() envs=() a
   for a in "$@"; do
     case "$a" in
-      *=*) seen=true; envs+=("$a") ;;
-      *) $seen && envs+=("$a") || args+=("$a") ;;
+      KRU_*=*|LINEAR_*=*|CLAUDE_PLUGIN_OPTION_*=*) envs+=("$a") ;;
+      *) args+=("$a") ;;
     esac
   done
   : > "$sandbox/log"
@@ -202,9 +203,9 @@ run close --id "12 "
 ok "a GitHub close id must be digits" 1
 not_logged "…and does not close" "issue close"
 
-run comment --id 12 --body "ghp_abcdefghijklmnopqrst"
+run comment --id 12 --body "ghp_abcdefghijklmnopqrstuvwxyz1234"
 ok "a comment body that carries a token is refused" 1
-err_has "…and names the pointer rule" "pointer to where the evidence is kept"
+err_has "…and names the tracker-text rule" "pointer to the store file"
 not_logged "…before gh" "issue comment"
 
 run update --id 12 --body "lin_api_abcdefghijklmnopqrst"
@@ -318,13 +319,13 @@ run file --kind security --title "token in the log" --body "$SEC_BODY" \
 logged "a security team replaces the main team" '"teamId":"team-sec"'
 not_logged "…and does not attach the product project" '"projectId"'
 
-run file --kind security --title "token in the log" --body "ghp_abcdefghijklmnopqrst" \
+run file --kind security --title "token in the log" --body "ghp_abcdefghijklmnopqrstuvwxyz1234" \
   KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
 ok "a security body that carries a token is refused" 1
-err_has "…and names the body rule" "pointer to where the evidence is kept"
+err_has "…and names the tracker-text rule" "pointer to the store file"
 not_logged "…before any API call" "issueCreate"
 
-run file --kind security --title "ghp_abcdefghijklmnopqrst" --body "$SEC_BODY" \
+run file --kind security --title "ghp_abcdefghijklmnopqrstuvwxyz1234" --body "$SEC_BODY" \
   KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
 ok "a security title that carries a token is refused" 1
 not_logged "…before any API call" "query"
@@ -341,7 +342,7 @@ ok "a lin_api_ key in a security title is refused" 1
 run file --kind security --title "token in the log" --body "mail a@ex.com" \
   KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
 ok "a security body that carries an email is refused" 1
-err_has "…and names the email rule" "email address"
+err_has "…and names the tracker-text rule" "customer emails"
 not_logged "…before any API call" "query"
 
 run file --kind security --title "a@ex.com is the reporter" --body "$SEC_BODY" \
@@ -349,10 +350,10 @@ run file --kind security --title "a@ex.com is the reporter" --body "$SEC_BODY" \
 ok "a security title that carries an email is refused" 1
 
 run file --kind bug --title "Flaky login" --body "ping a@ex.com"
-ok "a bug body may name an email" 0
-logged "…and still files" "issue create"
+ok "a bug body that names an email is refused" 1
+not_logged "…and does not file" "issue create"
 
-run comment --id BG-41 --body "ghp_abcdefghijklmnopqrst" \
+run comment --id BG-41 --body "ghp_abcdefghijklmnopqrstuvwxyz1234" \
   KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
 ok "a linear comment body that carries a token is refused" 1
 not_logged "…before any API call" "query"
@@ -365,12 +366,83 @@ not_logged "…before any API call" "query"
 run comment --kind security --id BG-41 --body "see a@ex.com" \
   KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
 ok "a security comment that carries an email is refused" 1
-err_has "…and names the email rule" "email address"
+err_has "…and names the tracker-text rule" "customer emails"
+not_logged "…before any API call" "query"
 
 run comment --id BG-41 --body "see a@ex.com" \
   KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
-ok "a comment without --kind security may name an email" 0
-logged "…and comments" "commentCreate"
+ok "a comment without --kind that names an email is refused" 1
+not_logged "…and does not comment" "commentCreate"
+
+run update --id BG-41 --body "ping a@ex.com" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "an update without --kind that names an email is refused" 1
+not_logged "…and does not update" "issueUpdate"
+
+# the review's probes. every one is a bug or a want, or a comment/update
+# with no --kind, so a kind gate cannot be what catches it.
+run file --kind bug --title "short key" --body "see lin_api_abcdefghijklmnopqrs" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a 19-character lin_api_ suffix in a bug body is refused" 1
+not_logged "…before any API call" "query"
+
+run file --kind want --title "LIN_API_abcdefgh leaked" --body "value: 4"
+ok "an uppercase LIN_API_ key in a want title is refused" 1
+not_logged "…before gh" "issue create"
+
+run comment --id 12 --body "see lin_api_abcd-efgh"
+ok "a hyphenated lin_api_ key in a comment is refused" 1
+not_logged "…before gh" "issue comment"
+
+run update --id 12 --body $'see lin_api_abcd\nefghijkl'
+ok "a lin_api_ key split across a newline is refused" 1
+not_logged "…before gh" "issue edit"
+
+run file --kind bug --title "stripe" --body "sk_live_0123456789abcdef"
+ok "an sk_live_ key in a bug body is refused" 1
+not_logged "…before gh" "issue create"
+
+run file --kind want --title "stripe test" --body "sk_test_0123456789abcdef"
+ok "an sk_test_ key in a want body is refused" 1
+
+run file --kind bug --title "header" --body "Bearer abcdefghijklmnopqrstuvwx"
+ok "a Bearer token in a bug body is refused" 1
+
+run comment --id 12 --body "AIzaSy0123456789ABCDEFGHIJKLMNOPQRSTUVW"
+ok "an AIza key in a comment is refused" 1
+
+run update --id 12 --body "ASIA0123456789ABCDEF"
+ok "an ASIA key in an update is refused" 1
+
+run file --kind bug --title "password=hunter2" --body "severity: medium"
+ok "a password assignment in a bug title is refused" 1
+not_logged "…before gh" "issue create"
+
+run file --kind want --title "callback" --body "call +1-415-555-0199"
+ok "a phone number in a want body is refused" 1
+
+run file --kind bug --title "short" --body "lin_api_abcdefg"
+ok "a 7-character lin_api_ suffix is not a key" 0
+logged "…and still files" "issue create"
+
+run comment --id "BG-41;touch" --body "more" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a Linear comment id must match the link grammar" 1
+err_has "…and names the identifier" "ENG-123"
+not_logged "…before any API call" "query"
+
+run update --id "BG-41;touch" --body "value: 5" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a Linear update id must match the link grammar" 1
+not_logged "…before any API call" "query"
+
+run close --id "BG-41;touch" \
+  KRU_TRACKER=linear LINEAR_API_KEY="$KEY" KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
+ok "a Linear close id must match the link grammar" 1
+not_logged "…before any API call" "query"
+
+run link --id "BG-41;touch" KRU_TRACKER=linear
+ok "a Linear link id rejects the same injection" 1
 
 run ready KRU_TRACKER=linear LINEAR_API_KEY=$'lin_api_test_placeholder\nX-Injected: 1' KRU_LINEAR_TEAM=BG KRU_LINEAR_PROJECT=Platform
 ok "a key with a line feed is refused" 1
@@ -455,18 +527,53 @@ for pair in "${policy[@]}"; do
   f=${pair%%|*} n=${pair#*|}
   report "$f files security on Linear" "$(grep -qF "$n" "$repo/$f" && echo true || echo false)" "missing [$n]"
 done
-for f in skills/kru-lead/SKILL.md skills/kru-lead/references/reconcile.md TRACKER.md skills/kru-issue/SKILL.md scripts/cursor/edits.mjs scripts/kru-tracker.test.sh; do
-  report "$f keeps secrets out of the title and body" "$(grep -qF "title and body carry no secret, key, or customer data" "$repo/$f" && echo true || echo false)" "missing the title/body rule"
-  report "$f keeps the evidence in the store" "$(grep -qF "evidence stays in the store" "$repo/$f" && echo true || echo false)" "missing the store rule"
+RULE='tracker text is a pointer to the store file; never secrets, keys, credentials, customer emails/phones or repro evidence, in any field, comment or update; MCP-path sessions apply the same rule by hand'
+for f in skills/kru-lead/SKILL.md skills/kru-lead/references/reconcile.md TRACKER.md skills/kru-issue/SKILL.md scripts/cursor/edits.mjs; do
+  report "$f states the tracker-text rule" "$(grep -qF "$RULE" "$repo/$f" && echo true || echo false)" "missing the rule"
 done
+rule_count=$(grep -cF "$RULE" "$repo/TRACKER.md" || true)
+report "TRACKER.md states the rule once" "$([ "$rule_count" = 1 ] && echo true || echo false)" "count $rule_count"
+report "lead line 9 states the rule" "$(sed -n '9p' "$repo/skills/kru-lead/SKILL.md" | grep -qF "$RULE" && echo true || echo false)" "line 9"
+report "reconcile line 12 states the rule" "$(sed -n '12p' "$repo/skills/kru-lead/references/reconcile.md" | grep -qF "$RULE" && echo true || echo false)" "line 12"
+report "kru-issue line 18 states the rule" "$(sed -n '18p' "$repo/skills/kru-issue/SKILL.md" | grep -qF "$RULE" && echo true || echo false)" "line 18"
+report "kru-issue line 43 states the rule" "$(sed -n '43p' "$repo/skills/kru-issue/SKILL.md" | grep -qF "$RULE" && echo true || echo false)" "line 43"
 header=$(sed -n '1,7p' "$repo/scripts/kru-tracker.test.sh" | sed 's/^# *//')
-report "the test header files security on Linear" "$(printf '%s\n' "$header" | grep -qF "A security finding goes to Linear, internal to the team: the title and body carry no secret, key, or customer data, and the evidence stays in the store file." && echo true || echo false)" "header [$header]"
+report "the test header states the rule" "$(printf '%s\n' "$header" | grep -qF "$RULE" && echo true || echo false)" "header [$header]"
 report "the lead no longer keeps security off Linear" "$(grep -qF "or to Linear" "$repo/skills/kru-lead/SKILL.md" && echo false || echo true)" "still says or to Linear"
 report "the lead fork edit no longer keeps security off Linear" "$(grep -qF "or to Linear" "$repo/scripts/cursor/edits.mjs" && echo false || echo true)" "edit still says or to Linear"
 report "kru-issue files security through MCP without the script" "$(grep -qF "do not call the script" "$repo/skills/kru-issue/SKILL.md" && echo true || echo false)" "missing"
 report "…and a missing key is not exit 4" "$(grep -qF "not exit 4" "$repo/skills/kru-issue/SKILL.md" && echo true || echo false)" "missing"
-report "TRACKER tells an MCP session to apply the secret rule by hand" "$(grep -qF "apply the same rule by hand" "$repo/TRACKER.md" && echo true || echo false)" "missing"
-report "…and names lin_api_" "$(grep -qF "lin_api_" "$repo/TRACKER.md" && echo true || echo false)" "missing"
+
+if (cd "$repo" && node --input-type=module -e '
+import { readFileSync } from "node:fs"
+import { EMAIL_SOURCE, SECRET_PATTERNS, leakIn } from "./scripts/leak-patterns.mjs"
+import { PATTERNS } from "./scripts/privacy-scan.mjs"
+const fail = (m) => { console.error(m); process.exit(1) }
+if (PATTERNS.length < SECRET_PATTERNS.length) fail("privacy-scan dropped a secret pattern")
+for (let i = 0; i < SECRET_PATTERNS.length; i++) {
+  const p = SECRET_PATTERNS[i]
+  const got = PATTERNS[i]
+  if (!got || got.id !== p.id) fail("id " + i + ": " + (got && got.id) + " != " + p.id)
+  if (got.re.source !== p.source) fail("source " + p.id)
+  if (got.re.flags !== (p.flags || "")) fail("flags " + p.id + ": " + got.re.flags)
+}
+const email = PATTERNS[SECRET_PATTERNS.length]
+if (!email || email.id !== "email" || email.re.source !== EMAIL_SOURCE) fail("email source drifted")
+const guard = readFileSync("scripts/guard-text.mjs", "utf8")
+if (!guard.includes("leak-patterns.mjs")) fail("guard-text does not import leak-patterns")
+if (/lin_api_|sk_live_|AIza/.test(guard)) fail("guard-text copies a pattern")
+const scan = readFileSync("scripts/privacy-scan.mjs", "utf8")
+if (!scan.includes("secretRegs()")) fail("privacy-scan does not call secretRegs")
+if (scan.includes("lin_api_")) fail("privacy-scan copies lin_api_")
+if (!leakIn("lin_api_abcd\nefghijkl")) fail("newline-split lin_api_ was missed")
+if (leakIn("lin_api_abcdefg")) fail("a 7-character suffix was treated as a key")
+if (!leakIn("password=hunter2")) fail("password assignment missed")
+if (!leakIn("+1-415-555-0199")) fail("phone missed")
+'); then
+  report "privacy-scan and guard_text share one secret list" true ""
+else
+  report "privacy-scan and guard_text share one secret list" false "patterns diverged"
+fi
 
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

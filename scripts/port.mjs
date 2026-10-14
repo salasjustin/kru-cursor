@@ -126,6 +126,8 @@ const FORK_OWNED = new Set([
   "scripts/asset/xai.test.mjs",
   "scripts/privacy-scan.mjs",
   "scripts/privacy-scan.test.sh",
+  "scripts/leak-patterns.mjs",
+  "scripts/guard-text.mjs",
   "scripts/cursor-hooks.test.sh",
   "scripts/cursor-smoke.sh",
   "scripts/sync-upstream.sh",

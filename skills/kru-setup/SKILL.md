@@ -207,8 +207,7 @@ issues until the repo opts in (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MC
 user adds `KRU_TRACKER=linear`, `KRU_LINEAR_TEAM` (a team key, for example `BG`), and
 `KRU_LINEAR_PROJECT` (a project name, for example `Connector`). Those names are the repo's.
 `KRU_LINEAR_SECURITY_TEAM` is optional (for example `SEC`); unset, a security finding uses the
-main team and the label `security`. Its Linear title and body are a description and a pointer to where the
-evidence is kept — no secret, key, or customer data — and the evidence stays in the store file (`TRACKER.md` → *Security on Linear*). On the
+main team and the label `security`. What is filed follows *Tracker text* (`TRACKER.md`). On the
 GitHub tracker a security finding stays in the store or a private advisory. Prefer the connected
 Linear MCP tools. `LINEAR_API_KEY` is optional, only for the script when those tools are not
 connected, and a secret if it is set — never a line in the repo. Pull requests stay on GitHub.
