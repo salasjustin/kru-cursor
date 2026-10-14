@@ -102,7 +102,8 @@ const PATH_OK = [
   { id: "internal-path", path: /^skills\/(kru-)?cloudflare\/references\/sandbox\// },
   // this scanner names what it scans for, and PORTING.md reports what it found
   { id: "*", path: /^(scripts\/privacy-scan\.mjs|scripts\/leak-patterns\.mjs|scripts\/guard-text\.mjs|PORTING\.md)$/ },
-  // the tracker test spells the probes guard_text must refuse
+  // the tracker test spells the probes guard_text must refuse. gitleaks uses
+  // this same list, so those probe lines are not a second finding.
   { id: "*", path: /^scripts\/kru-tracker\.test\.sh$/ },
   // vendored docs show example env assignments (API_TOKEN=, auth_token=). the
   // tracker still refuses that shape; these files are upstream examples.
@@ -236,10 +237,18 @@ if (gl.status === 0) {
     console.log(`FAIL: gitleaks ran but left no readable report (exit ${r.status}): ${String(err.message).split("\n")[0]}`)
     process.exit(1)
   } finally { rmSync(dir, { recursive: true, force: true }) }
-  // a placeholder is judged on the secret gitleaks extracted, never the line
+  // a placeholder is judged on the secret gitleaks extracted, never the line.
+  // what remains goes through PATH_OK, the same path list as the regex scan.
+  // a file the regex scan already accepts (the tracker probes, the scanner
+  // itself) is not a gitleaks finding either. anything else still fails.
   const real = found.filter((f) => !PLACEHOLDER_SECRET.test(f.Secret ?? ""))
   gitleaks = `${gl.stdout.trim()}: ${found.length} finding(s), ${found.length - real.length} placeholder(s)`
-  for (const f of real) hits.push({ commit: f.Commit, id: `gitleaks:${f.RuleID}`, path: f.File, value: "REDACTED", line: `line ${f.StartLine}` })
+  for (const f of real) {
+    const id = `gitleaks:${f.RuleID}`
+    const path = f.File
+    if (allowed(id, path, f.Match ?? "", f.Secret ?? "")) continue
+    hits.push({ commit: f.Commit, id, path, value: "REDACTED", line: `line ${f.StartLine}` })
+  }
 }
 
 // --- report ---------------------------------------------------------------------

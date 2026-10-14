@@ -193,7 +193,9 @@ The scan fails on tokens and keys; on emails outside the reserved example domain
   `auth_token=` examples, plus colon assignments in upstream `cb005e14` conform, `94dcd7bf` hono,
   and `60f7ccb6` react-hook-form docs, plus `b10943af` Cloudflare `API_KEY` type names). The current tree's vendored copies of those docs are the
   same examples. The sync workflow's `GH_TOKEN` lines are GitHub's own `${{ github.token }}`.
-  Six gitleaks hits are documentation placeholders in vendored Cloudflare docs. No real secret.
+  Six gitleaks hits are documentation placeholders in vendored Cloudflare docs. Gitleaks also
+  sees the tracker's own probe strings in `scripts/kru-tracker.test.sh`; that file is the same path
+  exception as the regex scan, because those lines are the fixtures. No real secret.
 
 ## License
 
