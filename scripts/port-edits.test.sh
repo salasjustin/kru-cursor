@@ -2,7 +2,8 @@
 # the fork edits (scripts/cursor/edits.mjs) against a fresh upstream tree:
 # (1) every edit applies and the result is the checked-in tree, (2) a second
 # port changes nothing, (3) upstream rewording an edited passage fails the
-# port by name instead of silently dropping the edit.
+# port by name instead of silently dropping the edit, (4) a drifted
+# per-segment anchor fails a normal port before any file is written.
 # run: bash scripts/port-edits.test.sh
 set -u
 repo=$(cd "$(dirname "$0")/.." && pwd)
@@ -41,5 +42,30 @@ if [ -n "$first" ]; then
   check "upstream rewording an edited passage fails the port" test "$code" != 0
   check "…naming the edit" grep -q "fork edit no longer matches $file" <<<"$out"
 fi
+
+# the per-segment kru_fn_def insert anchors on `[ -z "$seg" ] && continue`
+# inside a loop the rule still matches after that line moves. a normal port
+# must exit before it writes the hook — or any other file. --check fails on
+# the same miss and still writes nothing.
+fresh "$t/drift"
+hook="$t/drift/hooks/readonly-bash.sh"
+grep -qF '[ -z "$seg" ] && continue' "$hook" || { echo "port-edits.test: upstream anchor missing"; exit 1; }
+sed -i 's/\[ -z "\$seg" \] && continue/[ -z "$seg" ] \&\& drifted/' "$hook"
+grep -qF '[ -z "$seg" ] && drifted' "$hook" || { echo "port-edits.test: anchor drift did not apply"; exit 1; }
+manifest() { (cd "$1" && find . -type f ! -path './.git/*' -print0 | sort -z | xargs -0 sha256sum); }
+manifest "$t/drift" > "$t/drift-before"
+cp -p "$hook" "$t/hook-before"
+out=$(cd "$t/drift" && node scripts/port.mjs --quiet 2>&1); code=$?
+manifest "$t/drift" > "$t/drift-after"
+check "a drifted per-segment anchor fails a normal port" test "$code" != 0
+check "…naming the drifted anchor" grep -q 'per-segment kru_fn_def "$seg" was not inserted' <<<"$out"
+check "…leaving the hook untouched" cmp -s "$t/hook-before" "$hook"
+check "…and writing nothing" cmp -s "$t/drift-before" "$t/drift-after"
+out=$(cd "$t/drift" && node scripts/port.mjs --check --quiet 2>&1); code=$?
+manifest "$t/drift" > "$t/drift-check"
+check "a drifted per-segment anchor fails --check" test "$code" != 0
+check "…still naming the drifted anchor" grep -q 'per-segment kru_fn_def "$seg" was not inserted' <<<"$out"
+check "…and --check writes nothing" cmp -s "$t/drift-before" "$t/drift-check"
+
 printf '%d passed, %d failed (%s edits)\n' "$pass" "$fail" "$n"
 [ "$fail" -eq 0 ]
