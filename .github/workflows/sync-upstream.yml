@@ -277,9 +277,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           body="$RUNNER_TEMP/pr-body.md"
-          cat "$RUNNER_TEMP/sync/report.md" > "$body"
+          # CR is a newline first: a windows line ending in the report must not
+          # leave a closing fence on the same visual line
+          tr '\r' '\n' < "$RUNNER_TEMP/sync/report.md" > "$body"
           if [ "$VERIFY_OK" = true ]; then
-            printf '\n### verify.sh\n\nAll checks passed.\n\n' >> "$body"
+            printf '\n### verify.sh\n\nThis sync run'\''s own `verify.sh` passed. That is this job'\''s report, not a CI check.\n\n' >> "$body"
           else
             cat >> "$body" <<'EOF'
 
@@ -289,11 +291,13 @@ jobs:
 
           EOF
           fi
-          # indent every line so a fence, a link or a mention in the summary
-          # (upstream's own verify output) cannot leave the code block
+          # CR is a newline before the indent, so a windows line ending cannot
+          # leave a closing fence at column 0. the indent then keeps a fence,
+          # a link or a mention in the summary (upstream's own verify output)
+          # from leaving the code block
           {
             echo '```'
-            sed 's/^/    /' "$RUNNER_TEMP/verify/summary.txt"
+            tr '\r' '\n' < "$RUNNER_TEMP/verify/summary.txt" | sed 's/^/    /'
             echo '```'
           } >> "$body"
           cat >> "$body" <<'EOF'

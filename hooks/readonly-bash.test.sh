@@ -116,5 +116,16 @@ for c in \
   expect write "$c"
 done
 
+# a function definition whose name is a read verb, then a call of that name.
+# quoted parens stay reads. the same pattern on the whole command (no ';') too.
+for c in "grep '()' f" "sed -n '/()/p' a" "echo 'ls () ( touch x )'" 'find . \( -name x \)' 'ls -la'; do
+  expect read "$c"
+done
+
+for c in 'ls () ( touch x ); ls' 'ls () ( touch x )' 'grep () ( touch x ); grep x' \
+  'ls ( ) ( touch x ); ls' 'cat () ( touch x ); cat'; do
+  expect write "$c"
+done
+
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

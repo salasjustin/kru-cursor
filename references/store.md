@@ -35,9 +35,12 @@ has already moved.
 |---|---|---|
 | default | `~/.kru` | `<cross-project root>/management/<project-slug>` |
 | cloud agent (`CURSOR_AGENT_SOCKET` set, or `KRU_CLOUD=1`) | `~/.kru` — session-lived | **`<repo>/.kru`**, and it ships in the branch |
+| `KRU_CLOUD=0` | the default row, on every surface | the default row — `CURSOR_AGENT_SOCKET` and `/run/cursor/api.sock` do not count |
 | `KRU_STORE_REPO` set, any surface | `~/.kru`, a checkout of that repo | under it, as the default row — cloud included |
 | `KRU_HOME` set | that path, on every surface | under it, as the default row |
 | `KRU_PROJECT_STORE` set | — | that path |
+
+**`KRU_CLOUD=0` forces the local rows** even when `CURSOR_AGENT_SOCKET` is set or `/run/cursor/api.sock` exists: the project root stays `<cross-project root>/management/<project-slug>` and does not move into `<repo>/.kru`. Set it on a machine that has the agent socket but is not a cloud vm, and in tests, so a host socket cannot flip the layout. `KRU_CLOUD=1` forces the cloud row. Unset, the socket decides.
 
 **`<project-slug>` is the repo's dir name**, and a linked worktree resolves to the **main** repo — a
 slice dispatched into a worktree writes to the same store as the session that dispatched it.

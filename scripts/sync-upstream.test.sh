@@ -50,6 +50,16 @@ check "…and the working tree is clean" bash -c '[ -z "$(git -C "$1" status --p
 check "…without upstream's new workflow file" test ! -e "$t/fork/.github/workflows/upstream-only.yml"
 check "…and the report names it" grep -q 'upstream-only.yml' "$t/report.md"
 
+# a CR in a path or a commit message must not inject into the report: the path
+# is shell-quoted, and a fence marker after a CR is indented inside the block
+printf 'x\n' > "$t/up/bad"$'\r'"name.txt"
+git -C "$t/up" add -A && git -C "$t/up" commit -q -m "cr-probe"$'\r```'
+out=$(cd "$t/fork" && bash scripts/sync-upstream.sh 2>&1)
+check "a control-character path still syncs" grep -q '^synced' <<<"$out"
+check "…the report has no raw CR" bash -c '[[ $(tr -cd "\r" < "$1" | wc -c) -eq 0 ]]' _ "$t/report.md"
+check "…the path is shell-quoted" grep -F 'bad\rname.txt' "$t/report.md"
+check "…a fence marker after a CR is indented" grep -qx '    ```' "$t/report.md"
+
 # (2b) upstream's VERSION reaches the workflow's outputs, a commit message and a
 # pull request title: a value that isn't a version string is refused, not synced
 good_version=$(cat "$t/up/VERSION")

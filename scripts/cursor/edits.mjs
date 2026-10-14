@@ -820,3 +820,27 @@ EDITS.push(E(
   "    HOME=\"$home\" KRU_CLOUD=0 ${envs[@]+\"${envs[@]}\"} bash \"$store\" \"${args[@]}\" 2>&1)",
   "review: store tests default to not-cloud so the host agent socket cannot flip them",
 ))
+
+// adopt a ready-made skill before authoring one. the completion line stays
+// role + boundary + source.
+EDITS.push(E(
+  "skills/kru-roster/hire.md",
+  "A seat with a fuzzy boundary is worse than no seat (`ROSTER.md` → *Scope*: adding a seat is fine, adding a blurred lane is not).\n\nCompletion: role + boundary-vs-nearest-peer + named source, all one line, no overlap.",
+  "A seat with a fuzzy boundary is worse than no seat (`ROSTER.md` → *Scope*: adding a seat is fine, adding a blurred lane is not).\n\nBefore authoring a new skill or inventing a seat-owned recipe, adopt an authoritative ready-made skill first: an official plugin, a publisher or standards-body skill repo, or a skill the team already has. Author one only where none of those exists.\n\nCompletion: role + boundary-vs-nearest-peer + named source, all one line, no overlap.",
+  "adopt-first: author a skill only where no authoritative ready-made skill exists",
+))
+
+// KRU_CLOUD=0 forces the local store layout. the cloud row is the port's
+// rewrite of upstream's remote-session row; this names the off switch.
+EDITS.push(E(
+  "references/store.md",
+  "| cloud agent (`CURSOR_AGENT_SOCKET` set, or `KRU_CLOUD=1`) | `~/.kru` — session-lived | **`<repo>/.kru`**, and it ships in the branch |\n| `KRU_STORE_REPO` set, any surface |",
+  "| cloud agent (`CURSOR_AGENT_SOCKET` set, or `KRU_CLOUD=1`) | `~/.kru` — session-lived | **`<repo>/.kru`**, and it ships in the branch |\n| `KRU_CLOUD=0` | the default row, on every surface | the default row — `CURSOR_AGENT_SOCKET` and `/run/cursor/api.sock` do not count |\n| `KRU_STORE_REPO` set, any surface |",
+  "review: KRU_CLOUD=0 forces the local store layout",
+))
+EDITS.push(E(
+  "references/store.md",
+  "**`<project-slug>` is the repo's dir name**, and a linked worktree resolves to the **main** repo — a\n",
+  "**`KRU_CLOUD=0` forces the local rows** even when `CURSOR_AGENT_SOCKET` is set or `/run/cursor/api.sock` exists: the project root stays `<cross-project root>/management/<project-slug>` and does not move into `<repo>/.kru`. Set it on a machine that has the agent socket but is not a cloud vm, and in tests, so a host socket cannot flip the layout. `KRU_CLOUD=1` forces the cloud row. Unset, the socket decides.\n\n**`<project-slug>` is the repo's dir name**, and a linked worktree resolves to the **main** repo — a\n",
+  "review: when to set KRU_CLOUD=0",
+))
