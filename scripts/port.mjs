@@ -297,8 +297,10 @@ const RULES = [
   // `kru_fn_def "$seg"` is inserted at `[ -z "$seg" ] && continue`. if that
   // anchor drifts, this regex still matches and `kru_segments` is still
   // emitted, so the skipped insert would count as applied. a missed insert
-  // fails the port here, and `required` demands the per-segment
-  // `kru_fn_def "$seg"` so --check fails closed once the upstream loop is gone.
+  // is recorded here. `required` demands the per-segment `kru_fn_def "$seg"`
+  // so --check fails closed once the upstream loop is gone. a normal port
+  // runs this rewrite before it renames or writes (guardSegmentAnchor) and
+  // exits on the miss, so the hook without the check is never written.
   R(/^( +)while IFS= read -r seg; do\n +seg=\$\(printf '%s' "\$seg" \| sed 's\/\^\[\[:space:\]\]\*\/\/; s\/\[\[:space:\]\]\*\$\/\/'\)\n([\s\S]*?)\n( +)done < <\(printf '%s\\n' "\$1" \| tr '\|;&' '\\n'\)\n/m,
     (_m, a, mid, a2) => {
       const marked = mid.replace(
@@ -1215,6 +1217,47 @@ if (process.argv.includes("--list-fork-owned")) {
   process.exit(0)
 }
 
+// the per-segment insert is decided inside the readonly-bash rewrite, which
+// also builds the text a later write() would save. run that rewrite once
+// before any rename or write and discard the pass. a drifted anchor still
+// matches the loop, and the rule would otherwise emit the hook without
+// `kru_fn_def "$seg"` and write it before the failure at the bottom. this
+// pass restores the rule and edit state so a clean tree ports as before.
+// --check never writes, so it keeps reporting the miss with the rest of the port.
+function guardSegmentAnchor() {
+  if (CHECK) return
+  const rel = "hooks/readonly-bash.sh"
+  const path = join(ROOT, rel)
+  if (!existsSync(path)) return
+  const saved = RULES.map((rule) =>
+    rule === PATHS_END
+      ? null
+      : { hits: rule.hits, re: rule.re.lastIndex, required: rule.required ? rule.required.lastIndex : 0 },
+  )
+  const savedApplied = EDITS.map((e) => e.applied)
+  const savedKeys = new Set(contents.keys())
+  const before = problems.length
+  rewrite(readFileSync(path, "utf8"), rel)
+  if (problems.length > before) {
+    console.error(`\n${problems.length} problem(s):`)
+    for (const p of problems) console.error(`  ! ${p}`)
+    process.exit(1)
+  }
+  RULES.forEach((rule, i) => {
+    if (rule === PATHS_END) return
+    if (saved[i].hits === undefined) delete rule.hits
+    else rule.hits = saved[i].hits
+    rule.re.lastIndex = saved[i].re
+    if (rule.required) rule.required.lastIndex = saved[i].required
+  })
+  EDITS.forEach((e, i) => {
+    if (savedApplied[i] === undefined) delete e.applied
+    else e.applied = savedApplied[i]
+  })
+  for (const k of [...contents.keys()]) if (!savedKeys.has(k)) contents.delete(k)
+}
+
+guardSegmentAnchor()
 relayout()
 const noEdit = portAgents()
 portSkills()
