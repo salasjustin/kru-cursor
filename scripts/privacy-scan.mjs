@@ -124,6 +124,9 @@ const PATH_OK = [
   { id: "assignment", path: /^skills\/(kru-)?wrangler\/SKILL\.md$/, line: /API_KEY=local-dev-key|"secret_name": "my-secret"/ },
   // the store-resolver test pins a fictional owner's store repo (`acme/kru-store`)
   { id: "private-repo", path: /^scripts\/kru-store\.test\.sh$/, line: /acme\/kru-store/ },
+  // the always-on lead rule names the one public repo Greptile reviews. the
+  // scanner file is exempt, so the line match can spell it; the rule cannot.
+  { id: "client-data", path: /^(rules\/kru-lead\.mdc|scripts\/port\.mjs)$/, line: /AngelProtocolFinance\/better-giving/ },
 ]
 
 // history hits reviewed and kept: upstream kru's public history, unchanged in

@@ -137,13 +137,13 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "description: How this engineering team works — load before building, reviewing or dispatching any seat. Also the entry for a project from scratch and for planning work past one context.",
-  "description: How this engineering team works — load before building, reviewing or dispatching any seat. Also the entry for a project from scratch and for planning work past one context. Opening or owning a pull request runs the PR babysit loop.",
+  "description: How this engineering team works — load before building, reviewing or dispatching any seat. Also the entry for a project from scratch and for planning work past one context. Opening or owning a pull request follows the PR babysit loop in `rules/kru-lead.mdc`.",
   "pr-babysit: the always-loaded description fires when a cloud agent opens or owns a PR",
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.",
-  "job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.\n\n**PR babysit loop.** A cloud agent that opens a pull request, or already owns one, subscribes to its\nreviews, comments, and CI, then ends the turn. The next pass starts when one of those wakes you: fix a\nvalid finding, reply on each thread — say why when the finding stands — and push. Clean means CI green\nand every review thread from whatever reviewers the repo has answered. Where Greptile reviews the repo,\nclean also means no Greptile P0 or P1 still open. Never wait for a Greptile score in a repo Greptile\ndoes not review. Then tell the PM that requested the work that it is ready to merge. That is the loop's\nonly outward message; the owner merges.",
+  "job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.\n\n**PR babysit loop.** The loop is the always-on rule in `rules/kru-lead.mdc`.",
   "pr-babysit: one loop, in the lead contract cloud-skills.sh installs",
 ))
 EDITS.push(E(
