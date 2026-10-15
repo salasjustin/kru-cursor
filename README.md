@@ -96,18 +96,15 @@ Pass the repo directory when the shell is not already inside it. With no argumen
 `git rev-parse --show-toplevel`, then `/workspace`. It shallow-clones `skills/` and `agents/` from
 this repo and `pstack/` from `cursor/plugins` (latest `main`) into `~/.cache/kru-cloud-skills`,
 copies each skill flat into `.claude/skills/<name>/` and each agent into `.claude/agents/`, and
-lists those paths in the checkout's `info/exclude` and, when they are not already tracked, in
-`.claude/skills/.gitignore` and `.claude/agents/.gitignore`. A root `.gitignore` that re-includes
-`.claude/skills/**` beats `info/exclude`; the nested gitignore is deeper, so the copies stay out of
-`git status` and are never committed. A skill or agent the repo already tracks is left as it is, and
-so is an untracked path this script did not install. Files it copied are listed in that checkout's
-git dir (`kru-cloud-skills.manifest`), one path per file. A later run updates those files from the
-source and removes one only when the source no longer has it, so a file you added inside a skill
-stays on disk. That extra file is hidden by the ignore patterns and does not show in `git status`.
-A fresh repository at the same path has a new git dir and starts with no ownership. It does not
-follow a symlink at `.claude`, `.claude/skills`, `.claude/agents`, or a destination. On a shared
-name, this repo's copy wins over pstack. A name that is not one safe path segment is skipped. If
-the clone or fetch fails, the script warns and exits 0 so the environment step still succeeds.
+overwrites an untracked copy. A name the repo already tracks is left as it is. On a shared name,
+this repo's copy wins over pstack. Each copied path is one line in the checkout's `info/exclude`
+(`git rev-parse --git-path info/exclude`), between `# kru-cloud-skills begin` and
+`# kru-cloud-skills end`. That block is rewritten on every run. Other exclude lines stay.
+
+A repo that uses this installer must not negate `.claude/skills` or `.claude/agents` in
+`.gitignore`. A negation beats `info/exclude`, and the copies would show up as untracked. Repos
+align to that contract; the installer does not try to outrank a root gitignore. If the clone or
+fetch fails, the script warns and exits 0 so the environment step still succeeds.
 
 ## What it does in your session
 The team is opinionated about process and enforces it with hooks. Each fails open (a crash, a missing
