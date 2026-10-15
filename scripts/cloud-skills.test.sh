@@ -10,6 +10,7 @@ trap 'rm -rf "$sandbox"' EXIT
 
 pass=0
 fail=0
+skip=0
 report() {
   local name=$1 ok=$2 detail=$3
   if [ "$ok" = yes ]; then
@@ -18,6 +19,10 @@ report() {
     fail=$((fail + 1))
     printf 'FAIL: %s\n  %s\n' "$name" "$detail"
   fi
+}
+skip_case() {
+  skip=$((skip + 1))
+  printf 'SKIP: %s\n' "$1"
 }
 
 init_repo() {
@@ -76,18 +81,30 @@ printf '# keep me\n*.tmp\n' > "$target/.git/info/exclude"
 gitignore_before=$(sha256sum "$target/.gitignore" | awk '{print $1}')
 
 cache="$sandbox/cache"
+# a real pipe, the way curl | bash runs the installer. a redirect is not a pipe.
 run_install() {
   local dir=$1
   shift
   (
     cd "$dir"
-    # shellcheck disable=SC2086
-    env \
+    cat "$script" | env \
       KRU_CLOUD_SKILLS_CACHE="$cache" \
       KRU_CLOUD_SKILLS_KRU_URL="$kru" \
       KRU_CLOUD_SKILLS_PLUGINS_URL="$plugins" \
       KRU_CLOUD_SKILLS_FALLBACK="${KRU_CLOUD_SKILLS_FALLBACK:-}" \
-      bash -s -- "$@" < "$script"
+      bash -s -- "$@"
+  )
+}
+run_cached() {
+  local dir=$1 cache_dir=$2
+  shift 2
+  (
+    cd "$dir"
+    cat "$script" | env \
+      KRU_CLOUD_SKILLS_CACHE="$cache_dir" \
+      KRU_CLOUD_SKILLS_KRU_URL="$kru" \
+      KRU_CLOUD_SKILLS_PLUGINS_URL="$plugins" \
+      bash -s -- "$@"
   )
 }
 
@@ -129,11 +146,19 @@ report "exclude does not list the tracked skill" "$(printf '%s\n' "$exclude" | g
 ignore_out=$(git -C "$target" check-ignore -v .claude/skills/kru-alpha/SKILL.md .claude/agents/helper.md)
 report "exclude, not gitignore, hides copies" "$(printf '%s\n' "$ignore_out" | grep -q 'info/exclude' && ! printf '%s\n' "$ignore_out" | grep -q '.gitignore' && echo yes || echo no)" "$ignore_out"
 
-manifest=$(find "$cache/manifests" -type f)
+manifest=$(git -C "$target" rev-parse --absolute-git-dir)/kru-cloud-skills.manifest
 report "sparse clone skipped the other plugin" "$([ ! -e "$cache/plugins/other-plugin" ] && [ -f "$cache/plugins/pstack/skills/pstack-beta/SKILL.md" ] && [ -f "$cache/kru-cursor/skills/kru-alpha/SKILL.md" ] && echo yes || echo no)" "$(find "$cache" -type d -name other-plugin -o -name skills)"
-report "one manifest file in the cache" "$([ "$(printf '%s\n' "$manifest" | wc -l | tr -d ' ')" = 1 ] && echo yes || echo no)" "$manifest"
-report "manifest records the owned skill" "$(tail -n +2 "$manifest" | grep -qx '.claude/skills/shared/' && echo yes || echo no)" "$(cat "$manifest")"
+report "manifest lives in the git dir" "$([ -f "$manifest" ] && [ ! -L "$manifest" ] && echo yes || echo no)" "$manifest"
+report "cache does not hold the ownership manifest" "$([ ! -e "$cache/manifests" ] && echo yes || echo no)" "$(find "$cache" -type d -name manifests -print)"
+report "manifest records the owned file" "$(grep -qx '.claude/skills/shared/SKILL.md' "$manifest" && echo yes || echo no)" "$(cat "$manifest")"
+report "manifest records files, not the skill directory" "$(grep -qx '.claude/skills/shared/' "$manifest" && echo no || echo yes)" "$(cat "$manifest")"
 report "manifest does not record the tracked skill" "$(grep -q 'foo' "$manifest" && echo no || echo yes)" "$(cat "$manifest")"
+report "cache repo is not a symlink and has no core.worktree" "$(
+  [ ! -L "$cache" ] && [ ! -L "$cache/kru-cursor" ] && [ ! -L "$cache/plugins" ] \
+    && [ "$(git -C "$cache/kru-cursor" rev-parse --show-toplevel)" = "$cache/kru-cursor" ] \
+    && ! git -C "$cache/kru-cursor" config --local --get core.worktree >/dev/null 2>&1 \
+    && echo yes || echo no
+)" "$(git -C "$cache/kru-cursor" rev-parse --show-toplevel 2>&1)"
 
 tree_hash() {
   (
@@ -170,6 +195,41 @@ report "owned skill restores with the source" \
   "$([ "$(cat "$target/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" \
   "$(cat "$target/.claude/skills/shared/SKILL.md" 2>/dev/null)"
 
+# refresh copies files the source has and removes only files we previously
+# copied. a file the user added, including one next to a file we drop, stays.
+printf 'user extra\n' > "$target/.claude/skills/shared/USER.md"
+mkdir -p "$target/.claude/skills/shared/notes"
+printf 'user note\n' > "$target/.claude/skills/shared/notes/USER.md"
+printf 'ref body\n' > "$kru/skills/shared/reference.md"
+mkdir -p "$kru/skills/shared/notes"
+printf 'note\n' > "$kru/skills/shared/notes/extra.md"
+printf 'kru shared v3\n' > "$kru/skills/shared/SKILL.md"
+commit_repo "$kru" "shared files"
+file_out=$(run_install "$target" 2>"$sandbox/file.err")
+file_code=$?
+report "owned skill refresh keeps a user file" \
+  "$([ "$file_code" = 0 ] && [ "$(cat "$target/.claude/skills/shared/USER.md")" = "user extra" ] && [ "$(cat "$target/.claude/skills/shared/notes/USER.md")" = "user note" ] && echo yes || echo no)" \
+  "exit $file_code; $(find "$target/.claude/skills/shared" -printf '%p\n' 2>/dev/null)"
+report "owned skill refresh updates and adds source files" \
+  "$([ "$(cat "$target/.claude/skills/shared/SKILL.md")" = "kru shared v3" ] && [ "$(cat "$target/.claude/skills/shared/reference.md")" = "ref body" ] && [ "$(cat "$target/.claude/skills/shared/notes/extra.md")" = "note" ] && echo yes || echo no)" \
+  "$file_out"
+file_manifest=$(git -C "$target" rev-parse --absolute-git-dir)/kru-cloud-skills.manifest
+report "manifest lists copied files and not the user file" \
+  "$(grep -qx '.claude/skills/shared/SKILL.md' "$file_manifest" && grep -qx '.claude/skills/shared/reference.md' "$file_manifest" && grep -qx '.claude/skills/shared/notes/extra.md' "$file_manifest" && ! grep -q 'USER.md' "$file_manifest" && echo yes || echo no)" \
+  "$(cat "$file_manifest")"
+rm -f "$kru/skills/shared/reference.md"
+rm -rf "$kru/skills/shared/notes"
+printf 'kru shared\n' > "$kru/skills/shared/SKILL.md"
+commit_repo "$kru" "drop shared extras"
+run_install "$target" >/dev/null 2>"$sandbox/file2.err"
+report "refresh removes only a file the source dropped" \
+  "$([ ! -e "$target/.claude/skills/shared/reference.md" ] && [ ! -e "$target/.claude/skills/shared/notes/extra.md" ] && [ "$(cat "$target/.claude/skills/shared/USER.md")" = "user extra" ] && [ "$(cat "$target/.claude/skills/shared/notes/USER.md")" = "user note" ] && [ "$(cat "$target/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" \
+  "$(find "$target/.claude/skills/shared" -printf '%p\n' 2>/dev/null); $(cat "$sandbox/file2.err")"
+file_manifest=$(git -C "$target" rev-parse --absolute-git-dir)/kru-cloud-skills.manifest
+report "manifest drops the file the source dropped" \
+  "$(grep -qx '.claude/skills/shared/SKILL.md' "$file_manifest" && ! grep -q 'reference.md' "$file_manifest" && ! grep -q 'notes/extra.md' "$file_manifest" && echo yes || echo no)" \
+  "$(cat "$file_manifest")"
+
 # a directory the repo did not commit and this script did not install stays.
 collide="$sandbox/collide"
 mkdir -p "$collide/.claude/skills/shared" "$collide/.claude/agents"
@@ -179,7 +239,7 @@ init_repo "$collide"
 git -C "$collide" commit -q --allow-empty -m init
 col_out=$(run_install "$sandbox" "$collide" 2>"$sandbox/col.err")
 col_code=$?
-col_manifest=$(grep -l -F -x "$collide" "$cache/manifests"/* 2>/dev/null || true)
+col_manifest=$(git -C "$collide" rev-parse --absolute-git-dir)/kru-cloud-skills.manifest
 report "untracked collision run exits 0" "$([ "$col_code" = 0 ] && echo yes || echo no)" "exit $col_code"
 report "untracked skill preserved" \
   "$([ "$(cat "$collide/.claude/skills/shared/SKILL.md")" = "user shared" ] && echo yes || echo no)" \
@@ -256,11 +316,11 @@ init_repo "$shell_repo"
 git -C "$shell_repo" commit -q --allow-empty -m init
 shell_out=$(
   cd /tmp
-  env SHELLOPTS=errexit:pipefail:nounset \
+  cat "$script" | env SHELLOPTS=errexit:pipefail:nounset \
     KRU_CLOUD_SKILLS_CACHE="$cache" \
     KRU_CLOUD_SKILLS_KRU_URL="$kru" \
     KRU_CLOUD_SKILLS_PLUGINS_URL="$plugins" \
-    bash -s -- "$shell_repo" < "$script" 2>"$sandbox/shell.err"
+    bash -s -- "$shell_repo" 2>"$sandbox/shell.err"
 )
 shell_code=$?
 report "errexit pipefail nounset run exits 0" \
@@ -289,6 +349,21 @@ report "summary no longer counts the adopted skill as copied" \
 status3=$(git -C "$target" status --porcelain)
 report "status clean after the adopted skill drops out of the source" "$([ -z "$status3" ] && echo yes || echo no)" "$status3"
 
+# a file the user added inside a skill we own must survive when that skill
+# leaves the source. only the files the manifest lists are removed.
+extra="$sandbox/extra-repo"
+mkdir -p "$extra"
+init_repo "$extra"
+git -C "$extra" commit -q --allow-empty -m init
+extra_install=$(run_install "$sandbox" "$extra" 2>"$sandbox/extra.err")
+extra_install_code=$?
+printf 'user extra\n' > "$extra/.claude/skills/pstack-beta/USER.md"
+mkdir -p "$extra/.claude/skills/pstack-beta/keep"
+printf 'keep\n' > "$extra/.claude/skills/pstack-beta/keep/mine.md"
+report "extra repo installed before the skill leaves the source" \
+  "$([ "$extra_install_code" = 0 ] && [ -f "$extra/.claude/skills/pstack-beta/SKILL.md" ] && echo yes || echo no)" \
+  "exit $extra_install_code; $extra_install"
+
 # drop a skill we still own. the next run removes that directory.
 # on the other checkout the owned path is a symlink; removal must unlink it
 # and leave the directory it points at alone.
@@ -313,6 +388,15 @@ report "owned symlink was unlinked" "$([ ! -L "$linkrepo/.claude/skills/pstack-b
 report "owned symlink target was not removed" \
   "$([ "$(cat "$precious/keep-me")" = "precious" ] && [ -d "$precious" ] && echo yes || echo no)" \
   "$(find "$precious" -printf '%p\n' 2>/dev/null)"
+extra_out=$(run_install "$sandbox" "$extra" 2>"$sandbox/extra-stale.err")
+extra_code=$?
+report "stale skill keeps a user file" \
+  "$([ "$extra_code" = 0 ] && [ "$(cat "$extra/.claude/skills/pstack-beta/USER.md")" = "user extra" ] && [ "$(cat "$extra/.claude/skills/pstack-beta/keep/mine.md")" = "keep" ] && [ ! -e "$extra/.claude/skills/pstack-beta/SKILL.md" ] && echo yes || echo no)" \
+  "exit $extra_code; $(find "$extra/.claude/skills/pstack-beta" -printf '%p\n' 2>/dev/null); $extra_out"
+extra_manifest=$(git -C "$extra" rev-parse --absolute-git-dir)/kru-cloud-skills.manifest
+report "stale skill file leaves the manifest" \
+  "$(grep -q 'pstack-beta/SKILL.md' "$extra_manifest" && echo no || echo yes)" \
+  "$(cat "$extra_manifest")"
 
 # no network, no cache: warn and exit 0, and do not touch the checkout.
 offline_cache="$sandbox/empty-cache"
@@ -387,31 +471,70 @@ report "fallback directory is used outside a git checkout" \
   "exit $fb_code; $fb_out; $(cat "$sandbox/fb.err")"
 
 # the default fallback is the literal /workspace path, with the env var unset.
-# a mount namespace puts a scratch repo there so the real checkout is not the target.
+# a mount namespace puts a scratch repo there so the real checkout is not the
+# target. GitHub-hosted runners reject unshare, so those cases skip there and
+# still run where the namespace is allowed. the owned-path mount check needs
+# the same namespace (tmpfs is a different device from its parent).
 script_copy="$sandbox/cloud-skills.sh"
 cp "$script" "$script_copy"
-fake_ws="$sandbox/workspace-mount"
-mkdir -p "$fake_ws"
-init_repo "$fake_ws"
-git -C "$fake_ws" commit -q --allow-empty -m init
-ws_out=$(
-  unshare --user --map-root-user --mount bash -c '
-    mount --bind "$1" /workspace
-    cd /
-    env -u KRU_CLOUD_SKILLS_FALLBACK -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE \
-      KRU_CLOUD_SKILLS_CACHE="$2" \
-      KRU_CLOUD_SKILLS_KRU_URL="$3" \
-      KRU_CLOUD_SKILLS_PLUGINS_URL="$4" \
-      bash -s < "$5"
-  ' _ "$fake_ws" "$cache" "$kru" "$plugins" "$script_copy" 2>"$sandbox/ws.err"
-)
-ws_code=$?
-report "default /workspace fallback exits 0" "$([ "$ws_code" = 0 ] && echo yes || echo no)" "exit $ws_code; $(cat "$sandbox/ws.err"); $ws_out"
-report "default fallback installs into /workspace" \
-  "$(printf '%s\n' "$ws_out" | grep -F -q -- '-> /workspace ' && [ "$(cat "$fake_ws/.claude/skills/shared/SKILL.md" 2>/dev/null)" = "kru shared" ] && echo yes || echo no)" \
-  "$ws_out"
-report "default fallback does not write the real checkout" \
-  "$([ ! -e "$repo/.claude" ] && echo yes || echo no)" "$(find "$repo/.claude" -printf '%p\n' 2>/dev/null)"
+if unshare --user --map-root-user --mount true >/dev/null 2>&1; then
+  fake_ws="$sandbox/workspace-mount"
+  mkdir -p "$fake_ws"
+  init_repo "$fake_ws"
+  git -C "$fake_ws" commit -q --allow-empty -m init
+  ws_out=$(
+    unshare --user --map-root-user --mount bash -c '
+      mount --bind "$1" /workspace
+      cd /
+      env -u KRU_CLOUD_SKILLS_FALLBACK -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE \
+        KRU_CLOUD_SKILLS_CACHE="$2" \
+        KRU_CLOUD_SKILLS_KRU_URL="$3" \
+        KRU_CLOUD_SKILLS_PLUGINS_URL="$4" \
+        bash -s < "$5"
+    ' _ "$fake_ws" "$cache" "$kru" "$plugins" "$script_copy" 2>"$sandbox/ws.err"
+  )
+  ws_code=$?
+  report "default /workspace fallback exits 0" "$([ "$ws_code" = 0 ] && echo yes || echo no)" "exit $ws_code; $(cat "$sandbox/ws.err"); $ws_out"
+  report "default fallback installs into /workspace" \
+    "$(printf '%s\n' "$ws_out" | grep -F -q -- '-> /workspace ' && [ "$(cat "$fake_ws/.claude/skills/shared/SKILL.md" 2>/dev/null)" = "kru shared" ] && echo yes || echo no)" \
+    "$ws_out"
+  report "default fallback does not write the real checkout" \
+    "$([ ! -e "$repo/.claude" ] && echo yes || echo no)" "$(find "$repo/.claude" -printf '%p\n' 2>/dev/null)"
+
+  mount_repo="$sandbox/mount-repo"
+  mkdir -p "$mount_repo"
+  init_repo "$mount_repo"
+  git -C "$mount_repo" commit -q --allow-empty -m init
+  mount_first=$(run_install "$sandbox" "$mount_repo" 2>"$sandbox/mount-first.err")
+  mount_first_code=$?
+  report "mount fixture installed" \
+    "$([ "$mount_first_code" = 0 ] && [ -f "$mount_repo/.claude/skills/shared/SKILL.md" ] && echo yes || echo no)" \
+    "exit $mount_first_code; $mount_first"
+  mount_out=$(
+    unshare --user --map-root-user --mount bash -c '
+      mount -t tmpfs tmpfs "$1"
+      printf "mount-marker\n" > "$1/marker"
+      cat "$2" | env \
+        KRU_CLOUD_SKILLS_CACHE="$3" \
+        KRU_CLOUD_SKILLS_KRU_URL="$4" \
+        KRU_CLOUD_SKILLS_PLUGINS_URL="$5" \
+        bash -s -- "$6"
+      code=$?
+      printf "mount-marker-after:%s\n" "$(cat "$1/marker" 2>/dev/null || echo missing)"
+      if [ -e "$1/SKILL.md" ]; then printf "skill-on-mount:yes\n"; else printf "skill-on-mount:no\n"; fi
+      exit "$code"
+    ' _ "$mount_repo/.claude/skills/shared" "$script" "$cache" "$kru" "$plugins" "$mount_repo" 2>"$sandbox/mount.err"
+  )
+  mount_code=$?
+  report "owned mount point is not removed" \
+    "$([ "$mount_code" = 0 ] && printf '%s\n' "$mount_out" | grep -qx 'mount-marker-after:mount-marker' && printf '%s\n' "$mount_out" | grep -qx 'skill-on-mount:no' && grep -q 'skipping mount point' "$sandbox/mount.err" && [ "$(cat "$mount_repo/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" \
+    "exit $mount_code; $mount_out; $(cat "$sandbox/mount.err")"
+else
+  skip_case "/workspace fallback (unshare unavailable)"
+  skip_case "default fallback installs into /workspace (unshare unavailable)"
+  skip_case "default fallback does not write the real checkout (unshare unavailable)"
+  skip_case "owned mount point is not removed (unshare unavailable)"
+fi
 
 # an explicit argument wins over the current directory.
 other="$sandbox/other-repo"
@@ -430,6 +553,180 @@ arg_out=$(
 report "argument selects the target" \
   "$([ "$(cat "$other/.claude/skills/foo/SKILL.md")" = "other foo" ] && [ "$(cat "$other/.claude/skills/shared/SKILL.md")" = "kru shared" ] && printf '%s' "$arg_out" | grep -F -q -- "-> $other " && echo yes || echo no)" \
   "$arg_out"
+report "removes pass --one-file-system" "$(grep -q -- '--one-file-system' "$script" && echo yes || echo no)" "rm is missing --one-file-system"
 
-printf 'cloud-skills tests: %d passed, %d failed\n' "$pass" "$fail"
+# a fresh repository created at a path we already installed into has a new
+# git dir, so the old manifest does not apply. a path-hashed cache file would
+# still claim ownership; plant one and prove it is ignored.
+reuse="$sandbox/reuse"
+mkdir -p "$reuse"
+init_repo "$reuse"
+git -C "$reuse" commit -q --allow-empty -m init
+reuse_first=$(run_install "$sandbox" "$reuse" 2>"$sandbox/reuse-first.err")
+reuse_first_code=$?
+reuse_manifest=$(git -C "$reuse" rev-parse --absolute-git-dir)/kru-cloud-skills.manifest
+report "first checkout at a path records ownership in its git dir" \
+  "$([ "$reuse_first_code" = 0 ] && grep -qx '.claude/skills/shared/SKILL.md' "$reuse_manifest" && echo yes || echo no)" \
+  "exit $reuse_first_code; $(cat "$reuse_manifest" 2>/dev/null)"
+rm -rf "$reuse"
+mkdir -p "$reuse"
+init_repo "$reuse"
+git -C "$reuse" commit -q --allow-empty -m init
+mkdir -p "$reuse/.claude/skills/shared"
+printf 'user now\n' > "$reuse/.claude/skills/shared/SKILL.md"
+mkdir -p "$cache/manifests"
+printf '%s\n' "$reuse" '.claude/skills/shared/' '.claude/skills/shared/SKILL.md' > "$cache/manifests/planted"
+reuse_out=$(run_install "$sandbox" "$reuse" 2>"$sandbox/reuse.err")
+reuse_code=$?
+reuse_manifest=$(git -C "$reuse" rev-parse --absolute-git-dir)/kru-cloud-skills.manifest
+report "fresh repo at the same path does not inherit ownership" \
+  "$([ "$reuse_code" = 0 ] && [ "$(cat "$reuse/.claude/skills/shared/SKILL.md")" = "user now" ] && ! grep -q 'skills/shared' "$reuse_manifest" && grep -q 'pre-existing untracked' "$sandbox/reuse.err" && echo yes || echo no)" \
+  "exit $reuse_code; $(cat "$reuse/.claude/skills/shared/SKILL.md" 2>/dev/null); $(cat "$reuse_manifest" 2>/dev/null); $(cat "$sandbox/reuse.err"); $reuse_out"
+
+# a target whose path contains a newline is refused. stripping the newline
+# would install into the sibling directory instead.
+nl_parent="$sandbox/nlparent"
+mkdir -p "$nl_parent/repo"
+init_repo "$nl_parent/repo"
+git -C "$nl_parent/repo" commit -q --allow-empty -m init
+nl_dir="$nl_parent/repo"$'\n'
+mkdir -p -- "$nl_dir"
+init_repo "$nl_dir"
+git -C "$nl_dir" commit -q --allow-empty -m init
+nl_out=$(run_install "$sandbox" "$nl_dir" 2>"$sandbox/nl.err")
+nl_code=$?
+report "newline target is refused" \
+  "$([ "$nl_code" = 0 ] && grep -q 'newline' "$sandbox/nl.err" && [ ! -e "$nl_dir/.claude/skills/shared" ] && [ ! -e "$nl_parent/repo/.claude/skills/shared" ] && echo yes || echo no)" \
+  "exit $nl_code; $(cat "$sandbox/nl.err"); $nl_out"
+
+# an unclosed begin marker must not eat the lines that follow it.
+exrepo="$sandbox/exclude-open"
+mkdir -p "$exrepo"
+init_repo "$exrepo"
+git -C "$exrepo" commit -q --allow-empty -m init
+printf '# kru-cloud-skills begin\nKEEPME\n' > "$exrepo/.git/info/exclude"
+ex_out=$(run_install "$sandbox" "$exrepo" 2>"$sandbox/ex.err")
+ex_code=$?
+ex_file=$(cat "$exrepo/.git/info/exclude")
+report "unclosed exclude begin keeps existing lines" \
+  "$([ "$ex_code" = 0 ] && printf '%s\n' "$ex_file" | grep -qx 'KEEPME' && printf '%s\n' "$ex_file" | grep -qx '# kru-cloud-skills end' && grep -q 'begin marker without an end' "$sandbox/ex.err" && [ "$(cat "$exrepo/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" \
+  "exit $ex_code; $ex_file; $(cat "$sandbox/ex.err"); $ex_out"
+
+# info and info/exclude as symlinks are not written through.
+precious_info="$sandbox/precious-info"
+mkdir -p "$precious_info"
+printf 'keep-info\n' > "$precious_info/marker"
+inforepo="$sandbox/info-link"
+mkdir -p "$inforepo"
+init_repo "$inforepo"
+git -C "$inforepo" commit -q --allow-empty -m init
+rm -rf "$inforepo/.git/info"
+ln -s "$precious_info" "$inforepo/.git/info"
+info_out=$(run_install "$sandbox" "$inforepo" 2>"$sandbox/info.err")
+info_code=$?
+report "symlinked info dir is refused" \
+  "$([ "$info_code" = 0 ] && grep -q 'refusing to follow symlink: info' "$sandbox/info.err" && [ "$(cat "$precious_info/marker")" = "keep-info" ] && [ ! -e "$precious_info/exclude" ] && [ ! -e "$inforepo/.claude/skills/shared" ] && echo yes || echo no)" \
+  "exit $info_code; $(cat "$sandbox/info.err"); $(find "$precious_info" -printf '%p\n'); $info_out"
+precious_exclude="$sandbox/precious-exclude"
+printf 'original\n' > "$precious_exclude"
+exlink="$sandbox/exclude-link"
+mkdir -p "$exlink"
+init_repo "$exlink"
+git -C "$exlink" commit -q --allow-empty -m init
+ln -sf "$precious_exclude" "$exlink/.git/info/exclude"
+exlink_out=$(run_install "$sandbox" "$exlink" 2>"$sandbox/exlink.err")
+exlink_code=$?
+report "symlinked exclude file is refused" \
+  "$([ "$exlink_code" = 0 ] && grep -q 'refusing to follow symlink: info/exclude' "$sandbox/exlink.err" && [ "$(cat "$precious_exclude")" = "original" ] && [ ! -e "$exlink/.claude/skills/shared" ] && echo yes || echo no)" \
+  "exit $exlink_code; $(cat "$precious_exclude"); $(cat "$sandbox/exlink.err"); $exlink_out"
+
+# a manifest line that climbs out of .claude is not deleted.
+poison="$sandbox/poison"
+mkdir -p "$poison"
+init_repo "$poison"
+git -C "$poison" commit -q --allow-empty -m init
+printf 'safe\n' > "$poison/escaped"
+poison_git=$(git -C "$poison" rev-parse --absolute-git-dir)
+printf '%s\n' '.claude/skills/shared/../../escaped' > "$poison_git/kru-cloud-skills.manifest"
+poison_out=$(run_install "$sandbox" "$poison" 2>"$sandbox/poison.err")
+poison_code=$?
+report "manifest path with .. is not removed" \
+  "$([ "$poison_code" = 0 ] && [ "$(cat "$poison/escaped")" = "safe" ] && grep -q 'unexpected manifest path' "$sandbox/poison.err" && echo yes || echo no)" \
+  "exit $poison_code; $(cat "$poison/escaped" 2>/dev/null); $(cat "$sandbox/poison.err"); $poison_out"
+
+# cache directory is a symlink: unlink it, do not clone into its target.
+precious_cache="$sandbox/precious-cache"
+mkdir -p "$precious_cache"
+printf 'cache-marker\n' > "$precious_cache/marker"
+ln -s "$precious_cache" "$sandbox/link-cache"
+link_cache_repo="$sandbox/link-cache-repo"
+mkdir -p "$link_cache_repo"
+init_repo "$link_cache_repo"
+git -C "$link_cache_repo" commit -q --allow-empty -m init
+link_cache_out=$(run_cached "$sandbox" "$sandbox/link-cache" "$link_cache_repo" 2>"$sandbox/link-cache.err")
+link_cache_code=$?
+report "symlink cache is not followed" \
+  "$([ "$link_cache_code" = 0 ] && [ "$(cat "$precious_cache/marker")" = "cache-marker" ] && [ ! -e "$precious_cache/kru-cursor" ] && [ ! -L "$sandbox/link-cache" ] && [ -d "$sandbox/link-cache/kru-cursor" ] && [ "$(cat "$link_cache_repo/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" \
+  "exit $link_cache_code; $(find "$precious_cache" -printf '%p\n'); $(cat "$sandbox/link-cache.err"); $link_cache_out"
+
+# a cache repo that is a symlink is not reset. the real cache dir is deleted
+# and cloned again; the symlink target keeps its dirty tree.
+sym_cache="$sandbox/sym-cache"
+mkdir -p "$sym_cache"
+precious_repo="$sandbox/precious-repo"
+mkdir -p "$precious_repo"
+printf 'safe-content\n' > "$precious_repo/tracked.txt"
+init_repo "$precious_repo"
+commit_repo "$precious_repo" "precious"
+printf 'dirty-content\n' > "$precious_repo/tracked.txt"
+ln -s "$precious_repo" "$sym_cache/kru-cursor"
+sym_repo="$sandbox/sym-repo"
+mkdir -p "$sym_repo"
+init_repo "$sym_repo"
+git -C "$sym_repo" commit -q --allow-empty -m init
+sym_out=$(run_cached "$sandbox" "$sym_cache" "$sym_repo" 2>"$sandbox/sym.err")
+sym_code=$?
+report "symlink cache repo is not reset" \
+  "$([ "$sym_code" = 0 ] && [ "$(cat "$precious_repo/tracked.txt")" = "dirty-content" ] && [ ! -L "$sym_cache/kru-cursor" ] && [ -d "$sym_cache/kru-cursor/.git" ] && [ "$(cat "$sym_repo/.claude/skills/shared/SKILL.md")" = "kru shared" ] && grep -q 'failed checks' "$sandbox/sym.err" && echo yes || echo no)" \
+  "exit $sym_code; $(cat "$precious_repo/tracked.txt" 2>/dev/null); $(cat "$sandbox/sym.err"); $sym_out"
+
+# core.worktree set: do not reset that worktree. delete the real cache and reclone.
+wt_cache="$sandbox/wt-cache"
+wt_repo="$sandbox/wt-repo"
+mkdir -p "$wt_repo"
+init_repo "$wt_repo"
+git -C "$wt_repo" commit -q --allow-empty -m init
+wt_first=$(run_cached "$sandbox" "$wt_cache" "$wt_repo" 2>"$sandbox/wt-first.err")
+wt_first_code=$?
+precious_wt="$sandbox/precious-wt"
+mkdir -p "$precious_wt"
+printf 'do-not-reset\n' > "$precious_wt/marker"
+git -C "$wt_cache/kru-cursor" config core.worktree "$precious_wt"
+wt_out=$(run_cached "$sandbox" "$wt_cache" "$wt_repo" 2>"$sandbox/wt.err")
+wt_code=$?
+report "core.worktree cache repo is not reset" \
+  "$([ "$wt_first_code" = 0 ] && [ "$wt_code" = 0 ] && [ "$(cat "$precious_wt/marker")" = "do-not-reset" ] && [ ! -e "$precious_wt/skills" ] && ! git -C "$wt_cache/kru-cursor" config --local --get core.worktree >/dev/null 2>&1 && [ "$(cat "$wt_repo/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" \
+  "exit $wt_first_code/$wt_code; $(find "$precious_wt" -printf '%p\n' 2>/dev/null); $(cat "$sandbox/wt.err"); $wt_out; $wt_first"
+
+# a gitfile whose git dir lives outside the cache is not reset either.
+gf_cache="$sandbox/gf-cache"
+mkdir -p "$gf_cache/kru-cursor"
+outside_git="$sandbox/outside-git"
+mkdir -p "$outside_git"
+printf 'safe-content\n' > "$outside_git/tracked.txt"
+init_repo "$outside_git"
+commit_repo "$outside_git" "outside"
+printf 'dirty-content\n' > "$outside_git/tracked.txt"
+printf 'gitdir: %s\n' "$outside_git/.git" > "$gf_cache/kru-cursor/.git"
+gf_repo="$sandbox/gf-repo"
+mkdir -p "$gf_repo"
+init_repo "$gf_repo"
+git -C "$gf_repo" commit -q --allow-empty -m init
+gf_out=$(run_cached "$sandbox" "$gf_cache" "$gf_repo" 2>"$sandbox/gf.err")
+gf_code=$?
+report "cache gitfile is not reset" \
+  "$([ "$gf_code" = 0 ] && [ "$(cat "$outside_git/tracked.txt")" = "dirty-content" ] && [ -d "$gf_cache/kru-cursor/.git" ] && [ ! -L "$gf_cache/kru-cursor/.git" ] && [ "$(cat "$gf_repo/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" \
+  "exit $gf_code; $(cat "$outside_git/tracked.txt" 2>/dev/null); $(cat "$sandbox/gf.err"); $gf_out"
+
+printf 'cloud-skills tests: %d passed, %d failed, %d skipped\n' "$pass" "$fail" "$skip"
 [ "$fail" -eq 0 ]

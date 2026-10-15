@@ -98,10 +98,13 @@ this repo and `pstack/` from `cursor/plugins` (latest `main`) into `~/.cache/kru
 copies each skill flat into `.claude/skills/<name>/` and each agent into `.claude/agents/`, and
 lists those paths in `.git/info/exclude` so they stay out of `git status` and are never committed.
 A skill or agent the repo already tracks is left as it is, and so is an untracked path this script
-did not install. It does not follow a symlink at `.claude`, `.claude/skills`, `.claude/agents`, or a
-destination. On a shared name, this repo's copy wins over pstack. A name that is not one safe path
-segment is skipped. A later run removes a copy the script installed that the sources no longer ship.
-If the clone or fetch fails, the script warns and exits 0 so the environment step still succeeds.
+did not install. Files it copied are listed in that checkout's git dir
+(`kru-cloud-skills.manifest`), one path per file. A later run updates those files from the source
+and removes one only when the source no longer has it, so a file you added inside a skill stays.
+A fresh repository at the same path has a new git dir and starts with no ownership. It does not
+follow a symlink at `.claude`, `.claude/skills`, `.claude/agents`, or a destination. On a shared
+name, this repo's copy wins over pstack. A name that is not one safe path segment is skipped. If
+the clone or fetch fails, the script warns and exits 0 so the environment step still succeeds.
 
 ## What it does in your session
 The team is opinionated about process and enforces it with hooks. Each fails open (a crash, a missing
