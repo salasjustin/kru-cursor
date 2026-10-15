@@ -45,6 +45,14 @@ printf 'kru shared\n' > "$kru/skills/shared/SKILL.md"
 printf 'not a skill\n' > "$kru/skills/not-a-skill/README.md"
 printf 'kru lead\n' > "$kru/agents/lead.md"
 printf 'notes\n' > "$kru/agents/notes.txt"
+# names that are not one safe segment: a glob metacharacter, a newline, a space.
+star_skill='bad*name'
+nl_skill=$'bad\nname'
+mkdir -p "$kru/skills/$star_skill" "$kru/skills/$nl_skill"
+printf 'star\n' > "$kru/skills/$star_skill/SKILL.md"
+printf 'newline\n' > "$kru/skills/$nl_skill/SKILL.md"
+printf 'space\n' > "$kru/agents/bad name.md"
+printf 'star agent\n' > "$kru/agents/has*star.md"
 printf 'pstack beta\n' > "$plugins/pstack/skills/pstack-beta/SKILL.md"
 printf 'pstack shared\n' > "$plugins/pstack/skills/shared/SKILL.md"
 printf 'pstack foo\n' > "$plugins/pstack/skills/foo/SKILL.md"
@@ -98,6 +106,18 @@ report "pstack agent copied" "$([ "$(cat "$target/.claude/agents/helper.md")" = 
 report "dir without SKILL.md skipped" "$([ ! -e "$target/.claude/skills/not-a-skill" ] && echo yes || echo no)" "not-a-skill was copied"
 report "plugin outside pstack/ skipped" "$([ ! -e "$target/.claude/skills/nope" ] && echo yes || echo no)" "nope was copied"
 report "non-agent file skipped" "$([ ! -e "$target/.claude/agents/notes.txt" ] && echo yes || echo no)" "notes.txt was copied"
+report "star skill not copied" "$([ ! -e "$target/.claude/skills/$star_skill" ] && echo yes || echo no)" "$(find "$target/.claude/skills" -mindepth 1 -maxdepth 1 -printf '%f\n')"
+report "newline skill not copied" "$([ ! -e "$target/.claude/skills/$nl_skill" ] && echo yes || echo no)" "newline name was copied"
+report "unsafe agent names not copied" "$([ ! -e "$target/.claude/agents/bad name.md" ] && [ ! -e "$target/.claude/agents/has*star.md" ] && echo yes || echo no)" "$(find "$target/.claude/agents" -printf '%f\n')"
+report "unsafe names warned" "$(grep -q 'unsafe name' "$sandbox/err1" && echo yes || echo no)" "$(cat "$sandbox/err1")"
+report "exclude paths are a single safe segment" "$(
+  awk '
+    $0 == "# kru-cloud-skills begin" { p = 1; next }
+    $0 == "# kru-cloud-skills end" { p = 0; next }
+    p && $0 !~ /^\.claude\/skills\/[A-Za-z0-9._-]+\/$/ && $0 !~ /^\.claude\/agents\/[A-Za-z0-9._-]+\.md$/ { bad = 1 }
+    END { exit bad }
+  ' "$target/.git/info/exclude" && echo yes || echo no
+)" "$(cat "$target/.git/info/exclude")"
 
 status=$(git -C "$target" status --porcelain)
 report "git status clean" "$([ -z "$status" ] && echo yes || echo no)" "$status"
@@ -134,6 +154,122 @@ report "second run is idempotent" "$([ "$before" = "$after" ] && echo yes || ech
 report "second run leaves git status clean" "$([ -z "$status2" ] && echo yes || echo no)" "$status2"
 report "no-arg run from a subdir uses the toplevel" "$(printf '%s' "$out2" | grep -F -q -- "-> $target " && echo yes || echo no)" "$out2"
 
+# an owned skill is replaced when the source changes, then put back so later
+# checks still see the original bytes.
+printf 'kru shared v2\n' > "$kru/skills/shared/SKILL.md"
+commit_repo "$kru" "shared v2"
+out_v2=$(run_install "$target" 2>"$sandbox/err-v2")
+code_v2=$?
+report "owned skill is replaced from the source" \
+  "$([ "$code_v2" = 0 ] && [ "$(cat "$target/.claude/skills/shared/SKILL.md")" = "kru shared v2" ] && echo yes || echo no)" \
+  "exit $code_v2; $(cat "$target/.claude/skills/shared/SKILL.md" 2>/dev/null)"
+printf 'kru shared\n' > "$kru/skills/shared/SKILL.md"
+commit_repo "$kru" "shared restored"
+run_install "$target" >/dev/null 2>/dev/null
+report "owned skill restores with the source" \
+  "$([ "$(cat "$target/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" \
+  "$(cat "$target/.claude/skills/shared/SKILL.md" 2>/dev/null)"
+
+# a directory the repo did not commit and this script did not install stays.
+collide="$sandbox/collide"
+mkdir -p "$collide/.claude/skills/shared" "$collide/.claude/agents"
+printf 'user shared\n' > "$collide/.claude/skills/shared/SKILL.md"
+printf 'user helper\n' > "$collide/.claude/agents/helper.md"
+init_repo "$collide"
+git -C "$collide" commit -q --allow-empty -m init
+col_out=$(run_install "$sandbox" "$collide" 2>"$sandbox/col.err")
+col_code=$?
+col_manifest=$(grep -l -F -x "$collide" "$cache/manifests"/* 2>/dev/null || true)
+report "untracked collision run exits 0" "$([ "$col_code" = 0 ] && echo yes || echo no)" "exit $col_code"
+report "untracked skill preserved" \
+  "$([ "$(cat "$collide/.claude/skills/shared/SKILL.md")" = "user shared" ] && echo yes || echo no)" \
+  "$(cat "$collide/.claude/skills/shared/SKILL.md" 2>/dev/null)"
+report "untracked agent preserved" \
+  "$([ "$(cat "$collide/.claude/agents/helper.md")" = "user helper" ] && echo yes || echo no)" \
+  "$(cat "$collide/.claude/agents/helper.md" 2>/dev/null)"
+report "untracked collision warned" "$(grep -q 'pre-existing untracked' "$sandbox/col.err" && echo yes || echo no)" "$(cat "$sandbox/col.err")"
+report "untracked skill is not in the manifest" \
+  "$([ -n "$col_manifest" ] && ! grep -q 'skills/shared' "$col_manifest" && echo yes || echo no)" \
+  "manifest $(cat "$col_manifest" 2>/dev/null)"
+report "a new skill is copied beside the collision" \
+  "$([ "$(cat "$collide/.claude/skills/kru-alpha/SKILL.md")" = "kru alpha" ] && echo yes || echo no)" \
+  "$col_out"
+
+# .claude/skills as a symlink: refuse before anything is written through it.
+outside="$sandbox/outside-skills"
+mkdir -p "$outside"
+printf 'marker\n' > "$outside/marker"
+slink="$sandbox/slink-repo"
+mkdir -p "$slink/.claude"
+ln -s "$outside" "$slink/.claude/skills"
+init_repo "$slink"
+git -C "$slink" commit -q --allow-empty -m init
+sl_out=$(run_install "$sandbox" "$slink" 2>"$sandbox/sl.err")
+sl_code=$?
+report "symlinked skills dir exits 0" "$([ "$sl_code" = 0 ] && echo yes || echo no)" "exit $sl_code; $sl_out"
+report "symlinked skills dir is refused" "$(grep -q 'refusing to follow symlink: .claude/skills' "$sandbox/sl.err" && echo yes || echo no)" "$(cat "$sandbox/sl.err")"
+report "symlink target untouched" \
+  "$([ "$(cat "$outside/marker")" = "marker" ] && [ ! -e "$outside/shared" ] && [ ! -e "$outside/kru-alpha" ] && echo yes || echo no)" \
+  "$(find "$outside" -printf '%p\n')"
+report "skills path is still that symlink" "$([ -L "$slink/.claude/skills" ] && echo yes || echo no)" "$(ls -l "$slink/.claude")"
+report "refusing the skills symlink installs no agents" \
+  "$([ ! -e "$slink/.claude/agents/lead.md" ] && echo yes || echo no)" \
+  "$(find "$slink/.claude" -printf '%p\n' 2>/dev/null)"
+
+# a destination that is a symlink is not followed and, because we do not own
+# it, is not replaced.
+precious_dest="$sandbox/precious-dest"
+mkdir -p "$precious_dest"
+printf 'keep dest\n' > "$precious_dest/keep"
+destrepo="$sandbox/dest-link"
+mkdir -p "$destrepo/.claude/skills"
+ln -s "$precious_dest" "$destrepo/.claude/skills/shared"
+init_repo "$destrepo"
+git -C "$destrepo" commit -q --allow-empty -m init
+dest_out=$(run_install "$sandbox" "$destrepo" 2>"$sandbox/dest.err")
+dest_code=$?
+report "dest symlink run exits 0" "$([ "$dest_code" = 0 ] && echo yes || echo no)" "exit $dest_code; $dest_out"
+report "dest symlink target untouched" \
+  "$([ "$(cat "$precious_dest/keep")" = "keep dest" ] && [ ! -e "$precious_dest/SKILL.md" ] && echo yes || echo no)" \
+  "$(find "$precious_dest" -printf '%p\n')"
+report "dest symlink left in place" "$([ -L "$destrepo/.claude/skills/shared" ] && echo yes || echo no)" "$(ls -l "$destrepo/.claude/skills")"
+report "other skill copied despite the dest symlink" \
+  "$([ "$(cat "$destrepo/.claude/skills/kru-alpha/SKILL.md")" = "kru alpha" ] && echo yes || echo no)" \
+  "$(find "$destrepo/.claude/skills" -printf '%p\n')"
+
+# install a second checkout now, while pstack-beta still exists, so a later
+# stale run can find that path in its manifest.
+linkrepo="$sandbox/link-repo"
+mkdir -p "$linkrepo"
+init_repo "$linkrepo"
+git -C "$linkrepo" commit -q --allow-empty -m init
+link_out=$(run_install "$sandbox" "$linkrepo" 2>"$sandbox/link.err")
+link_code=$?
+report "link repo installed" \
+  "$([ "$link_code" = 0 ] && [ -d "$linkrepo/.claude/skills/pstack-beta" ] && [ ! -L "$linkrepo/.claude/skills/pstack-beta" ] && echo yes || echo no)" \
+  "exit $link_code; $link_out"
+
+# SHELLOPTS is applied by bash at startup, before the script's own set line.
+shell_repo="$sandbox/shell-repo"
+mkdir -p "$shell_repo"
+init_repo "$shell_repo"
+git -C "$shell_repo" commit -q --allow-empty -m init
+shell_out=$(
+  cd /tmp
+  env SHELLOPTS=errexit:pipefail:nounset \
+    KRU_CLOUD_SKILLS_CACHE="$cache" \
+    KRU_CLOUD_SKILLS_KRU_URL="$kru" \
+    KRU_CLOUD_SKILLS_PLUGINS_URL="$plugins" \
+    bash -s -- "$shell_repo" < "$script" 2>"$sandbox/shell.err"
+)
+shell_code=$?
+report "errexit pipefail nounset run exits 0" \
+  "$([ "$shell_code" = 0 ] && echo yes || echo no)" \
+  "exit $shell_code; $(cat "$sandbox/shell.err"); $shell_out"
+report "errexit run installed a skill" \
+  "$([ "$(cat "$shell_repo/.claude/skills/shared/SKILL.md" 2>/dev/null)" = "kru shared" ] && echo yes || echo no)" \
+  "$shell_out"
+
 # a skill we installed, then the repo commits, must survive a later removal
 # from the source: it is tracked now, so it is no longer ours to delete.
 git -C "$target" add -f .claude/skills/kru-alpha
@@ -154,6 +290,13 @@ status3=$(git -C "$target" status --porcelain)
 report "status clean after the adopted skill drops out of the source" "$([ -z "$status3" ] && echo yes || echo no)" "$status3"
 
 # drop a skill we still own. the next run removes that directory.
+# on the other checkout the owned path is a symlink; removal must unlink it
+# and leave the directory it points at alone.
+precious="$sandbox/precious"
+mkdir -p "$precious"
+printf 'precious\n' > "$precious/keep-me"
+rm -rf "$linkrepo/.claude/skills/pstack-beta"
+ln -s "$precious" "$linkrepo/.claude/skills/pstack-beta"
 rm -rf "$plugins/pstack/skills/pstack-beta"
 commit_repo "$plugins" "drop pstack-beta"
 out4=$(run_install "$target" 2>"$sandbox/err4")
@@ -163,6 +306,13 @@ report "exclude drops the removed skill" "$(grep -q 'pstack-beta' "$target/.git/
 report "sibling skill stays" "$([ "$(cat "$target/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" "shared missing"
 status4=$(git -C "$target" status --porcelain)
 report "status clean after stale removal" "$([ -z "$status4" ] && echo yes || echo no)" "$status4"
+link_stale=$(run_install "$sandbox" "$linkrepo" 2>"$sandbox/link-stale.err")
+link_stale_code=$?
+report "owned symlink stale run exits 0" "$([ "$link_stale_code" = 0 ] && echo yes || echo no)" "exit $link_stale_code; $link_stale; $(cat "$sandbox/link-stale.err")"
+report "owned symlink was unlinked" "$([ ! -L "$linkrepo/.claude/skills/pstack-beta" ] && [ ! -e "$linkrepo/.claude/skills/pstack-beta" ] && echo yes || echo no)" "$(ls -l "$linkrepo/.claude/skills")"
+report "owned symlink target was not removed" \
+  "$([ "$(cat "$precious/keep-me")" = "precious" ] && [ -d "$precious" ] && echo yes || echo no)" \
+  "$(find "$precious" -printf '%p\n' 2>/dev/null)"
 
 # no network, no cache: warn and exit 0, and do not touch the checkout.
 offline_cache="$sandbox/empty-cache"
@@ -235,8 +385,33 @@ fb_code=$?
 report "fallback directory is used outside a git checkout" \
   "$([ "$fb_code" = 0 ] && [ "$(cat "$fallback/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" \
   "exit $fb_code; $fb_out; $(cat "$sandbox/fb.err")"
-report "script names the cloud checkout as the default fallback" \
-  "$(grep -q '/workspace' "$script" && echo yes || echo no)" "fallback path missing"
+
+# the default fallback is the literal /workspace path, with the env var unset.
+# a mount namespace puts a scratch repo there so the real checkout is not the target.
+script_copy="$sandbox/cloud-skills.sh"
+cp "$script" "$script_copy"
+fake_ws="$sandbox/workspace-mount"
+mkdir -p "$fake_ws"
+init_repo "$fake_ws"
+git -C "$fake_ws" commit -q --allow-empty -m init
+ws_out=$(
+  unshare --user --map-root-user --mount bash -c '
+    mount --bind "$1" /workspace
+    cd /
+    env -u KRU_CLOUD_SKILLS_FALLBACK -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE \
+      KRU_CLOUD_SKILLS_CACHE="$2" \
+      KRU_CLOUD_SKILLS_KRU_URL="$3" \
+      KRU_CLOUD_SKILLS_PLUGINS_URL="$4" \
+      bash -s < "$5"
+  ' _ "$fake_ws" "$cache" "$kru" "$plugins" "$script_copy" 2>"$sandbox/ws.err"
+)
+ws_code=$?
+report "default /workspace fallback exits 0" "$([ "$ws_code" = 0 ] && echo yes || echo no)" "exit $ws_code; $(cat "$sandbox/ws.err"); $ws_out"
+report "default fallback installs into /workspace" \
+  "$(printf '%s\n' "$ws_out" | grep -F -q -- '-> /workspace ' && [ "$(cat "$fake_ws/.claude/skills/shared/SKILL.md" 2>/dev/null)" = "kru shared" ] && echo yes || echo no)" \
+  "$ws_out"
+report "default fallback does not write the real checkout" \
+  "$([ ! -e "$repo/.claude" ] && echo yes || echo no)" "$(find "$repo/.claude" -printf '%p\n' 2>/dev/null)"
 
 # an explicit argument wins over the current directory.
 other="$sandbox/other-repo"

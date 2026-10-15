@@ -15,9 +15,13 @@
 #   pstack/ from https://github.com/cursor/plugins
 # each skill directory is copied flat to .claude/skills/<name>/, each agent
 # file to .claude/agents/<name>.md. a name the repo already tracks
-# (`git ls-files`) is left alone. kru-cursor wins when pstack has the same name.
-# copied paths are appended to .git/info/exclude — not .gitignore — so they
-# stay out of git status and cannot be committed by accident.
+# (`git ls-files`) is left alone, and so is an untracked path this script did
+# not install (the manifest in the cache is the ownership list). kru-cursor
+# wins when pstack has the same name. a name that is not one safe path
+# segment (`^[A-Za-z0-9._-]+$`, agents ending in `.md`) is skipped.
+# symlinks at `.claude`, `.claude/skills`, `.claude/agents`, or a destination
+# are not followed. copied paths are appended to .git/info/exclude — not
+# .gitignore — so they stay out of git status and cannot be committed by accident.
 #
 # paths this script owns are listed in a manifest file under the cache, one
 # file per target. a later run deletes a path it owns that the sources no
@@ -27,7 +31,10 @@
 # tests point the clones at local repos with:
 #   KRU_CLOUD_SKILLS_CACHE KRU_CLOUD_SKILLS_KRU_URL
 #   KRU_CLOUD_SKILLS_PLUGINS_URL KRU_CLOUD_SKILLS_FALLBACK
-set -u
+# a cloud image may export SHELLOPTS=errexit:pipefail:nounset. the script is
+# written for that, and LC_ALL=C keeps the name check on ASCII ranges.
+set -euo pipefail
+export LC_ALL=C
 
 warn() { printf 'cloud-skills: %s\n' "$*" >&2; }
 
@@ -123,57 +130,194 @@ refresh_sparse() {
   gitc -C "$dest" reset --quiet --hard HEAD || { warn "git reset failed for $url"; return 1; }
 }
 
-# one skill name per line: an immediate child directory that holds SKILL.md.
-collect_skills() {
-  local root=$1 d name
-  [ -d "$root" ] || return 0
-  for d in "$root"/*; do
-    [ -d "$d" ] && [ -f "$d/SKILL.md" ] || continue
-    name=$(basename "$d")
-    case "$name" in
-      ''|.*|*'..'*|*'/'*) continue ;;
-    esac
-    printf '%s\n' "$name"
-  done
+# one path segment. "." and ".." match the class and are still rejected:
+# they are not names we can copy. locale is C, so the range is ASCII.
+safe_skill_name() {
+  local name=$1
+  [ "$name" != "." ] && [ "$name" != ".." ] && [[ "$name" =~ ^[A-Za-z0-9._-]+$ ]]
 }
 
-# one agent file name per line (the .md itself). seats ship as flat files.
+# agents are the same segment plus the .md suffix.
+safe_agent_name() {
+  [[ "$1" =~ ^[A-Za-z0-9._-]+\.md$ ]]
+}
+
+# NUL-delimited skill names. a symlink is not a skill directory; find -P
+# does not descend into one. an unsafe name is skipped with a warning.
+collect_skills() {
+  local root=$1 dir name
+  [ -d "$root" ] && [ ! -L "$root" ] || return 0
+  while IFS= read -r -d '' dir; do
+    name=${dir##*/}
+    if [ -L "$dir" ]; then
+      warn "skipping symlinked skill: $(printf '%q' "$name")"
+      continue
+    fi
+    [ -d "$dir" ] && [ -f "$dir/SKILL.md" ] || continue
+    if ! safe_skill_name "$name"; then
+      warn "skipping skill with an unsafe name: $(printf '%q' "$name")"
+      continue
+    fi
+    printf '%s\0' "$name"
+  done < <(find -P "$root" -mindepth 1 -maxdepth 1 -print0)
+}
+
+# NUL-delimited agent file names. notes and other non-md files are not agents.
 collect_agents() {
   local root=$1 f name
-  [ -d "$root" ] || return 0
-  for f in "$root"/*.md; do
+  [ -d "$root" ] && [ ! -L "$root" ] || return 0
+  while IFS= read -r -d '' f; do
+    name=${f##*/}
+    if [ -L "$f" ]; then
+      warn "skipping symlinked agent: $(printf '%q' "$name")"
+      continue
+    fi
     [ -f "$f" ] || continue
-    name=$(basename "$f")
     case "$name" in
-      ''|.*|*'..'*) continue ;;
+      *.md) ;;
+      *) continue ;;
     esac
-    printf '%s\n' "$name"
-  done
+    if ! safe_agent_name "$name"; then
+      warn "skipping agent with an unsafe name: $(printf '%q' "$name")"
+      continue
+    fi
+    printf '%s\0' "$name"
+  done < <(find -P "$root" -mindepth 1 -maxdepth 1 -print0)
 }
 
 is_tracked() {
   local target=$1 rel=$2 out
-  # a trailing slash is an exclude pattern, not a path git ls-files stores
+  # a trailing slash is an exclude pattern, not a path git ls-files stores.
+  # a git failure is treated as tracked so we do not delete or overwrite.
   rel=${rel%/}
-  out=$(gitc -C "$target" ls-files -- "$rel")
+  if ! out=$(gitc -C "$target" ls-files -- "$rel"); then
+    return 0
+  fi
   [ -n "$out" ]
 }
 
-# relative path must stay inside .claude/skills or .claude/agents.
-safe_rel() {
-  case "$1" in
-    .claude/skills/*|.claude/agents/*) ;;
+# a manifest entry we are willing to delete: one safe skill or agent name,
+# no extra components, so a poisoned line cannot climb out of .claude.
+valid_owned_rel() {
+  local rel=${1%/} rest
+  case "$rel" in
+    .claude/skills/*)
+      rest=${rel#.claude/skills/}
+      case "$rest" in */*) return 1 ;; esac
+      safe_skill_name "$rest"
+      ;;
+    .claude/agents/*)
+      rest=${rel#.claude/agents/}
+      case "$rest" in */*) return 1 ;; esac
+      safe_agent_name "$rest"
+      ;;
     *) return 1 ;;
-  esac
-  case "$1" in
-    *..*) return 1 ;;
   esac
 }
 
-copy_into() {
+# true when a parent of rel is a symlink. the final component is not checked,
+# so a skill path that itself is a symlink can still be unlinked.
+parent_has_symlink() {
+  local rel=${1%/}
+  local parent=${rel%/*} acc="" part rest
+  [ "$parent" != "$rel" ] || return 1
+  rest=$parent
+  while [ -n "$rest" ]; do
+    part=${rest%%/*}
+    if [ "$part" = "$rest" ]; then rest=""; else rest=${rest#*/}; fi
+    [ -n "$part" ] || continue
+    [ "$part" = "." ] || [ "$part" = ".." ] && return 0
+    acc="${acc:+$acc/}$part"
+    [ -L "$target/$acc" ] && return 0
+  done
+  return 1
+}
+
+# .claude, .claude/skills, and .claude/agents must be real directories when
+# they exist. a symlink there would send every copy and every delete outside
+# the repo. mkdir is not used here, so a refusal changes nothing.
+refuse_linked_claude() {
+  local rel
+  for rel in .claude .claude/skills .claude/agents; do
+    if [ -L "$target/$rel" ]; then
+      warn "refusing to follow symlink: $rel"
+      return 1
+    fi
+    if [ -e "$target/$rel" ] && [ ! -d "$target/$rel" ]; then
+      warn "refusing to use $rel because it is not a directory"
+      return 1
+    fi
+  done
+}
+
+# create each component with mkdir, never mkdir -p, which follows a symlink.
+ensure_dir() {
+  local rel=$1 acc="" part rest=$1
+  while [ -n "$rest" ]; do
+    part=${rest%%/*}
+    if [ "$part" = "$rest" ]; then rest=""; else rest=${rest#*/}; fi
+    [ -n "$part" ] || continue
+    acc="${acc:+$acc/}$part"
+    if [ -L "$target/$acc" ]; then
+      warn "refusing to follow symlink: $acc"
+      return 1
+    fi
+    if [ -e "$target/$acc" ] && [ ! -d "$target/$acc" ]; then
+      warn "refusing to replace non-directory: $acc"
+      return 1
+    fi
+    if [ ! -d "$target/$acc" ]; then
+      mkdir -- "$target/$acc" || return 1
+    fi
+  done
+}
+
+# literal path only. a symlink is unlinked; rm is not given a trailing slash
+# and realpath is not used, so the symlink's target stays.
+remove_literal() {
+  local rel=$1 path="$target/${1%/}"
+  if ! valid_owned_rel "$rel"; then
+    warn "refusing to remove unexpected manifest path: $rel"
+    return 0
+  fi
+  if parent_has_symlink "$rel"; then
+    warn "refusing to remove through symlink: ${rel%/}"
+    return 0
+  fi
+  if [ -L "$path" ]; then
+    rm -- "$path" || warn "could not unlink ${rel%/}"
+    return 0
+  fi
+  if [ -d "$path" ]; then
+    rm -rf -- "$path"
+    return 0
+  fi
+  if [ -f "$path" ]; then
+    rm -f -- "$path"
+    return 0
+  fi
+}
+
+# replace a path we already own, or create one that is not there. cp -a does
+# not follow symlinks in the source. the destination is removed first, and a
+# symlink is unlinked rather than written through.
+replace_path() {
   local src=$1 dest=$2
-  rm -rf -- "$dest"
-  mkdir -p -- "$(dirname "$dest")"
+  case "$dest" in
+    "$target"/.claude/skills/*|"$target"/.claude/agents/*) ;;
+    *) warn "refusing path outside the repo: $dest"; return 1 ;;
+  esac
+  if [ -L "$src" ] || [ ! -e "$src" ]; then
+    warn "refusing to copy symlink source: $src"
+    return 1
+  fi
+  if [ -L "$dest" ]; then
+    rm -- "$dest" || return 1
+  elif [ -d "$dest" ]; then
+    rm -rf -- "$dest" || return 1
+  elif [ -e "$dest" ]; then
+    rm -f -- "$dest" || return 1
+  fi
   cp -a -- "$src" "$dest"
 }
 
@@ -271,29 +415,34 @@ main() {
     warn "clone is missing skills/; leaving $target unchanged"
     exit 0
   fi
+  # a symlink anywhere in this chain would make later mkdir and rm operate
+  # outside the checkout. refuse before the repo is modified.
+  if ! refuse_linked_claude; then
+    exit 0
+  fi
 
   # pstack first, kru-cursor second, so a shared name keeps kru's copy.
-  declare -A skill_src=() agent_src=()
+  declare -A skill_src=() agent_src=() owned=()
   local name
-  while IFS= read -r name; do
+  while IFS= read -r -d '' name; do
     [ -n "$name" ] || continue
     skill_src["$name"]="$ps_skills/$name"
   done < <(collect_skills "$ps_skills")
-  while IFS= read -r name; do
+  while IFS= read -r -d '' name; do
     [ -n "$name" ] || continue
     skill_src["$name"]="$kru_skills/$name"
   done < <(collect_skills "$kru_skills")
-  while IFS= read -r name; do
+  while IFS= read -r -d '' name; do
     [ -n "$name" ] || continue
     agent_src["$name"]="$ps_agents/$name"
   done < <(collect_agents "$ps_agents")
-  while IFS= read -r name; do
+  while IFS= read -r -d '' name; do
     [ -n "$name" ] || continue
     agent_src["$name"]="$kru_agents/$name"
   done < <(collect_agents "$kru_agents")
 
   local -a desired=() skipped=()
-  local rel src
+  local rel src dest
   for name in "${!skill_src[@]}"; do
     rel=".claude/skills/$name/"
     if is_tracked "$target" "$rel"; then
@@ -318,54 +467,79 @@ main() {
   while IFS= read -r line; do
     [ -n "$line" ] || continue
     old+=("$line")
+    owned["$line"]=1
   done < <(read_manifest "$manifest" "$target")
 
-  local stale canon
+  if ! ensure_dir .claude/skills || ! ensure_dir .claude/agents; then
+    exit 0
+  fi
+
+  # drop owned paths the sources no longer ship. the path string is used as
+  # written in the manifest: no realpath, so a symlink is not resolved.
+  local stale keep
   for stale in "${old[@]+"${old[@]}"}"; do
-    safe_rel "$stale" || { warn "refusing to remove unexpected manifest path: $stale"; continue; }
-    local keep=0
+    keep=0
     for rel in "${desired[@]+"${desired[@]}"}"; do
       [ "$rel" = "$stale" ] && keep=1 && break
     done
     [ "$keep" -eq 1 ] && continue
-    is_tracked "$target" "$stale" && continue
-    canon=$(realpath -m "$target/${stale%/}")
-    case "$canon" in
-      "$target"/.claude/skills/*|"$target"/.claude/agents/*) rm -rf -- "$canon" ;;
-      *) warn "refusing to remove $stale" ;;
-    esac
+    if is_tracked "$target" "$stale"; then
+      continue
+    fi
+    remove_literal "$stale"
   done
 
-  local exclude
-  exclude=$(gitc -C "$target" rev-parse --absolute-git-dir)/info/exclude
-  if [ "${#desired[@]}" -gt 0 ]; then
-    write_exclude "$exclude" "${desired[@]}" || { warn "could not write $exclude"; exit 0; }
-  else
-    write_exclude "$exclude" || { warn "could not write $exclude"; exit 0; }
-  fi
-
-  local n_skills=0 n_agents=0
+  # a pre-existing untracked path is not ours unless the manifest lists it.
+  # replacing it would delete someone else's skill. a symlink we do not own
+  # is left in place; one we own is unlinked inside replace_path.
+  local -a install_rels=()
   for rel in "${desired[@]+"${desired[@]}"}"; do
-    safe_rel "$rel" || continue
+    if parent_has_symlink "$rel"; then
+      warn "refusing to follow symlink: ${rel%/}"
+      continue
+    fi
+    dest="$target/${rel%/}"
+    if [ -L "$dest" ] || [ -e "$dest" ]; then
+      if [ -z "${owned[$rel]+x}" ]; then
+        warn "leaving pre-existing untracked path in place: ${rel%/}"
+        continue
+      fi
+    fi
+    install_rels+=("$rel")
+  done
+
+  local exclude n_skills=0 n_agents=0
+  exclude=$(gitc -C "$target" rev-parse --absolute-git-dir)/info/exclude
+  local -a installed=()
+  for rel in "${install_rels[@]+"${install_rels[@]}"}"; do
     case "$rel" in
       .claude/skills/*/)
-        name=$(basename "${rel%/}")
+        name=${rel#".claude/skills/"}
+        name=${name%/}
         src=${skill_src[$name]}
-        n_skills=$((n_skills + 1))
         ;;
       .claude/agents/*)
-        name=$(basename "$rel")
+        name=${rel#".claude/agents/"}
         src=${agent_src[$name]}
-        n_agents=$((n_agents + 1))
         ;;
       *) continue ;;
     esac
-    copy_into "$src" "$target/${rel%/}" || warn "copy failed: $rel"
+    if ! replace_path "$src" "$target/${rel%/}"; then
+      warn "copy failed: ${rel%/}"
+      continue
+    fi
+    case "$rel" in
+      .claude/skills/*/) n_skills=$((n_skills + 1)) ;;
+      .claude/agents/*) n_agents=$((n_agents + 1)) ;;
+    esac
+    installed+=("$rel")
   done
 
-  if [ "${#desired[@]}" -gt 0 ]; then
-    write_manifest "$manifest" "$target" "${desired[@]}" || warn "could not write the manifest"
+  if [ "${#installed[@]}" -gt 0 ]; then
+    write_exclude "$exclude" "${installed[@]}" || warn "could not write $exclude"
+    write_manifest "$manifest" "$target" "${installed[@]}" || warn "could not write the manifest"
   else
+    write_exclude "$exclude" || warn "could not write $exclude"
     write_manifest "$manifest" "$target" || warn "could not write the manifest"
   fi
 
