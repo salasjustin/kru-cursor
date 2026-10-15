@@ -143,8 +143,9 @@ exclude=$(cat "$target/.git/info/exclude")
 report "pre-existing exclude lines kept" "$(printf '%s\n' "$exclude" | grep -qx '# keep me' && printf '%s\n' "$exclude" | grep -qx '*.tmp' && echo yes || echo no)" "$exclude"
 report "exclude lists a copied skill" "$(printf '%s\n' "$exclude" | grep -qx '.claude/skills/kru-alpha/' && echo yes || echo no)" "$exclude"
 report "exclude does not list the tracked skill" "$(printf '%s\n' "$exclude" | grep -q '.claude/skills/foo' && echo no || echo yes)" "$exclude"
-ignore_out=$(git -C "$target" check-ignore -v .claude/skills/kru-alpha/SKILL.md .claude/agents/helper.md)
-report "exclude, not gitignore, hides copies" "$(printf '%s\n' "$ignore_out" | grep -q 'info/exclude' && ! printf '%s\n' "$ignore_out" | grep -q '.gitignore' && echo yes || echo no)" "$ignore_out"
+ignore_out=$(git -C "$target" check-ignore -v .claude/skills/kru-alpha/SKILL.md .claude/agents/helper.md .claude/skills/.gitignore .claude/agents/.gitignore)
+report "nested gitignore hides copies" "$(printf '%s\n' "$ignore_out" | grep -q '.claude/skills/.gitignore' && printf '%s\n' "$ignore_out" | grep -q '.claude/agents/.gitignore' && echo yes || echo no)" "$ignore_out"
+report "nested gitignore lists owned names and itself" "$(grep -qx '/.gitignore' "$target/.claude/skills/.gitignore" && grep -qx '/kru-alpha/' "$target/.claude/skills/.gitignore" && grep -qx '/helper.md' "$target/.claude/agents/.gitignore" && ! grep -qx '/foo/' "$target/.claude/skills/.gitignore" && echo yes || echo no)" "$(printf 'skills:\n'; cat "$target/.claude/skills/.gitignore"; printf 'agents:\n'; cat "$target/.claude/agents/.gitignore")"
 
 manifest=$(git -C "$target" rev-parse --absolute-git-dir)/kru-cloud-skills.manifest
 report "sparse clone skipped the other plugin" "$([ ! -e "$cache/plugins/other-plugin" ] && [ -f "$cache/plugins/pstack/skills/pstack-beta/SKILL.md" ] && [ -f "$cache/kru-cursor/skills/kru-alpha/SKILL.md" ] && echo yes || echo no)" "$(find "$cache" -type d -name other-plugin -o -name skills)"
@@ -225,6 +226,11 @@ run_install "$target" >/dev/null 2>"$sandbox/file2.err"
 report "refresh removes only a file the source dropped" \
   "$([ ! -e "$target/.claude/skills/shared/reference.md" ] && [ ! -e "$target/.claude/skills/shared/notes/extra.md" ] && [ "$(cat "$target/.claude/skills/shared/USER.md")" = "user extra" ] && [ "$(cat "$target/.claude/skills/shared/notes/USER.md")" = "user note" ] && [ "$(cat "$target/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" \
   "$(find "$target/.claude/skills/shared" -printf '%p\n' 2>/dev/null); $(cat "$sandbox/file2.err")"
+mkdir -p "$target/.claude/skills/shared/user-empty"
+run_install "$target" >/dev/null 2>"$sandbox/empty.err"
+report "empty directory the manifest did not create stays" \
+  "$([ -d "$target/.claude/skills/shared/user-empty" ] && echo yes || echo no)" \
+  "$(find "$target/.claude/skills/shared" -type d -printf '%p\n')"
 file_manifest=$(git -C "$target" rev-parse --absolute-git-dir)/kru-cloud-skills.manifest
 report "manifest drops the file the source dropped" \
   "$(grep -qx '.claude/skills/shared/SKILL.md' "$file_manifest" && ! grep -q 'reference.md' "$file_manifest" && ! grep -q 'notes/extra.md' "$file_manifest" && echo yes || echo no)" \
@@ -397,6 +403,10 @@ extra_manifest=$(git -C "$extra" rev-parse --absolute-git-dir)/kru-cloud-skills.
 report "stale skill file leaves the manifest" \
   "$(grep -q 'pstack-beta/SKILL.md' "$extra_manifest" && echo no || echo yes)" \
   "$(cat "$extra_manifest")"
+extra_status=$(git -C "$extra" status --porcelain)
+report "leftover skill dir stays ignored" \
+  "$([ -z "$extra_status" ] && grep -qx '.claude/skills/pstack-beta/' "$extra/.git/info/exclude" && grep -qx '/pstack-beta/' "$extra/.claude/skills/.gitignore" && grep -qx '.claude/skills/pstack-beta/' "$extra_manifest" && echo yes || echo no)" \
+  "status [$extra_status]; $(cat "$extra/.git/info/exclude"); $(cat "$extra/.claude/skills/.gitignore"); $(cat "$extra_manifest")"
 
 # no network, no cache: warn and exit 0, and do not touch the checkout.
 offline_cache="$sandbox/empty-cache"
@@ -611,6 +621,14 @@ ex_file=$(cat "$exrepo/.git/info/exclude")
 report "unclosed exclude begin keeps existing lines" \
   "$([ "$ex_code" = 0 ] && printf '%s\n' "$ex_file" | grep -qx 'KEEPME' && printf '%s\n' "$ex_file" | grep -qx '# kru-cloud-skills end' && grep -q 'begin marker without an end' "$sandbox/ex.err" && [ "$(cat "$exrepo/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" \
   "exit $ex_code; $ex_file; $(cat "$sandbox/ex.err"); $ex_out"
+ex_again=$(run_install "$sandbox" "$exrepo" 2>"$sandbox/ex2.err")
+ex_again_code=$?
+ex_file2=$(cat "$exrepo/.git/info/exclude")
+ex_third=$(run_install "$sandbox" "$exrepo" 2>"$sandbox/ex3.err")
+ex_file3=$(cat "$exrepo/.git/info/exclude")
+report "later run replaces an unclosed exclude block instead of growing it" \
+  "$([ "$ex_again_code" = 0 ] && [ "$(printf '%s\n' "$ex_file2" | grep -c '# kru-cloud-skills begin')" = 1 ] && printf '%s\n' "$ex_file2" | grep -qx '# kru-cloud-skills end' && ! printf '%s\n' "$ex_file2" | grep -qx 'KEEPME' && [ "$ex_file2" = "$ex_file3" ] && echo yes || echo no)" \
+  "exit $ex_again_code; $ex_file2; ---; $ex_file3; $(cat "$sandbox/ex2.err"); $ex_again; $ex_third"
 
 # info and info/exclude as symlinks are not written through.
 precious_info="$sandbox/precious-info"
@@ -727,6 +745,93 @@ gf_code=$?
 report "cache gitfile is not reset" \
   "$([ "$gf_code" = 0 ] && [ "$(cat "$outside_git/tracked.txt")" = "dirty-content" ] && [ -d "$gf_cache/kru-cursor/.git" ] && [ ! -L "$gf_cache/kru-cursor/.git" ] && [ "$(cat "$gf_repo/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" \
   "exit $gf_code; $(cat "$outside_git/tracked.txt" 2>/dev/null); $(cat "$sandbox/gf.err"); $gf_out"
+
+# a root gitignore that negates .claude/skills/** beats info/exclude. the nested
+# gitignore is what keeps status clean.
+neg="$sandbox/negation"
+mkdir -p "$neg"
+printf '%s\n' '!.claude/skills/**' '!.claude/agents/**' > "$neg/.gitignore"
+init_repo "$neg"
+commit_repo "$neg" "negation"
+neg_ignore=$(sha256sum "$neg/.gitignore" | awk '{print $1}')
+neg_out=$(run_install "$sandbox" "$neg" 2>"$sandbox/neg.err")
+neg_code=$?
+neg_status=$(git -C "$neg" status --porcelain)
+neg_why=$(git -C "$neg" check-ignore -v .claude/skills/shared/SKILL.md .claude/agents/lead.md 2>/dev/null || true)
+report "negated .claude/skills/** still leaves git status clean" \
+  "$([ "$neg_code" = 0 ] && [ -z "$neg_status" ] && [ "$(sha256sum "$neg/.gitignore" | awk '{print $1}')" = "$neg_ignore" ] && printf '%s\n' "$neg_why" | grep -q '.claude/skills/.gitignore' && [ "$(cat "$neg/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" \
+  "exit $neg_code; status [$neg_status]; $neg_why; $(cat "$neg/.claude/skills/.gitignore" 2>/dev/null); $neg_out"
+
+# a tracked nested gitignore is the repo's file. do not rewrite it.
+tracked_gi="$sandbox/tracked-gi"
+mkdir -p "$tracked_gi/.claude/skills"
+printf 'user rule\n' > "$tracked_gi/.claude/skills/.gitignore"
+init_repo "$tracked_gi"
+git -C "$tracked_gi" add -A
+git -C "$tracked_gi" commit -q -m init
+tracked_out=$(run_install "$sandbox" "$tracked_gi" 2>"$sandbox/tracked-gi.err")
+tracked_code=$?
+report "tracked nested gitignore is left alone" \
+  "$([ "$tracked_code" = 0 ] && [ "$(cat "$tracked_gi/.claude/skills/.gitignore")" = "user rule" ] && grep -q 'leaving tracked .claude/skills/.gitignore' "$sandbox/tracked-gi.err" && echo yes || echo no)" \
+  "exit $tracked_code; $(cat "$tracked_gi/.claude/skills/.gitignore" 2>/dev/null); $(cat "$sandbox/tracked-gi.err"); $tracked_out"
+
+# one tracked file in a skill we installed: skip the whole skill, and keep
+# ignoring the installer-owned file that is still untracked.
+mix="$sandbox/mix"
+mkdir -p "$mix"
+printf '%s\n' '!.claude/skills/**' '!.claude/agents/**' > "$mix/.gitignore"
+init_repo "$mix"
+commit_repo "$mix" "negation"
+mix_first=$(run_install "$sandbox" "$mix" 2>"$sandbox/mix-first.err")
+mix_first_code=$?
+printf 'ref body\n' > "$kru/skills/shared/reference.md"
+commit_repo "$kru" "shared reference"
+mix_second=$(run_install "$sandbox" "$mix" 2>"$sandbox/mix-second.err")
+git -C "$mix" add -f .claude/skills/shared/SKILL.md
+commit_repo "$mix" "track skill.md only"
+printf 'kru shared changed\n' > "$kru/skills/shared/SKILL.md"
+commit_repo "$kru" "shared changed"
+mix_out=$(run_install "$sandbox" "$mix" 2>"$sandbox/mix.err")
+mix_code=$?
+mix_status=$(git -C "$mix" status --porcelain)
+report "tracked file skips the skill and owned untracked files stay hidden" \
+  "$([ "$mix_first_code" = 0 ] && [ "$mix_code" = 0 ] && [ "$(cat "$mix/.claude/skills/shared/SKILL.md")" = "kru shared" ] && [ "$(cat "$mix/.claude/skills/shared/reference.md")" = "ref body" ] && [ -z "$mix_status" ] && grep -qx '/shared/' "$mix/.claude/skills/.gitignore" && echo yes || echo no)" \
+  "exit $mix_first_code/$mix_code; status [$mix_status]; $(cat "$mix/.claude/skills/shared/SKILL.md" 2>/dev/null); $(find "$mix/.claude/skills/shared" -printf '%p\n' 2>/dev/null); $mix_out; $mix_second; $mix_first"
+rm -f "$kru/skills/shared/reference.md"
+printf 'kru shared\n' > "$kru/skills/shared/SKILL.md"
+commit_repo "$kru" "shared restored again"
+
+# a directory standing where a copied file was, holding a file we do not own,
+# is not removed recursively.
+rd="$sandbox/rd"
+mkdir -p "$rd"
+init_repo "$rd"
+git -C "$rd" commit -q --allow-empty -m init
+rd_first=$(run_install "$sandbox" "$rd" 2>"$sandbox/rd-first.err")
+rm -f "$rd/.claude/skills/shared/SKILL.md"
+mkdir -p "$rd/.claude/skills/shared/SKILL.md"
+printf 'secret\n' > "$rd/.claude/skills/shared/SKILL.md/secret"
+rd_out=$(run_install "$sandbox" "$rd" 2>"$sandbox/rd.err")
+rd_code=$?
+report "recursive remove skips a path that holds an unowned file" \
+  "$([ "$rd_code" = 0 ] && [ "$(cat "$rd/.claude/skills/shared/SKILL.md/secret")" = "secret" ] && grep -q 'does not own' "$sandbox/rd.err" && echo yes || echo no)" \
+  "exit $rd_code; $(find "$rd/.claude/skills/shared" -printf '%p\n' 2>/dev/null); $(cat "$sandbox/rd.err"); $rd_out; $rd_first"
+
+# linked worktree: info/exclude is the path git rev-parse --git-path returns,
+# not <worktree-git-dir>/info/exclude.
+wt_base="$sandbox/wt-base"
+mkdir -p "$wt_base"
+init_repo "$wt_base"
+git -C "$wt_base" commit -q --allow-empty -m init
+git -C "$wt_base" worktree add -q "$sandbox/wt-leaf" HEAD
+wt_out=$(run_install "$sandbox" "$sandbox/wt-leaf" 2>"$sandbox/wt-leaf.err")
+wt_code=$?
+wt_exclude=$(git -C "$sandbox/wt-leaf" rev-parse --path-format=absolute --git-path info/exclude)
+wt_git=$(git -C "$sandbox/wt-leaf" rev-parse --absolute-git-dir)
+wt_status=$(git -C "$sandbox/wt-leaf" status --porcelain)
+report "worktree exclude follows git-path" \
+  "$([ "$wt_code" = 0 ] && [ -z "$wt_status" ] && [ "$wt_exclude" != "$wt_git/info/exclude" ] && [ ! -e "$wt_git/info/exclude" ] && grep -qx '.claude/skills/shared/' "$wt_exclude" && [ "$(cat "$sandbox/wt-leaf/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" \
+  "exit $wt_code; status [$wt_status]; git-path $wt_exclude; git-dir $wt_git; $(cat "$wt_exclude" 2>/dev/null); $(cat "$sandbox/wt-leaf.err"); $wt_out"
 
 printf 'cloud-skills tests: %d passed, %d failed, %d skipped\n' "$pass" "$fail" "$skip"
 [ "$fail" -eq 0 ]

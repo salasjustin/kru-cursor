@@ -21,9 +21,15 @@
 # not install. kru-cursor wins when pstack has the same name. a name that is
 # not one safe path segment (`^[A-Za-z0-9._-]+$`, agents ending in `.md`) is
 # skipped. symlinks at `.claude`, `.claude/skills`, `.claude/agents`, or a
-# destination are not followed. copied paths are appended to .git/info/exclude
-# — not .gitignore — so they stay out of git status and cannot be committed
-# by accident.
+# destination are not followed. copied paths are appended to the checkout's
+# info/exclude (`git rev-parse --git-path info/exclude`, which a linked
+# worktree resolves to the exclude file git reads) and to
+# .claude/skills/.gitignore and .claude/agents/.gitignore. a root gitignore
+# that re-includes .claude/skills/** beats info/exclude; the nested file is
+# deeper, so it wins. it lists /.gitignore plus /<name>/ for each skill and
+# /<name>.md for each agent. a tracked nested gitignore is left alone. an
+# untracked file added inside an installed skill stays on disk and is hidden
+# by those patterns, so it does not show in git status.
 #
 # files this script copied are listed, one path per line, in
 # $GIT_DIR/kru-cloud-skills.manifest (the target checkout's own git dir, not
@@ -362,6 +368,21 @@ valid_owned_file() {
   esac
 }
 
+# a directory we still hide after its copied files are gone but the directory
+# remains (a user file is still inside). not a path we delete.
+valid_keep_dir() {
+  local rel=${1%/} rest
+  case "$1" in
+    .claude/skills/*/) ;;
+    *) return 1 ;;
+  esac
+  rest=${rel#.claude/skills/}
+  case "$rest" in
+    */*) return 1 ;;
+  esac
+  safe_skill_name "$rest"
+}
+
 # NUL-delimited skill names. a symlink is not a skill directory; find -P
 # does not descend into one. an unsafe name is skipped with a warning.
 collect_skills() {
@@ -469,20 +490,26 @@ refuse_linked_claude() {
   done
 }
 
-# info and info/exclude must be real. writing through either symlink would
-# change a file outside this git dir.
+# info and info/exclude must be real. git-path canonicalizes a symlink, so
+# the git dir and the common dir are checked as well as the resolved path.
+# writing through either symlink would change a file outside this git dir.
 refuse_linked_exclude() {
-  local gitdir=$1 info="$1/info" file="$1/info/exclude"
+  local gitdir=$1 common=$2 file=$3 info
+  if [ -L "$gitdir/info" ] || [ -L "$common/info" ]; then
+    warn "refusing to follow symlink: info"
+    return 1
+  fi
+  if [ -L "$gitdir/info/exclude" ] || [ -L "$common/info/exclude" ] || [ -L "$file" ]; then
+    warn "refusing to follow symlink: info/exclude"
+    return 1
+  fi
+  info=$(dirname -- "$file")
   if [ -L "$info" ]; then
     warn "refusing to follow symlink: info"
     return 1
   fi
   if [ -e "$info" ] && [ ! -d "$info" ]; then
     warn "refusing to use info because it is not a directory"
-    return 1
-  fi
-  if [ -L "$file" ]; then
-    warn "refusing to follow symlink: info/exclude"
     return 1
   fi
   if [ -e "$file" ] && [ ! -f "$file" ]; then
@@ -529,8 +556,23 @@ agent_owned() {
   [ -n "${owned[".claude/agents/$1"]+x}" ]
 }
 
+# true when a directory holds a file or symlink whose path is not in the
+# manifest. a recursive remove would take that file with it.
+dir_has_unowned() {
+  local rel=${1%/} path="$target/${1%/}" f repo_rel
+  [ -d "$path" ] && [ ! -L "$path" ] || return 1
+  while IFS= read -r -d '' f; do
+    repo_rel=${f#"$target"/}
+    if [ -z "${owned[$repo_rel]+x}" ]; then
+      return 0
+    fi
+  done < <(find -P "$path" \( -type f -o -type l \) -print0)
+  return 1
+}
+
 # literal file only. a symlink is unlinked. a mount point is left alone.
-# rm --one-file-system so a remove cannot cross into another filesystem.
+# a directory that holds a file we did not copy is not removed. rm
+# --one-file-system so a remove cannot cross into another filesystem.
 remove_owned_file() {
   local rel=$1 path="$target/$1"
   if ! valid_owned_file "$rel"; then
@@ -553,25 +595,51 @@ remove_owned_file() {
     return 0
   fi
   if [ -d "$path" ]; then
+    if dir_has_unowned "$rel"; then
+      warn "skipping recursive remove; path contains a file this installer does not own: $rel"
+      return 0
+    fi
     rm -rf --one-file-system -- "$path" || warn "could not remove $rel"
     return 0
   fi
   rm -f --one-file-system -- "$path" || warn "could not remove $rel"
 }
 
-# drop empty directories left after a file we copied was removed. rmdir
-# fails on a directory that still holds a user file, which is what we want.
-prune_empty_dirs() {
-  local dir=$1 d
-  [ -d "$dir" ] && [ ! -L "$dir" ] || return 0
-  if is_mount_point "$dir"; then
-    warn "skipping mount point: $dir"
-    return 0
-  fi
-  while IFS= read -r -d '' d; do
-    [ -L "$d" ] && continue
-    rmdir -- "$d" 2>/dev/null || true
-  done < <(find -P "$dir" -depth -type d -print0)
+# rmdir only empty directories that were parents of a file this manifest
+# copied. an empty directory the user created is not one of those, so it
+# stays. rmdir fails when a user file is still inside, which keeps that
+# directory too.
+prune_manifest_dirs() {
+  local name=$1 line rel dir d
+  local -a dirs=()
+  for line in "${!owned[@]}"; do
+    valid_owned_file "$line" || continue
+    case "$line" in
+      .claude/skills/"$name"/*) ;;
+      *) continue ;;
+    esac
+    rel=$line
+    while :; do
+      dir=${rel%/*}
+      [ "$dir" = "$rel" ] && break
+      case "$dir" in
+        .claude/skills/"$name"|.claude/skills/"$name"/*) ;;
+        *) break ;;
+      esac
+      dirs+=("$dir")
+      rel=$dir
+    done
+  done
+  [ "${#dirs[@]}" -gt 0 ] || return 0
+  while IFS= read -r d; do
+    [ -n "$d" ] || continue
+    [ -d "$target/$d" ] && [ ! -L "$target/$d" ] || continue
+    if is_mount_point "$target/$d"; then
+      warn "skipping mount point: $d"
+      continue
+    fi
+    rmdir -- "$target/$d" 2>/dev/null || true
+  done < <(printf '%s\n' "${dirs[@]}" | awk 'NF && !seen[$0]++ { print length($0) "\t" $0 }' | sort -nr | cut -f2-)
 }
 
 # a skill directory we own that the sources no longer ship. only the files
@@ -592,10 +660,13 @@ remove_stale_skill() {
   fi
   for line in "${!owned[@]}"; do
     case "$line" in
-      .claude/skills/"$name"/*) remove_owned_file "$line" ;;
+      .claude/skills/"$name"/*) ;;
+      *) continue ;;
     esac
+    valid_owned_file "$line" || continue
+    remove_owned_file "$line"
   done
-  prune_empty_dirs "$dest"
+  prune_manifest_dirs "$name"
 }
 
 # copy one regular file. the destination symlink is unlinked, not written
@@ -624,6 +695,10 @@ install_file() {
       return 1
     fi
     if [ -d "$dest" ]; then
+      if dir_has_unowned "$rel"; then
+        warn "skipping recursive remove; path contains a file this installer does not own: $rel"
+        return 1
+      fi
       rm -rf --one-file-system -- "$dest" || return 1
     else
       rm -f --one-file-system -- "$dest" || return 1
@@ -687,7 +762,7 @@ sync_skill() {
         remove_owned_file "$line"
       fi
     done
-    prune_empty_dirs "$dest"
+    prune_manifest_dirs "$name"
   fi
   if [ "${#copied[@]}" -eq 0 ]; then
     return 0
@@ -729,7 +804,8 @@ sync_agent() {
 }
 
 # true when a begin marker is still open at EOF. an end closes one begin.
-# a begin that never closes must not cause the lines after it to be deleted.
+# a begin that never closes must not cause the lines after it to be deleted
+# the first time it is seen.
 exclude_has_open_begin() {
   local file=$1
   [ -f "$file" ] && [ ! -L "$file" ] || return 1
@@ -740,16 +816,41 @@ exclude_has_open_begin() {
   ' "$file"
 }
 
+# an earlier run appended a block after an unclosed begin, so an end marker
+# now sits after that begin while the first begin is still unclosed. everything
+# after the first begin is ours and can be replaced, or the file grows forever.
+exclude_unclosed_followed_by_end() {
+  local file=$1
+  [ -f "$file" ] && [ ! -L "$file" ] || return 1
+  exclude_has_open_begin "$file" || return 1
+  awk '
+    $0 == "# kru-cloud-skills begin" && !started { started = 1; next }
+    started && $0 == "# kru-cloud-skills end" { found = 1 }
+    END { exit (found ? 0 : 1) }
+  ' "$file"
+}
+
+write_exclude_block() {
+  local dest=$1
+  shift
+  {
+    if [ -s "$dest" ]; then cat "$dest"; fi
+    printf '%s\n' '# kru-cloud-skills begin'
+    if [ "$#" -gt 0 ]; then printf '%s\n' "$@" | sort -u; fi
+    printf '%s\n' '# kru-cloud-skills end'
+  }
+}
+
 # rewrite only the block this script owns. every other line stays, so a
 # checkout's own excludes are not touched. the block is sorted, so a second
-# run writes the same bytes. an unclosed begin is left byte for byte and a
-# new block is appended after it.
+# run writes the same bytes. the first time a begin has no end, nothing is
+# deleted and a block is appended. a later run treats everything after that
+# begin as ours and replaces it with one block.
 write_exclude() {
-  local gitdir=$1
+  local file=$1
   shift
-  local info="$gitdir/info"
-  # a second name on the same local is expanded before info is assigned.
-  local file="$info/exclude" tmp body
+  local info tmp body
+  info=$(dirname -- "$file")
   if [ -L "$info" ] || [ -L "$file" ]; then
     warn "refusing to follow symlink: info/exclude"
     return 1
@@ -763,6 +864,14 @@ write_exclude() {
     mkdir -- "$info" || return 1
   fi
   tmp=$(mktemp) || return 1
+  if [ -f "$file" ] && exclude_unclosed_followed_by_end "$file"; then
+    warn "exclude block has a begin marker without an end; replacing everything after it"
+    awk '$0 == "# kru-cloud-skills begin" { exit } { print }' "$file" > "$tmp" || return 1
+    write_exclude_block "$tmp" "$@" > "$tmp.block" || return 1
+    mv -- "$tmp.block" "$file" || return 1
+    rm -f -- "$tmp"
+    return 0
+  fi
   if [ -f "$file" ] && exclude_has_open_begin "$file"; then
     warn "exclude block has a begin marker without an end; appending a new block"
     cat -- "$file" > "$tmp" || return 1
@@ -775,12 +884,7 @@ write_exclude() {
         printf '\n' >> "$tmp" || return 1
       fi
     fi
-    {
-      cat -- "$tmp"
-      printf '%s\n' '# kru-cloud-skills begin'
-      if [ "$#" -gt 0 ]; then printf '%s\n' "$@" | sort -u; fi
-      printf '%s\n' '# kru-cloud-skills end'
-    } > "$tmp.append" || return 1
+    write_exclude_block "$tmp" "$@" > "$tmp.append" || return 1
     mv -- "$tmp.append" "$file" || return 1
     rm -f -- "$tmp"
     return 0
@@ -793,14 +897,36 @@ write_exclude() {
       !skip { print }
     ' "$file" > "$body" || return 1
   fi
-  {
-    if [ -s "$body" ]; then cat "$body"; fi
-    printf '%s\n' '# kru-cloud-skills begin'
-    if [ "$#" -gt 0 ]; then printf '%s\n' "$@" | sort -u; fi
-    printf '%s\n' '# kru-cloud-skills end'
-  } > "$tmp" || return 1
+  write_exclude_block "$body" "$@" > "$tmp" || return 1
   mv -- "$tmp" "$file" || return 1
   rm -f -- "$body"
+}
+
+# .claude/skills/.gitignore or .claude/agents/.gitignore. deeper than a root
+# gitignore, so a negation of .claude/skills/** does not un-ignore the copies.
+# a tracked file is the repo's, not ours.
+write_nested_ignore() {
+  local rel=$1
+  shift
+  local file="$target/$rel/.gitignore" tmp
+  if parent_has_symlink "$rel/.gitignore"; then
+    warn "refusing to follow symlink: $rel/.gitignore"
+    return 1
+  fi
+  if [ -L "$file" ]; then
+    warn "refusing to follow symlink: $rel/.gitignore"
+    return 1
+  fi
+  if is_tracked "$target" "$rel/.gitignore"; then
+    warn "leaving tracked $rel/.gitignore in place"
+    return 0
+  fi
+  tmp=$(mktemp) || return 1
+  {
+    printf '%s\n' '/.gitignore'
+    if [ "$#" -gt 0 ]; then printf '%s\n' "$@"; fi
+  } | sort -u > "$tmp" || return 1
+  mv -- "$tmp" "$file" || return 1
 }
 
 read_manifest() {
@@ -883,7 +1009,23 @@ main() {
   if ! refuse_linked_claude; then
     exit 0
   fi
-  if ! refuse_linked_exclude "$gitdir"; then
+  local exclude_file common
+  exclude_file=$(gitc -C "$target" rev-parse --path-format=absolute --git-path info/exclude && printf x) || {
+    warn "cannot resolve info/exclude: $target"
+    exit 0
+  }
+  exclude_file=${exclude_file%x}
+  exclude_file=${exclude_file%$'\n'}
+  case "$exclude_file" in
+    *$'\n'*) warn "refusing an exclude path that contains a newline"; exit 0 ;;
+  esac
+  common=$(gitc -C "$target" rev-parse --path-format=absolute --git-common-dir && printf x) || {
+    warn "cannot resolve git common dir: $target"
+    exit 0
+  }
+  common=${common%x}
+  common=${common%$'\n'}
+  if ! refuse_linked_exclude "$gitdir" "$common" "$exclude_file"; then
     exit 0
   fi
   local manifest="$gitdir/kru-cloud-skills.manifest"
@@ -932,14 +1074,19 @@ main() {
     want_agent["$name"]=1
   done
 
-  local line
+  local line sname
+  declare -A keep_dirs=()
   while IFS= read -r line; do
     [ -n "$line" ] || continue
-    if ! valid_owned_file "$line"; then
+    if valid_owned_file "$line"; then
+      owned["$line"]=1
+    elif valid_keep_dir "$line"; then
+      sname=${line#.claude/skills/}
+      sname=${sname%/}
+      keep_dirs["$sname"]=1
+    else
       warn "ignoring unexpected manifest path: $line"
-      continue
     fi
-    owned["$line"]=1
   done < <(read_manifest "$manifest")
 
   if ! ensure_dir .claude/skills || ! ensure_dir .claude/agents; then
@@ -949,7 +1096,6 @@ main() {
   # drop owned skills the sources no longer ship, and owned agent files.
   # a tracked path is no longer ours to delete.
   declare -A stale_skills=()
-  local sname
   for line in "${!owned[@]}"; do
     case "$line" in
       .claude/skills/*)
@@ -977,6 +1123,11 @@ main() {
   done
   for sname in "${!stale_skills[@]}"; do
     remove_stale_skill "$sname"
+    # the directory is still here because a file we did not copy is inside it.
+    # keep ignoring it until that directory is gone, or git status flips.
+    if [ -e "$target/.claude/skills/$sname" ] || [ -L "$target/.claude/skills/$sname" ]; then
+      keep_dirs["$sname"]=1
+    fi
   done
 
   local -a installed_files=() exclude_pats=()
@@ -988,13 +1139,86 @@ main() {
     sync_agent "$name" "${agent_src[$name]}"
   done
 
-  if [ "${#exclude_pats[@]}" -gt 0 ]; then
-    write_exclude "$gitdir" "${exclude_pats[@]}" || warn "could not write $gitdir/info/exclude"
+  # patterns cover what this run copied, installer-owned files in a skill that
+  # also has a tracked file (the whole skill is skipped, the untracked copies
+  # stay hidden), and a dropped skill whose directory is still on disk.
+  declare -A final_files=() skill_pat=() agent_pat=() skill_has_file=()
+  for rel in "${installed_files[@]+"${installed_files[@]}"}"; do
+    final_files["$rel"]=1
+    case "$rel" in
+      .claude/skills/*)
+        sname=${rel#.claude/skills/}
+        sname=${sname%%/*}
+        skill_pat["$sname"]=1
+        skill_has_file["$sname"]=1
+        ;;
+      .claude/agents/*)
+        agent_pat["${rel#.claude/agents/}"]=1
+        ;;
+    esac
+  done
+  for line in "${!owned[@]}"; do
+    case "$line" in
+      .claude/skills/*/*)
+        sname=${line#.claude/skills/}
+        sname=${sname%%/*}
+        # a skill this run rewrote is described by installed_files alone.
+        [ -n "${want_skill[$sname]+x}" ] && continue
+        if is_tracked "$target" ".claude/skills/$sname" && { [ -e "$target/$line" ] || [ -L "$target/$line" ]; }; then
+          final_files["$line"]=1
+          skill_pat["$sname"]=1
+          skill_has_file["$sname"]=1
+        fi
+        ;;
+      .claude/agents/*)
+        sname=${line#.claude/agents/}
+        [ -n "${want_agent[$sname]+x}" ] && continue
+        if is_tracked "$target" "$line" && { [ -e "$target/$line" ] || [ -L "$target/$line" ]; }; then
+          final_files["$line"]=1
+          agent_pat["$sname"]=1
+        fi
+        ;;
+    esac
+  done
+  for sname in "${!keep_dirs[@]}"; do
+    if [ -e "$target/.claude/skills/$sname" ] || [ -L "$target/.claude/skills/$sname" ]; then
+      skill_pat["$sname"]=1
+    fi
+  done
+
+  local -a pats=() manifest_lines=() skill_ig=() agent_ig=()
+  for sname in "${!skill_pat[@]}"; do
+    pats+=(".claude/skills/$sname/")
+    skill_ig+=("/$sname/")
+    if [ -z "${skill_has_file[$sname]+x}" ]; then
+      manifest_lines+=(".claude/skills/$sname/")
+    fi
+  done
+  for sname in "${!agent_pat[@]}"; do
+    pats+=(".claude/agents/$sname")
+    agent_ig+=("/$sname")
+  done
+  for rel in "${!final_files[@]}"; do
+    manifest_lines+=("$rel")
+  done
+
+  if [ "${#pats[@]}" -gt 0 ]; then
+    write_exclude "$exclude_file" "${pats[@]}" || warn "could not write $exclude_file"
   else
-    write_exclude "$gitdir" || warn "could not write $gitdir/info/exclude"
+    write_exclude "$exclude_file" || warn "could not write $exclude_file"
   fi
-  if [ "${#installed_files[@]}" -gt 0 ]; then
-    write_manifest "$manifest" "${installed_files[@]}" || warn "could not write the manifest"
+  if [ "${#skill_ig[@]}" -gt 0 ]; then
+    write_nested_ignore .claude/skills "${skill_ig[@]}" || warn "could not write .claude/skills/.gitignore"
+  else
+    write_nested_ignore .claude/skills || warn "could not write .claude/skills/.gitignore"
+  fi
+  if [ "${#agent_ig[@]}" -gt 0 ]; then
+    write_nested_ignore .claude/agents "${agent_ig[@]}" || warn "could not write .claude/agents/.gitignore"
+  else
+    write_nested_ignore .claude/agents || warn "could not write .claude/agents/.gitignore"
+  fi
+  if [ "${#manifest_lines[@]}" -gt 0 ]; then
+    write_manifest "$manifest" "${manifest_lines[@]}" || warn "could not write the manifest"
   else
     write_manifest "$manifest" || warn "could not write the manifest"
   fi

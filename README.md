@@ -96,11 +96,14 @@ Pass the repo directory when the shell is not already inside it. With no argumen
 `git rev-parse --show-toplevel`, then `/workspace`. It shallow-clones `skills/` and `agents/` from
 this repo and `pstack/` from `cursor/plugins` (latest `main`) into `~/.cache/kru-cloud-skills`,
 copies each skill flat into `.claude/skills/<name>/` and each agent into `.claude/agents/`, and
-lists those paths in `.git/info/exclude` so they stay out of `git status` and are never committed.
-A skill or agent the repo already tracks is left as it is, and so is an untracked path this script
-did not install. Files it copied are listed in that checkout's git dir
-(`kru-cloud-skills.manifest`), one path per file. A later run updates those files from the source
-and removes one only when the source no longer has it, so a file you added inside a skill stays.
+lists those paths in the checkout's `info/exclude` and, when they are not already tracked, in
+`.claude/skills/.gitignore` and `.claude/agents/.gitignore`. A root `.gitignore` that re-includes
+`.claude/skills/**` beats `info/exclude`; the nested gitignore is deeper, so the copies stay out of
+`git status` and are never committed. A skill or agent the repo already tracks is left as it is, and
+so is an untracked path this script did not install. Files it copied are listed in that checkout's
+git dir (`kru-cloud-skills.manifest`), one path per file. A later run updates those files from the
+source and removes one only when the source no longer has it, so a file you added inside a skill
+stays on disk. That extra file is hidden by the ignore patterns and does not show in `git status`.
 A fresh repository at the same path has a new git dir and starts with no ownership. It does not
 follow a symlink at `.claude`, `.claude/skills`, `.claude/agents`, or a destination. On a shared
 name, this repo's copy wins over pstack. A name that is not one safe path segment is skipped. If
