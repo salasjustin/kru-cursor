@@ -124,11 +124,6 @@ const FORK_OWNED = new Set([
   "scripts/verify-tree.mjs",
   "scripts/asset/xai.mjs",
   "scripts/asset/xai.test.mjs",
-  // sharp 0.35.5 (libvips 1.3.4) for GHSA-2464-fhr4-w9xw. upstream still pins
-  // 0.35.3, and a re-port would put that pin back; drop both once upstream's
-  // scripts/asset/package.json pins sharp at 0.35.5 or newer (PORTING.md).
-  "scripts/asset/package.json",
-  "scripts/asset/package-lock.json",
   "scripts/privacy-scan.mjs",
   "scripts/privacy-scan.test.sh",
   "scripts/leak-patterns.mjs",
