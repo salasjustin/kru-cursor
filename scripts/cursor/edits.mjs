@@ -143,7 +143,7 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.",
-  "job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.\n\n**PR babysit loop.** A cloud agent that opens a pull request, or already owns one, subscribes to its\nreviews, comments, and CI, then ends the turn. The next pass starts when one of those wakes you: fix a\nvalid finding, reply on each thread — say why when the finding stands — and push. Repeat until the PR\nis clean: CI green, and no Greptile P0 or P1 still open. Then tell the PM that requested the work that\nit is ready to merge. That is the loop's only outward message; the owner merges.",
+  "job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.\n\n**PR babysit loop.** A cloud agent that opens a pull request, or already owns one, subscribes to its\nreviews, comments, and CI, then ends the turn. The next pass starts when one of those wakes you: fix a\nvalid finding, reply on each thread — say why when the finding stands — and push. Clean means CI green\nand every review thread from whatever reviewers the repo has answered. Where Greptile reviews the repo\n(today only AngelProtocolFinance/better-giving), clean also means no Greptile P0 or P1 still open.\nNever wait for a Greptile score in a repo Greptile does not review. Then tell the PM that requested\nthe work that it is ready to merge. That is the loop's only outward message; the owner merges.",
   "pr-babysit: one loop, in the lead contract cloud-skills.sh installs",
 ))
 EDITS.push(E(
