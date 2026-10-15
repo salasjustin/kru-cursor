@@ -127,6 +127,7 @@ one is overwritten by the next port, and `scripts/verify.sh`'s fresh-port check 
 | `scripts/cursor/setup-1d.md` | `/kru-setup` §1d (grants, store repo, cloud environment), pulled in by a port rule |
 | `scripts/cursor/gates-report-path.md` | the review-report paragraph of `gates.md` |
 | `scripts/asset/xai.mjs`, `xai.test.mjs` | the asset generator's xAI backend and its tests; port rules hook it into upstream's `gen-asset.ts` and copy it in `run.sh` (`MODELS.md`) |
+| `scripts/asset/package.json`, `scripts/asset/package-lock.json` | the asset seats' `sharp` pin, exact `0.35.5` (sharp-libvips 1.3.4). [GHSA-2464-fhr4-w9xw](https://github.com/vercel/next.js/security/advisories/GHSA-2464-fhr4-w9xw) is a memory bug in the libvips that sharp 0.35.3 bundles (1.3.2): rasterizing SVG on glibc Linux can lead to remote code execution, and brand-designer / graphic-designer do that through `scripts/asset/run.sh`. Fork-owned so a re-port keeps the pin while upstream still ships `0.35.3`. Once upstream's `scripts/asset/package.json` pins `sharp` at `0.35.5` or newer, drop both from `FORK_OWNED` — the weekly sync then carries that pin and later dependency updates |
 | `scripts/cursor/sources-harness-row.md` | `SOURCES.md` → *Orchestration / harness mechanics* |
 | `scripts/cursor/ui-canvas.md` | `references/ui-practice.md` → *The canvas*, pulled in by a port rule |
 | `scripts/cursor/update-sweep.md` | `skills/kru-update/claude.md`, the Cursor changelog sweep, pulled in by a port rule (the file keeps the name `claude.md`) |
