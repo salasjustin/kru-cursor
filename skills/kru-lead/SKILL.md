@@ -1,6 +1,6 @@
 ---
 name: kru-lead
-description: How this engineering team works — load before building, reviewing or dispatching any seat. Also the entry for a project from scratch and for planning work past one context.
+description: How this engineering team works — load before building, reviewing or dispatching any seat. Also the entry for a project from scratch and for planning work past one context. Opening or owning a pull request follows the PR babysit loop in `rules/kru-lead.mdc`.
 argument-hint: "<what to build or contribute>"
 ---
 
@@ -106,6 +106,8 @@ published on merge. Its PR body summarizes the fix without exploit detail; the d
 in `issues/`, off the PR and off Linear. A cloud session pushes branches but gets a 403 on a tag push, so a release
 runs as a `workflow_dispatch` started through the GitHub API, the workflow creating the tag on its
 job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.
+
+**PR babysit loop.** The loop is the always-on rule in `rules/kru-lead.mdc`.
 
 1. If it can be said without jargon at no loss of precision, say it that way. Lead with the effect —
    what's different for someone using the thing — not the mechanism.

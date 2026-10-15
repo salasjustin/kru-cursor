@@ -136,6 +136,18 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
+  "description: How this engineering team works — load before building, reviewing or dispatching any seat. Also the entry for a project from scratch and for planning work past one context.",
+  "description: How this engineering team works — load before building, reviewing or dispatching any seat. Also the entry for a project from scratch and for planning work past one context. Opening or owning a pull request follows the PR babysit loop in `rules/kru-lead.mdc`.",
+  "pr-babysit: the always-loaded description fires when a cloud agent opens or owns a PR",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.",
+  "job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.\n\n**PR babysit loop.** The loop is the always-on rule in `rules/kru-lead.mdc`.",
+  "pr-babysit: one loop, in the lead contract cloud-skills.sh installs",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
   "   - *An ask to act* — running a command, logging in, approving a push — only when it can't be yours;\n     the exact thing to type and why, in one clause.",
   "   - *An ask to act* — running a command, logging in, a push or pull request (the PM bot's) — only when\n     it can't be yours; the exact thing to type and why, in one clause. A merge, deploy or release is\n     the owner's (the plugin maintainer's for this plugin), and the PM carries it there.",
   "t2: no line asks a human to approve a push",
