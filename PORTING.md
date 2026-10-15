@@ -189,8 +189,8 @@ The scan fails on tokens and keys; on emails outside the reserved example domain
 - **Tree:** clean. One client repo name in `references/lossless-doc-compaction.md` is rewritten by a
   port rule; the eval prompt that named a client is dropped with `evals/`.
 - **History:** this fork keeps upstream's history unchanged — it is already public, and a shared
-  history is what makes `git merge upstream/main` work. The scan finds reviewed lines in it, all
-  in upstream commits and removed from this tree or left as vendored examples (`82976d23` `evals/homepage-copy/prompt.md`,
+  history is what makes `git merge upstream/main` work. The scan finds reviewed lines in it, removed from this tree or left as vendored examples (`82976d23` `evals/homepage-copy/prompt.md`,
+  `cac9076` the babysit loop naming the one repo a reviewer covers, taken out of the tree in the following commit,
   `b10943af` `skills/lead/references/lossless-doc-compaction.md`, example `password=` / `token=` /
   `API_TOKEN=` assignments in that commit's Cloudflare and Turborepo docs, and `94dcd7bf` Turso
   `auth_token=` examples, plus colon assignments in upstream `cb005e14` conform, `94dcd7bf` hono,

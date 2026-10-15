@@ -110,10 +110,10 @@ job token — started by whoever owns that release: the owner, or the plugin mai
 **PR babysit loop.** A cloud agent that opens a pull request, or already owns one, subscribes to its
 reviews, comments, and CI, then ends the turn. The next pass starts when one of those wakes you: fix a
 valid finding, reply on each thread — say why when the finding stands — and push. Clean means CI green
-and every review thread from whatever reviewers the repo has answered. Where Greptile reviews the repo
-(today only AngelProtocolFinance/better-giving), clean also means no Greptile P0 or P1 still open.
-Never wait for a Greptile score in a repo Greptile does not review. Then tell the PM that requested
-the work that it is ready to merge. That is the loop's only outward message; the owner merges.
+and every review thread from whatever reviewers the repo has answered. Where Greptile reviews the repo,
+clean also means no Greptile P0 or P1 still open. Never wait for a Greptile score in a repo Greptile
+does not review. Then tell the PM that requested the work that it is ready to merge. That is the loop's
+only outward message; the owner merges.
 
 1. If it can be said without jargon at no loss of precision, say it that way. Lead with the effect —
    what's different for someone using the thing — not the mechanism.

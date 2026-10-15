@@ -132,6 +132,7 @@ const PATH_OK = [
 const HISTORY_REVIEWED = [
   { id: "client-data", commit: "82976d23", file: /^evals\/homepage-copy\/prompt\.md$/, why: "upstream eval prompt naming a public nonprofit platform as the example client; evals/ is dropped from this tree" },
   { id: "client-data", commit: "b10943af", file: /^(skills\/lead\/)?references\/lossless-doc-compaction\.md$/, why: "upstream reference naming the public repo its procedure was exercised on; rewritten in this tree by scripts/port.mjs" },
+  { id: "client-data", commit: "cac9076", file: /^(skills\/kru-lead\/SKILL\.md|scripts\/cursor\/edits\.mjs)$/, why: "the babysit loop named the one repo a reviewer covers; the following commit takes that name out of the tree" },
   { id: "assignment", commit: "b10943af", file: /^skills\/cloudflare\/references\//, why: "upstream cloudflare docs showing example CLI flags and catalog tokens, not a credential this repo holds; gone from this tree" },
   { id: "assignment", commit: "b10943af", file: /^skills\/turborepo\//, why: "upstream turborepo docs showing example TURBO_TOKEN assignments, not a credential this repo holds" },
   { id: "assignment", commit: "94dcd7bf", file: /^skills\/turso-/, why: "upstream turso docs showing example auth_token assignments, not a credential this repo holds" },
