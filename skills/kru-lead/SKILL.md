@@ -1,6 +1,6 @@
 ---
 name: kru-lead
-description: How this engineering team works — load before building, reviewing or dispatching any seat. Also the entry for a project from scratch and for planning work past one context.
+description: How this engineering team works — load before building, reviewing or dispatching any seat. Also the entry for a project from scratch and for planning work past one context. Opening or owning a pull request runs the PR babysit loop.
 argument-hint: "<what to build or contribute>"
 ---
 
@@ -106,6 +106,12 @@ published on merge. Its PR body summarizes the fix without exploit detail; the d
 in `issues/`, off the PR and off Linear. A cloud session pushes branches but gets a 403 on a tag push, so a release
 runs as a `workflow_dispatch` started through the GitHub API, the workflow creating the tag on its
 job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.
+
+**PR babysit loop.** A cloud agent that opens a pull request, or already owns one, subscribes to its
+reviews, comments, and CI, then ends the turn. The next pass starts when one of those wakes you: fix a
+valid finding, reply on each thread — say why when the finding stands — and push. Repeat until the PR
+is clean: CI green, and no Greptile P0 or P1 still open. Then tell the PM that requested the work that
+it is ready to merge. That is the loop's only outward message; the owner merges.
 
 1. If it can be said without jargon at no loss of precision, say it that way. Lead with the effect —
    what's different for someone using the thing — not the mechanism.

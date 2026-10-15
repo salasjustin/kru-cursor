@@ -136,6 +136,18 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
+  "description: How this engineering team works — load before building, reviewing or dispatching any seat. Also the entry for a project from scratch and for planning work past one context.",
+  "description: How this engineering team works — load before building, reviewing or dispatching any seat. Also the entry for a project from scratch and for planning work past one context. Opening or owning a pull request runs the PR babysit loop.",
+  "pr-babysit: the always-loaded description fires when a cloud agent opens or owns a PR",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.",
+  "job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.\n\n**PR babysit loop.** A cloud agent that opens a pull request, or already owns one, subscribes to its\nreviews, comments, and CI, then ends the turn. The next pass starts when one of those wakes you: fix a\nvalid finding, reply on each thread — say why when the finding stands — and push. Repeat until the PR\nis clean: CI green, and no Greptile P0 or P1 still open. Then tell the PM that requested the work that\nit is ready to merge. That is the loop's only outward message; the owner merges.",
+  "pr-babysit: one loop, in the lead contract cloud-skills.sh installs",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
   "   - *An ask to act* — running a command, logging in, approving a push — only when it can't be yours;\n     the exact thing to type and why, in one clause.",
   "   - *An ask to act* — running a command, logging in, a push or pull request (the PM bot's) — only when\n     it can't be yours; the exact thing to type and why, in one clause. A merge, deploy or release is\n     the owner's (the plugin maintainer's for this plugin), and the PM carries it there.",
   "t2: no line asks a human to approve a push",
