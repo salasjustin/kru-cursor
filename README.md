@@ -78,7 +78,33 @@ from a local copy. Three things behave differently there, by Cursor's design:
   first tool call and pushed at every turn end. [`references/store.md`](references/store.md) → *The store repo*.
 
 `/kru-setup` writes the repo's `.cursor/environment.json` install step so a cloud agent's machine has
-the repo's dependencies.
+the repo's dependencies. A repo that should carry the skills themselves, plugin install or not, uses
+the installer in [Cloud agents](#cloud-agents).
+
+## Cloud agents
+A Cursor cloud agent loads project skills from `<repo>/.claude/skills/<name>/SKILL.md`, including
+files git does not track. It does not load `<repo>/.cursor/skills` or `~/.cursor/skills`.
+`scripts/cloud-skills.sh` fills `.claude/skills` and `.claude/agents` from this repo and from
+[pstack](https://github.com/cursor/plugins/tree/main/pstack), for any repo, from the environment
+install or start step:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/salasjustin/kru-cursor/main/scripts/cloud-skills.sh | bash -s --
+```
+
+Pass the repo directory when the shell is not already inside it. With no argument the script uses
+`git rev-parse --show-toplevel`, then `/workspace`. It shallow-clones `skills/` and `agents/` from
+this repo and `pstack/` from `cursor/plugins` (latest `main`) into `~/.cache/kru-cloud-skills`,
+copies each skill flat into `.claude/skills/<name>/` and each agent into `.claude/agents/`, and
+overwrites an untracked copy. A name the repo already tracks is left as it is. On a shared name,
+this repo's copy wins over pstack. Each copied path is one line in the checkout's `info/exclude`
+(`git rev-parse --git-path info/exclude`), between `# kru-cloud-skills begin` and
+`# kru-cloud-skills end`. That block is rewritten on every run. Other exclude lines stay.
+
+A repo that uses this installer must not negate `.claude/skills` or `.claude/agents` in
+`.gitignore`. A negation beats `info/exclude`, and the copies would show up as untracked. Repos
+align to that contract; the installer does not try to outrank a root gitignore. If the clone or
+fetch fails, the script warns and exits 0 so the environment step still succeeds.
 
 ## What it does in your session
 The team is opinionated about process and enforces it with hooks. Each fails open (a crash, a missing

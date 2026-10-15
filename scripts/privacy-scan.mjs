@@ -100,6 +100,9 @@ const PLACEHOLDER_SECRET = /your[_-]?|xxx|example|abc123|<[^>]*>|\$\{|\.\.\.|dum
 const PATH_OK = [
   // cloudflare's sandbox sdk runs code in a container whose working dir is /workspace
   { id: "internal-path", path: /^skills\/(kru-)?cloudflare\/references\/sandbox\// },
+  // Cursor cloud agents check a repo out at /workspace. the installer names
+  // that path as its last-resort target, and the test asserts the literal.
+  { id: "internal-path", path: /^(scripts\/cloud-skills\.sh|scripts\/cloud-skills\.test\.sh|README\.md)$/, line: /\/workspace\b/ },
   // this scanner names what it scans for, and PORTING.md reports what it found
   { id: "*", path: /^(scripts\/privacy-scan\.mjs|scripts\/leak-patterns\.mjs|scripts\/guard-text\.mjs|PORTING\.md)$/ },
   // the tracker test spells the probes guard_text must refuse. gitleaks uses

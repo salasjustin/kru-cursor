@@ -143,6 +143,8 @@ const FORK_OWNED = new Set([
   "scripts/kru-tracker.test.sh",
   "scripts/brief-drift.mjs",
   "scripts/brief-drift.test.sh",
+  "scripts/cloud-skills.sh",
+  "scripts/cloud-skills.test.sh",
   "skills/kru-roster/release.md",
   "skills/kru-roster/fork-sync.md",
   "hooks/cursor-hook.sh",
