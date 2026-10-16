@@ -281,7 +281,7 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
   "their findings merge into the same fix list as `code-reviewer`'s, and the user's eye above remains the gate.",
-  "their findings merge into the same fix list as `code-reviewer`'s, and the PM bot's eye above remains the gate.",
+  "their findings merge into the same fix list as `kru-code-reviewer`'s, and the PM bot's eye above remains the gate.",
   "t4",
 ))
 EDITS.push(E(
@@ -1010,6 +1010,99 @@ EDITS.push(E(
   "## Non-goals\n- explicitly out of scope, so a builder doesn't drift into it\n\n## Tracker\n- <planned item> — <#12 or TEAM-123 when filed>\n- <planned item with no issue yet>\n\n## Open questions\n- only when the user cut the grill short: the product calls still unanswered\n\n## Done when\n- [ ] the end-to-end behaviour that must work\n```\n\n**Issue ids live in the brief; status lives on the tracker.** `## Tracker` is one bullet per planned item, the id at the end (`#12`, or a Linear identifier such as `BG-41`) when an issue exists, and no status. The issue links back: its body contains `Brief: plan/<effort>/brief.md`. A re-run of `/kru-brief` lists that effort's issues — `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" list-effort --brief plan/<effort>/brief.md`, or Linear MCP `list_issues` with that path as `query`, `limit` 250, following `cursor` until the pages end, completed and canceled included — then `node \"${CURSOR_PLUGIN_ROOT}/scripts/brief-drift.mjs\"` flags drift: an id that does not exist or does not link back, an issue that links here and is not listed, including a canceled one, a done issue the brief never planned (a canceled issue is never that), a planned bullet with no id. `show` exit 1 with the text `no such issue` is an id that does not exist; exit 5 or any other failure stops the re-run instead of calling the id missing. The report stays local. A later file or update still follows *Tracker text*.",
   "brief drift: the brief template stores ids and the contract",
 ))
+
+// --- dispatch: Task subagent_type is kru-<seat> ------------------------
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "## Delegate on stack, not size\nA specialist's value is its official-source discipline \u2014 Svelte MCP and its autofixer, Better Auth's\nCLI schema, Next's cache semantics, parameterized SQL \u2014 not lines of code. A change routes to its\nstack's seat whenever getting it right needs that seat's source chain \u2014 its MCP, autofixer, CLI \u2014\nhowever small it is; a change fully specified and checkable inline (a reviewer's exact replacement\nafter the loop closed, a version pin) runs inline, on the seat's skills (below). A stack's own config file is that stack (`turbo.json`,\n`wrangler.jsonc`, `fly.toml` go to their seats), and a red or flaky suite no build is running is\n`test-writer`'s, however small the fix looks. A question with no code to write routes too when a\nseat owns the answer: where a seam goes is `architecture-reviewer`'s, even answered in prose.\nImplement inline for the genuinely stack-agnostic: a typo, a rename, a string the user dictates, a\ncomment, docs. Rewording a screen people find confusing is judgment, not a string fix, so it is\n`ux-designer`'s. When in doubt, route.\n\nInline work runs on the seat's sources: before the edit, load every skill the definition of the seat\nthat would have taken the job names (`agents/<seat>.md` lists them), so inline work runs on the\nsources the seat would have. Inline work spawns no reviewer, so you are both halves of the gate.\n\n",
+  "## Delegate on stack, not size\nA specialist's value is its official-source discipline \u2014 Svelte MCP and its autofixer, Better Auth's\nCLI schema, Next's cache semantics, parameterized SQL \u2014 not lines of code. A change routes to its\nstack's seat whenever getting it right needs that seat's source chain \u2014 its MCP, autofixer, CLI \u2014\nhowever small it is. A stack's own config file is that stack (`turbo.json`,\n`wrangler.jsonc`, `fly.toml` go to their seats), and a red or flaky suite no build is running is\n`test-writer`'s, however small the fix looks. A question with no code to write routes too when a\nseat owns the answer: where a seam goes is `architecture-reviewer`'s, even answered in prose.\nRewording a screen people find confusing is judgment, not a string fix, so it is\n`ux-designer`'s. When in doubt, route.\n\n**Dispatch is a Task tool call with `subagent_type` `kru-<seat>`.** That string is the seat's `name:` in `agents/<seat>.md` (`kru-code-reviewer`, `kru-react-ui-builder`). Prose may say the bare seat; the Task call uses `kru-<seat>`. Never do that seat's work in the main thread. A detailed brief is not fully specified; any CSS/component/route/test change is dispatched. If the Task tool or the seat isn't available, report and stop rather than going inline. The session bootstrap lists the subagent names registered in Cursor's load paths (`.cursor/agents`, `~/.cursor/agents`, `.claude/agents`, and the `.codex` twins). If that list has no `kru-<seat>`, report and stop rather than going inline.\n\n**Inline is a closed list.** Only these run in the main thread: a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement after the loop closed. Before that edit, load every skill the definition of the seat that would have taken the job names (`agents/<seat>.md` lists them), so the closed list still runs on the sources the seat would have. Inline work spawns no reviewer, so you are both halves of the gate.\n\n",
+  "dispatch: inline is a closed list; seat work is a Task call",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "each independent unit of work is a **fresh `Task` call** with its own scoped context.",
+  "each independent unit of work is a **fresh `Task` call** with `subagent_type` `kru-<seat>` and its own scoped context. Never do that seat's work in the main thread.",
+  "dispatch: a fresh unit of work names the Task subagent_type",
+))
+EDITS.push(E(
+  "ROSTER.md",
+  "Every specialist follows **official sources first** (`SOURCES.md`).",
+  "Every specialist follows **official sources first** (`SOURCES.md`). Each specialist's Task `subagent_type` is `kru-<seat>`, the `name:` in `agents/<seat>.md`. The bare name in the table is the file stem.",
+  "dispatch: the roster names the Task subagent_type beside the file stem",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "(e.g. `code-reviewer` + `architecture-reviewer`)",
+  "(e.g. `kru-code-reviewer` + `kru-architecture-reviewer`)",
+  "dispatch: the batch example uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "The three seats Block O exempts (`test-writer`, `brand-designer`, `ui-designer`)",
+  "The three seats Block O exempts (`kru-test-writer`, `kru-brand-designer`, `kru-ui-designer`)",
+  "dispatch: Block O names the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "spawn `architecture-reviewer`",
+  "spawn `kru-architecture-reviewer`",
+  "dispatch: spawn uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "spawn `code-reviewer`",
+  "spawn `kru-code-reviewer`",
+  "dispatch: spawn uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "\u2014 `accessibility-reviewer`",
+  "\u2014 `kru-accessibility-reviewer`",
+  "dispatch: the screen pass uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  ") and `visual-reviewer`",
+  ") and `kru-visual-reviewer`",
+  "dispatch: the screen pass uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "as `code-reviewer`'s",
+  "as `kru-code-reviewer`'s",
+  "dispatch: the screen pass uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "or `test-writer`)",
+  "or `kru-test-writer`)",
+  "dispatch: the covering run uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "Spawn `test-writer`",
+  "Spawn `kru-test-writer`",
+  "dispatch: spawn uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "spawn `ux-auditor`",
+  "spawn `kru-ux-auditor`",
+  "dispatch: spawn uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "and `ux-auditor` is the only one",
+  "and `kru-ux-auditor` is the only one",
+  "dispatch: the journey seat uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "every review seat — `code-reviewer`, `architecture-reviewer`, `accessibility-reviewer`, `visual-reviewer`, `ux-auditor` —",
+  "every review seat — `kru-code-reviewer`, `kru-architecture-reviewer`, `kru-accessibility-reviewer`, `kru-visual-reviewer`, `kru-ux-auditor` —",
+  "dispatch: the review-seat list uses the Task name",
+))
+
 EDITS.push(E(
   "TRACKER.md",
   "- A **brief** (`plan/<effort>/brief.md`) is prose, not typed — no frontmatter, no id, no status. Its presence in an effort dir **is** the handoff signal to `planner`, which reads it as the already-scoped brief for to-spec. See *The brief* below.",

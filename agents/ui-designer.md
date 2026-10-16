@@ -1,6 +1,6 @@
 ---
 name: kru-ui-designer
-description: The canvas turn and the coverage ledger — drafts and publishes the `.dc.html` artboards seeding a design canvas; keeps `design-system.md` (foundation read plus element × state ledger). Use when a look is unsettled or the ledger needs a coverage read. Flows and IA are `ux-designer`'s.
+description: The canvas turn and the coverage ledger — drafts and publishes the `.dc.html` artboards seeding a design canvas; keeps `design-system.md` (foundation read plus element × state ledger). Use when a look is unsettled or the ledger needs a coverage read. Flows and IA are `ux-designer`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-ui-designer.
 model: kimi-k3
 ---
 

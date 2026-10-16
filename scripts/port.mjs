@@ -773,8 +773,13 @@ function portAgents() {
       problems.push(`agents/${seat}.md: no frontmatter`)
       continue
     }
-    const description = unquote(value(get(fm, "description")))
+    // Cursor delegates from the description. "Use proactively" is the phrase the
+    // Task tool hints on (cursor.com/docs/subagents → Automatic delegation).
+    // Idempotent: a fresh upstream file gains it once; a second port leaves it.
+    let description = unquote(value(get(fm, "description")))
     if (!description) problems.push(`agents/${seat}.md: no description`)
+    else if (!description.includes("Use proactively"))
+      description = `${description.replace(/\s+$/, "")} Use proactively for this seat's stack; dispatch it with the Task tool as kru-${seat}.`
     // upstream spells the allowlist `tools:`; a ported tree spells the result as
     // `readonly`. upstream wins when a merge brings the tools line back.
     const tools = value(get(fm, "tools"))
@@ -1079,7 +1084,7 @@ function portRules(version) {
     "This workspace has **kru** installed: an engineering team of specialist subagents run by a lead.",
     "",
     "- **Before building, reviewing or dispatching any seat, load the `kru-lead` skill** (`/kru-lead`) and follow it — it is the contract the whole team runs on. A triage or config turn that only reads needs nothing.",
-    "- Seats are custom subagents: dispatch one with the Task tool as `kru-<seat>` (`kru-code-reviewer`, `kru-react-ui-builder`). Prose names them bare (`code-reviewer`).",
+    "- Seats are custom subagents. Dispatch is a Task tool call with `subagent_type` `kru-<seat>` (`kru-code-reviewer`, `kru-react-ui-builder`), the `name:` in `agents/<seat>.md`. Never do that seat's work in the main thread. If the Task tool or the seat isn't available, report and stop rather than going inline. Inline work is only a typo, a rename, a dictated string, a comment, docs, a version pin, or a reviewer's exact replacement.",
     "- The PM is the bot or person that briefed this session; the owner approves hard-to-reverse calls (the `kru-lead` skill says what reaches the owner). The PM bot's own operating rules govern escalation and approval; the plugin's generic default applies only when the PM has none.",
     "- Team skills are `kru-<name>` (`kru-testing`), and the PM's commands are `/kru-<name>` (`/kru-brief`, `/kru-setup`).",
     "- The install dir is `${CURSOR_PLUGIN_ROOT}`; the store resolver is `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\"`.",

@@ -1,6 +1,6 @@
 ---
 name: kru-accessibility-reviewer
-description: WCAG 2.1 AA audit of a built page or component — keyboard, focus order and visibility, touch-target size, name/role/value, ARIA, error labels; live app when running, else static. Use for an a11y pass on shipped UI. Rendered-state breakage is `visual-reviewer`'s. Reports; does not edit.
+description: WCAG 2.1 AA audit of a built page or component — keyboard, focus order and visibility, touch-target size, name/role/value, ARIA, error labels; live app when running, else static. Use for an a11y pass on shipped UI. Rendered-state breakage is `visual-reviewer`'s. Reports; does not edit. Use proactively for this seat's stack; dispatch it with the Task tool as kru-accessibility-reviewer.
 model: claude-sonnet-5-5
 readonly: true
 permissionMode: readonly

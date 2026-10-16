@@ -21,7 +21,9 @@ command -v jq >/dev/null 2>&1 || { echo "cursor-hooks.test: jq is required" >&2;
 sandbox=$(cd "$(mktemp -d)" && pwd -P)
 trap 'rm -rf "$sandbox"' EXIT
 export HOME="$sandbox/home" TMPDIR="$sandbox/tmp"
-unset KRU_HOME KRU_NO_GATE KRU_NO_LEAD_GATE KRU_NO_AUDIT KRU_STORE_REPO KRU_PROJECT KRU_PROJECT_STORE KRU_CLOUD CURSOR_AGENT_SOCKET KRU_NO_STORE_SYNC
+unset KRU_HOME KRU_NO_GATE KRU_NO_LEAD_GATE KRU_NO_AUDIT KRU_STORE_REPO KRU_PROJECT KRU_PROJECT_STORE CURSOR_AGENT_SOCKET KRU_NO_STORE_SYNC
+# the host may have /run/cursor/api.sock; that must not make this suite a cloud session
+export KRU_CLOUD=0
 mkdir -p "$HOME" "$TMPDIR"
 export KRU_HOOK_LOG="$sandbox/hooks.log"
 
@@ -108,7 +110,7 @@ check "cloud (no sessionStart): the first preToolUse carries the nudge" has '.ad
 check "…and allows the call" has '.permission == "allow"'
 printf '<!-- kru v0.150.0 -->\n' > "$work/AGENTS.md"
 fire preToolUse "$(tool cloud2 Read '{"path":"README.md"}')"
-check "a repo with a sheet gets no nudge" not has '.additional_context'
+check "a repo with a sheet gets no nudge" has '(.additional_context | test("/kru-setup") | not) and (.additional_context | test("KRU SEATS MISSING|Registered subagents"))'
 rm -f "$work/AGENTS.md"
 
 # --- require-lead ------------------------------------------------------------------
@@ -257,6 +259,8 @@ PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store fire sessionStart "$(jq -nc 
 PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store fire preToolUse "$(tool bud2 Read '{"path":"README.md"}')"
 PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=7 fire preToolUse "$(tool bud3 Read '{"path":"README.md"}')"
 check "first-turn: 45s from sessionStart, 10s from the first tool call, an explicit value wins" test "$(tr '\n' ' ' < "$sandbox/budget")" = "45 10 7 "
+fire preToolUse "$(tool seats1 Read '{"path":"README.md"}')"
+check "bootstrap: no kru seat in the load paths fails loudly" has '.permission == "allow" and (.additional_context | test("KRU SEATS MISSING"))'
 # a budget that isn't a positive count of seconds falls back to the default
 # (0 included), and 08 is eight rather than an octal error. a clone that fails
 # at once is a failure, not a timeout

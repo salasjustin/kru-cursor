@@ -3,11 +3,15 @@
 # Target: argument, else git toplevel of $PWD, else /workspace. Never reads $0.
 # Shallow-clones kru-cursor skills/ + agents/ and pstack into ~/.cache/kru-cloud-skills.
 # Copies each skill flat to .claude/skills/<name>/ and each agent to
-# .claude/agents/<name>.md. Overwrites an untracked copy, skips a tracked name,
-# and lets kru-cursor win a shared name. One line per copy in info/exclude
+# .claude/agents/<name>.md and to ~/.cursor/agents/<name>.md (KRU_CURSOR_AGENTS_DIR
+# overrides the home dir). Overwrites an untracked copy, skips a tracked name
+# in the repo, and lets kru-cursor win a shared name. The home copy is always
+# overwritten. One line per repo copy in info/exclude
 # (git rev-parse --git-path info/exclude), between begin and end markers,
 # rewritten every run. A repo using this must not negate .claude/skills or
 # .claude/agents in .gitignore. Clone or fetch failure: warn, exit 0.
+# After a successful copy, list registered subagent name: values. Exit 1 when
+# none start with kru- — that is a missing seat, not a network failure.
 # KRU_CLOUD_SKILLS_CACHE KRU_CLOUD_SKILLS_KRU_URL KRU_CLOUD_SKILLS_PLUGINS_URL KRU_CLOUD_SKILLS_FALLBACK
 set -euo pipefail
 export LC_ALL=C
@@ -157,6 +161,52 @@ main() {
 
   printf 'cloud-skills: %d skills, %d agents -> %s (%d tracked left untouched)\n' \
     "$n_skills" "$n_agents" "$target" "${#skipped[@]}"
+
+  # Cursor loads custom subagents from these dirs, not from a plugin's agents/
+  # (cursor.com/docs/subagents). The home copy is what a cloud agent sees at
+  # startup when this script ran in the environment install.
+  home_agents=${KRU_CURSOR_AGENTS_DIR:-${HOME:-/tmp}/.cursor/agents}
+  mkdir -p -- "$home_agents"
+  local name
+  for name in "${!agent_src[@]}"; do
+    rm -rf -- "$home_agents/$name"
+    cp -a -- "${agent_src[$name]}" "$home_agents/$name"
+  done
+  if ! list_registered "$home_agents" "$target/.claude/agents"; then
+    exit 1
+  fi
+}
+
+# print sorted unique frontmatter name: values. exit 1 when none start with kru-.
+front_name() {
+  local line
+  line=$(awk 'BEGIN{fm=0} /^---$/{fm++; if(fm==2) exit; next} fm==1 && /^name:/{sub(/^name:[[:space:]]*/,""); print; exit}' "$1")
+  line=${line#\"}; line=${line%\"}; line=${line#\'}; line=${line%\'}
+  printf '%s' "$line"
+}
+list_registered() {
+  local d f name
+  local -a found=() kru=()
+  for d in "$@"; do
+    [ -d "$d" ] || continue
+    for f in "$d"/*.md; do
+      [ -f "$f" ] || continue
+      name=$(front_name "$f")
+      [ -n "$name" ] || continue
+      found+=("$name")
+      [[ "$name" == kru-* ]] && kru+=("$name")
+    done
+  done
+  if [ "${#kru[@]}" -eq 0 ]; then
+    warn "no kru seat registered in $*"
+    if [ "${#found[@]}" -eq 0 ]; then
+      printf 'registered subagents:\n'
+    else
+      printf 'registered subagents: %s\n' "$(printf '%s\n' "${found[@]}" | sort -u | paste -sd ' ' -)"
+    fi
+    return 1
+  fi
+  printf 'registered subagents: %s\n' "$(printf '%s\n' "${kru[@]}" | sort -u | paste -sd ' ' -)"
 }
 
 main "$@"

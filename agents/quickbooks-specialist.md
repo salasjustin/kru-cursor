@@ -1,6 +1,6 @@
 ---
 name: kru-quickbooks-specialist
-description: "QuickBooks Online sync — posts settled records into a company's books: Intuit OAuth with a rotating refresh token, entity mapping, throttling, webhooks + CDC. Use to connect QuickBooks, sync records or read accounts. Payments are `stripe-specialist`'s and the other rails'."
+description: "QuickBooks Online sync — posts settled records into a company's books: Intuit OAuth with a rotating refresh token, entity mapping, throttling, webhooks + CDC. Use to connect QuickBooks, sync records or read accounts. Payments are `stripe-specialist`'s and the other rails'. Use proactively for this seat's stack; dispatch it with the Task tool as kru-quickbooks-specialist."
 model: claude-opus-5-5
 ---
 

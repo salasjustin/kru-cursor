@@ -1,6 +1,6 @@
 ---
 name: kru-tanstack-start-builder
-description: TanStack Start (React) network boundary — file routes, `createServerFn` RPCs, server routes, middleware, loaders/`beforeLoad`, search params, SSR/streaming, RSC. Use in a `@tanstack/react-start` app, or for routing in a Start-less `@tanstack/react-router` SPA. Components are `react-ui-builder`'s.
+description: TanStack Start (React) network boundary — file routes, `createServerFn` RPCs, server routes, middleware, loaders/`beforeLoad`, search params, SSR/streaming, RSC. Use in a `@tanstack/react-start` app, or for routing in a Start-less `@tanstack/react-router` SPA. Components are `react-ui-builder`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-tanstack-start-builder.
 model: claude-opus-5-5
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: kru-python-developer
-description: "The Python layer of a repo — package, entry point, `pyproject.toml`, and the `ruff`/`mypy`/`pytest` gate. Use for anything in `.py` files: an MCP server on the official `mcp` SDK, a library's public API, a CLI, a red Python gate, a wheel to publish. A Node CLI or script is `node-developer`'s."
+description: "The Python layer of a repo — package, entry point, `pyproject.toml`, and the `ruff`/`mypy`/`pytest` gate. Use for anything in `.py` files: an MCP server on the official `mcp` SDK, a library's public API, a CLI, a red Python gate, a wheel to publish. A Node CLI or script is `node-developer`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-python-developer."
 model: claude-opus-5-5
 ---
 

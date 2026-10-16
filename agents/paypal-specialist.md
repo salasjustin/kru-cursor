@@ -1,6 +1,6 @@
 ---
 name: kru-paypal-specialist
-description: PayPal payments + billing — server client, OAuth token cache, Orders v2 checkout and capture, subscriptions, refunds, the signed webhook, settlement state, the PayPal/Venmo JS SDK. Use when a feature takes PayPal or Venmo payments or handles a PayPal webhook. Stripe is `stripe-specialist`'s.
+description: PayPal payments + billing — server client, OAuth token cache, Orders v2 checkout and capture, subscriptions, refunds, the signed webhook, settlement state, the PayPal/Venmo JS SDK. Use when a feature takes PayPal or Venmo payments or handles a PayPal webhook. Stripe is `stripe-specialist`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-paypal-specialist.
 model: claude-opus-5-5
 ---
 

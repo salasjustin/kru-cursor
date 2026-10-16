@@ -1,6 +1,6 @@
 ---
 name: kru-stripe-specialist
-description: Stripe payments + billing — server client, catalog, Checkout Sessions, subscriptions, Connect, the signed webhook, the entitlement state the app gates on. Use when a feature takes payment, sells a subscription, gates on a plan or handles Stripe webhooks. Identity is `better-auth-specialist`'s.
+description: Stripe payments + billing — server client, catalog, Checkout Sessions, subscriptions, Connect, the signed webhook, the entitlement state the app gates on. Use when a feature takes payment, sells a subscription, gates on a plan or handles Stripe webhooks. Identity is `better-auth-specialist`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-stripe-specialist.
 model: claude-opus-5-5
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: kru-test-writer
-description: Testing work that needs its own context, past a builder's first coverage. Use for a coverage sweep across many files, a red or flaky suite, an exempt seat's logic-dense output, or a repo whose test conventions aren't captured yet. Owns write→run→fix to green; a builder's own tests stay its own.
+description: Testing work that needs its own context, past a builder's first coverage. Use for a coverage sweep across many files, a red or flaky suite, an exempt seat's logic-dense output, or a repo whose test conventions aren't captured yet. Owns write→run→fix to green; a builder's own tests stay its own. Use proactively for this seat's stack; dispatch it with the Task tool as kru-test-writer.
 model: grok-4.7
 ---
 

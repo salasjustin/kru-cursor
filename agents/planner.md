@@ -1,6 +1,6 @@
 ---
 name: kru-planner
-description: Turns an already-scoped brief into a persisted, dependency-ordered plan of record in `plan/` — a PRD, a graph of tracer-bullet tickets, or a wayfinder map when the work is too foggy to slice. Use when a change outlives one context or must split into parallel slices. Scoping is `/kru-brief`'s.
+description: Turns an already-scoped brief into a persisted, dependency-ordered plan of record in `plan/` — a PRD, a graph of tracer-bullet tickets, or a wayfinder map when the work is too foggy to slice. Use when a change outlives one context or must split into parallel slices. Scoping is `/kru-brief`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-planner.
 model: claude-opus-5-5[effort=high]
 ---
 

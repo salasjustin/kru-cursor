@@ -1,6 +1,6 @@
 ---
 name: kru-zapier-specialist
-description: An app's own Zapier integration — the Platform CLI project (auth, triggers, creates, searches, `push`, Visual Builder `convert`) and the app endpoints Zapier calls (auth test, REST hooks, samples, actions). Use when app events reach Zapier users. The fan-out queue is the platform seat's.
+description: An app's own Zapier integration — the Platform CLI project (auth, triggers, creates, searches, `push`, Visual Builder `convert`) and the app endpoints Zapier calls (auth test, REST hooks, samples, actions). Use when app events reach Zapier users. The fan-out queue is the platform seat's. Use proactively for this seat's stack; dispatch it with the Task tool as kru-zapier-specialist.
 model: claude-opus-5-5
 ---
 

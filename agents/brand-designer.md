@@ -1,6 +1,6 @@
 ---
 name: kru-brand-designer
-description: The project's identity as hand-drawn SVG — logo mark, wordmark, lockups, app-icon tile — plus the favicon and manifest icon set, README header and social card derived from it. Use when a project needs a logo, favicon, app icon or identity header. Generated imagery is `graphic-designer`'s.
+description: The project's identity as hand-drawn SVG — logo mark, wordmark, lockups, app-icon tile — plus the favicon and manifest icon set, README header and social card derived from it. Use when a project needs a logo, favicon, app icon or identity header. Generated imagery is `graphic-designer`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-brand-designer.
 model: claude-opus-5-5
 ---
 

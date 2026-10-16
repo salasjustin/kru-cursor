@@ -1,6 +1,6 @@
 ---
 name: kru-dispatch-auditor
-description: Audits the lead's orchestration — checks each dispatch in the hook-captured ledger against the lead contract (routing fit, handoff completeness, grouping, restated blocks); files deviations as [workflow] inbox lines. Hook-invoked at turn end, never routed. The product is `code-reviewer`'s.
+description: Audits the lead's orchestration — checks each dispatch in the hook-captured ledger against the lead contract (routing fit, handoff completeness, grouping, restated blocks); files deviations as [workflow] inbox lines. Hook-invoked at turn end, never routed. The product is `code-reviewer`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-dispatch-auditor.
 model: claude-haiku-5-5[effort=medium]
 ---
 

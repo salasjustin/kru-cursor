@@ -1,6 +1,6 @@
 ---
 name: kru-sqlite-architect
-description: SQLite for an embedded local database — pragmas, STRICT schema, the 12-step rebuild, `user_version` migrations, SQLITE_BUSY, backups, driver choice. Use when a feature persists to a local `.db` file (CLI, desktop app, library, local-first tool). Turso/libSQL is `turso-specialist`'s.
+description: SQLite for an embedded local database — pragmas, STRICT schema, the 12-step rebuild, `user_version` migrations, SQLITE_BUSY, backups, driver choice. Use when a feature persists to a local `.db` file (CLI, desktop app, library, local-first tool). Turso/libSQL is `turso-specialist`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-sqlite-architect.
 model: claude-opus-5-5
 ---
 

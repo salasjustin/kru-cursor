@@ -1,6 +1,6 @@
 ---
 name: kru-nextjs-builder
-description: Next.js App Router network boundary — Server Component fetching, Server Actions, route handlers, streaming, caching, middleware; maps server data to serializable props. Use to build or edit an App Router route. Pages Router only if the repo confirms it; components are `react-ui-builder`'s.
+description: Next.js App Router network boundary — Server Component fetching, Server Actions, route handlers, streaming, caching, middleware; maps server data to serializable props. Use to build or edit an App Router route. Pages Router only if the repo confirms it; components are `react-ui-builder`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-nextjs-builder.
 model: claude-opus-5-5
 ---
 

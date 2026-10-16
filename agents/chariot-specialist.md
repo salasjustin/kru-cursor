@@ -1,6 +1,6 @@
 ---
 name: kru-chariot-specialist
-description: DAF gifts via Chariot DAFpay — the Connect session (`<chariot-connect>` / `react-chariot-connect`), grant creation, event subscriptions, the signed webhook, grant state. Use when a feature takes a DAF gift, reads a Chariot grant, or handles its webhook. Card payments are `stripe-specialist`'s.
+description: DAF gifts via Chariot DAFpay — the Connect session (`<chariot-connect>` / `react-chariot-connect`), grant creation, event subscriptions, the signed webhook, grant state. Use when a feature takes a DAF gift, reads a Chariot grant, or handles its webhook. Card payments are `stripe-specialist`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-chariot-specialist.
 model: claude-opus-5-5
 ---
 

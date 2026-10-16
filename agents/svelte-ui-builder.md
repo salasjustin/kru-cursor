@@ -1,6 +1,6 @@
 ---
 name: kru-svelte-ui-builder
-description: Framework-agnostic Svelte 5 UI — pages, sections and interactive components as props-in/callbacks-out .svelte, mounted by SvelteKit route files. Use to build Svelte components from a design plan + props contract. Load functions, form actions, hooks and server code are `sveltekit-builder`'s.
+description: Framework-agnostic Svelte 5 UI — pages, sections and interactive components as props-in/callbacks-out .svelte, mounted by SvelteKit route files. Use to build Svelte components from a design plan + props contract. Load functions, form actions, hooks and server code are `sveltekit-builder`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-svelte-ui-builder.
 model: claude-opus-5-5
 ---
 

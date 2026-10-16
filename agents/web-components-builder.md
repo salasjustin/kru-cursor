@@ -1,6 +1,6 @@
 ---
 name: kru-web-components-builder
-description: Vanilla custom elements with a shadow root — a widget embedded in pages you don't control, or a design system several stacks consume. Owns its API (attributes in, events out), styling and a11y. Use when the component must outlive a framework; UI in a React app is `react-ui-builder`'s.
+description: Vanilla custom elements with a shadow root — a widget embedded in pages you don't control, or a design system several stacks consume. Owns its API (attributes in, events out), styling and a11y. Use when the component must outlive a framework; UI in a React app is `react-ui-builder`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-web-components-builder.
 model: kimi-k3
 ---
 

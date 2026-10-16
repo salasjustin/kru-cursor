@@ -1,6 +1,6 @@
 ---
 name: kru-cloudflare-builder
-description: Cloudflare edge-runtime builder — Workers, Wrangler config/deploy, bindings and storage (KV, D1, R2, Queues, Vectorize), Durable Objects, Workflows, Pages, framework-on-Workers adapters. Use to build, configure or deploy on the Workers runtime; owns D1. A Hono app on Workers is `hono-builder`'s.
+description: Cloudflare edge-runtime builder — Workers, Wrangler config/deploy, bindings and storage (KV, D1, R2, Queues, Vectorize), Durable Objects, Workflows, Pages, framework-on-Workers adapters. Use to build, configure or deploy on the Workers runtime; owns D1. A Hono app on Workers is `hono-builder`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-cloudflare-builder.
 model: claude-opus-5-5
 ---
 

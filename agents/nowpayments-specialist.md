@@ -1,6 +1,6 @@
 ---
 name: kru-nowpayments-specialist
-description: Crypto payments on NOWPayments — invoices and direct payments, payable coins, minimums and estimates, the signed IPN listener, persisted settlement state. Use when a feature takes a crypto payment or donation through NOWPayments or handles its IPN. Card payments are `stripe-specialist`'s.
+description: Crypto payments on NOWPayments — invoices and direct payments, payable coins, minimums and estimates, the signed IPN listener, persisted settlement state. Use when a feature takes a crypto payment or donation through NOWPayments or handles its IPN. Card payments are `stripe-specialist`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-nowpayments-specialist.
 model: claude-opus-5-5
 ---
 

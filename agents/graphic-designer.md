@@ -1,6 +1,6 @@
 ---
 name: kru-graphic-designer
-description: Web-ready visual assets from the design direction and token file — Imagen/Gemini stills (hero art, textures, icons, OG images, photo edits), Veo loop video, p5.js art, rembg cutouts. Use when a page needs generated imagery; hands builders drop-in files. The logo set is `brand-designer`'s.
+description: Web-ready visual assets from the design direction and token file — Imagen/Gemini stills (hero art, textures, icons, OG images, photo edits), Veo loop video, p5.js art, rembg cutouts. Use when a page needs generated imagery; hands builders drop-in files. The logo set is `brand-designer`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-graphic-designer.
 model: composer-2.5[fast=false]
 ---
 

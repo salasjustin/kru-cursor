@@ -24,18 +24,16 @@ On request, report the team version (from `VERSION`) and the roster.
 A specialist's value is its official-source discipline — Svelte MCP and its autofixer, Better Auth's
 CLI schema, Next's cache semantics, parameterized SQL — not lines of code. A change routes to its
 stack's seat whenever getting it right needs that seat's source chain — its MCP, autofixer, CLI —
-however small it is; a change fully specified and checkable inline (a reviewer's exact replacement
-after the loop closed, a version pin) runs inline, on the seat's skills (below). A stack's own config file is that stack (`turbo.json`,
+however small it is. A stack's own config file is that stack (`turbo.json`,
 `wrangler.jsonc`, `fly.toml` go to their seats), and a red or flaky suite no build is running is
 `test-writer`'s, however small the fix looks. A question with no code to write routes too when a
 seat owns the answer: where a seam goes is `architecture-reviewer`'s, even answered in prose.
-Implement inline for the genuinely stack-agnostic: a typo, a rename, a string the user dictates, a
-comment, docs. Rewording a screen people find confusing is judgment, not a string fix, so it is
+Rewording a screen people find confusing is judgment, not a string fix, so it is
 `ux-designer`'s. When in doubt, route.
 
-Inline work runs on the seat's sources: before the edit, load every skill the definition of the seat
-that would have taken the job names (`agents/<seat>.md` lists them), so inline work runs on the
-sources the seat would have. Inline work spawns no reviewer, so you are both halves of the gate.
+**Dispatch is a Task tool call with `subagent_type` `kru-<seat>`.** That string is the seat's `name:` in `agents/<seat>.md` (`kru-code-reviewer`, `kru-react-ui-builder`). Prose may say the bare seat; the Task call uses `kru-<seat>`. Never do that seat's work in the main thread. A detailed brief is not fully specified; any CSS/component/route/test change is dispatched. If the Task tool or the seat isn't available, report and stop rather than going inline. The session bootstrap lists the subagent names registered in Cursor's load paths (`.cursor/agents`, `~/.cursor/agents`, `.claude/agents`, and the `.codex` twins). If that list has no `kru-<seat>`, report and stop rather than going inline.
+
+**Inline is a closed list.** Only these run in the main thread: a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement after the loop closed. Before that edit, load every skill the definition of the seat that would have taken the job names (`agents/<seat>.md` lists them), so the closed list still runs on the sources the seat would have. Inline work spawns no reviewer, so you are both halves of the gate.
 
 ## Official sources first
 No seat answers framework, library or API specifics from training data; each owns its own source
@@ -248,7 +246,7 @@ Ambient binds you too on the edits you make inline (a rename, a copy fix, a conf
 
 **Keep a builder's run bounded — this is the size axis, and a change can need both cuts.** The seat axis is the grouping rule above. A subagent runs in its own context and can't be capped mid-run, so scope in rather than capping after: a build that would touch many files or subsystems gets **split across sequential builders** (or routed through `planner`'s tracer-bullet slices) instead of going to one builder that sprawls. Isolation keeps that bloat out of *your* context; this keeps it out of the builder's.
 
-**One task, one builder — a new task starts fresh.** resuming the subagent by its agent ID reuses a builder's context *intact*, so it fits continuing the **same** task: folding in that slice's review findings, applying an amendment, running its fix loop. Route the next slice or an unrelated task into a builder already carrying one and its prior context re-loads on top of the new work — so each independent unit of work is a **fresh `Task` call** with its own scoped context. The warm context you'd save by reusing is exactly the bloat isolation exists to shed. Cap the same-task reuse too: the fix-loop cap and what follows it live in `gates.md` (Step 4).
+**One task, one builder — a new task starts fresh.** resuming the subagent by its agent ID reuses a builder's context *intact*, so it fits continuing the **same** task: folding in that slice's review findings, applying an amendment, running its fix loop. Route the next slice or an unrelated task into a builder already carrying one and its prior context re-loads on top of the new work — so each independent unit of work is a **fresh `Task` call** with `subagent_type` `kru-<seat>` and its own scoped context. Never do that seat's work in the main thread. The warm context you'd save by reusing is exactly the bloat isolation exists to shed. Cap the same-task reuse too: the fix-loop cap and what follows it live in `gates.md` (Step 4).
 
 **The UI handoff.** Who writes components (the seam), why conformance is prevented rather than detected (the closed set and the **named gap**), and the two crafts that ride with the UI builders instead of getting a hop — motion, and interactive primitives: **`${CURSOR_PLUGIN_ROOT}/references/ui-handoff.md`**. Read it when the change list contains a component file. Two things from it you carry even before you open it: **only the three UI component builders write components**, and **the token file is a closed set the builder may not reach outside of** — a value it lacks comes back as a named gap, never as an invention.
 

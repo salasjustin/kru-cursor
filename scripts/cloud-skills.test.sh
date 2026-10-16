@@ -40,7 +40,7 @@ mkdir -p "$plugins/pstack/skills/pstack-beta" "$plugins/pstack/skills/shared" \
 printf 'kru alpha\n' > "$kru/skills/kru-alpha/SKILL.md"
 printf 'kru shared\n' > "$kru/skills/shared/SKILL.md"
 printf 'not a skill\n' > "$kru/skills/not-a-skill/README.md"
-printf 'kru lead\n' > "$kru/agents/lead.md"
+printf '%s\n' '---' 'name: kru-lead' '---' 'kru lead' > "$kru/agents/lead.md"
 printf 'notes\n' > "$kru/agents/notes.txt"
 printf 'pstack beta\n' > "$plugins/pstack/skills/pstack-beta/SKILL.md"
 printf 'pstack shared\n' > "$plugins/pstack/skills/shared/SKILL.md"
@@ -71,6 +71,7 @@ run_install() {
   (
     cd "$dir"
     cat "$script" | env \
+      HOME="$sandbox/home" \
       KRU_CLOUD_SKILLS_CACHE="$cache" \
       KRU_CLOUD_SKILLS_KRU_URL="$kru" \
       KRU_CLOUD_SKILLS_PLUGINS_URL="$plugins" \
@@ -82,10 +83,13 @@ out=$(run_install "$sandbox" "$target" 2>"$sandbox/err1")
 code=$?
 report "piped run exits 0" "$([ "$code" = 0 ] && echo yes || echo no)" "exit $code; $(cat "$sandbox/err1")"
 report "summary names the target" "$(printf '%s' "$out" | grep -q "cloud-skills: 3 skills, 2 agents -> $target" && echo yes || echo no)" "$out"
+report "lists the kru seat" "$(printf '%s\n' "$out" | grep -qx 'registered subagents: kru-lead' && echo yes || echo no)" "$out"
 report "kru skill copied" "$([ "$(cat "$target/.claude/skills/kru-alpha/SKILL.md")" = "kru alpha" ] && echo yes || echo no)" "missing kru-alpha"
 report "pstack skill copied" "$([ "$(cat "$target/.claude/skills/pstack-beta/SKILL.md")" = "pstack beta" ] && echo yes || echo no)" "missing pstack-beta"
 report "kru wins the shared skill" "$([ "$(cat "$target/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" "$(cat "$target/.claude/skills/shared/SKILL.md" 2>/dev/null)"
-report "kru wins the shared agent" "$([ "$(cat "$target/.claude/agents/lead.md")" = "kru lead" ] && echo yes || echo no)" "$(cat "$target/.claude/agents/lead.md" 2>/dev/null)"
+report "kru wins the shared agent" "$([ "$(cat "$target/.claude/agents/lead.md")" = "$(cat "$kru/agents/lead.md")" ] && echo yes || echo no)" "$(cat "$target/.claude/agents/lead.md" 2>/dev/null)"
+report "home agent installed" "$([ "$(cat "$sandbox/home/.cursor/agents/lead.md")" = "$(cat "$kru/agents/lead.md")" ] && echo yes || echo no)" "$(cat "$sandbox/home/.cursor/agents/lead.md" 2>/dev/null)"
+report "home copy includes a tracked repo agent" "$([ "$(cat "$sandbox/home/.cursor/agents/kept.md")" = "pstack kept" ] && echo yes || echo no)" "$(cat "$sandbox/home/.cursor/agents/kept.md" 2>/dev/null)"
 report "pstack agent copied" "$([ "$(cat "$target/.claude/agents/helper.md")" = "pstack helper" ] && echo yes || echo no)" "missing helper"
 report "tracked skill skipped" "$([ "$(cat "$target/.claude/skills/foo/SKILL.md")" = "tracked foo" ] && echo yes || echo no)" "$(cat "$target/.claude/skills/foo/SKILL.md")"
 report "tracked agent skipped" "$([ "$(cat "$target/.claude/agents/kept.md")" = "tracked kept" ] && echo yes || echo no)" "$(cat "$target/.claude/agents/kept.md")"
@@ -159,6 +163,7 @@ git -C "$shell_repo" commit -q --allow-empty -m init
 shell_out=$(
   cd /tmp
   cat "$script" | env SHELLOPTS=errexit:pipefail:nounset \
+    HOME="$sandbox/home" \
     KRU_CLOUD_SKILLS_CACHE="$cache" \
     KRU_CLOUD_SKILLS_KRU_URL="$kru" \
     KRU_CLOUD_SKILLS_PLUGINS_URL="$plugins" \
@@ -172,6 +177,13 @@ report "piped SHELLOPTS run exits 0" \
 report "piped SHELLOPTS run copies a skill and stays clean" \
   "$([ "$(cat "$shell_repo/.claude/skills/shared/SKILL.md" 2>/dev/null)" = "kru shared v2" ] && [ -z "$shell_status" ] && echo yes || echo no)" \
   "status [$shell_status]; $shell_out"
+
+printf '%s\n' '---' 'name: helper' '---' 'not a kru seat' > "$kru/agents/lead.md"
+commit_repo "$kru" "no kru seat"
+missing_out=$(run_install "$target" 2>"$sandbox/err-missing")
+missing_code=$?
+report "missing kru seat exits non-zero" "$([ "$missing_code" != 0 ] && echo yes || echo no)" "exit $missing_code; $missing_out"
+report "missing kru seat names the failure" "$(grep -q 'no kru seat' "$sandbox/err-missing" && echo yes || echo no)" "$(cat "$sandbox/err-missing")"
 
 printf 'cloud-skills tests: %d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

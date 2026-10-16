@@ -1,6 +1,6 @@
 ---
 name: kru-extension-builder
-description: TypeScript code another program loads or calls, shipped as its own small Node package (a Vite plugin, stdio MCP server, Claude Code channel or small library) with its own pnpm/TS/Biome/Vitest setup. Use to scaffold, fix or publish one. A CLI, script or worker a person runs is `node-developer`'s.
+description: TypeScript code another program loads or calls, shipped as its own small Node package (a Vite plugin, stdio MCP server, Claude Code channel or small library) with its own pnpm/TS/Biome/Vitest setup. Use to scaffold, fix or publish one. A CLI, script or worker a person runs is `node-developer`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-extension-builder.
 model: claude-opus-5-5
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: kru-visual-reviewer
-description: Coverage pass on the rendered UI in a live browser — the states and viewports nobody renders (empty, error, loading, focus, 375, extremes), what breaks in them, each defect's cause at `file:line`. Use after UI ships. WCAG and target sizes are `accessibility-reviewer`'s. Reports; does not edit.
+description: Coverage pass on the rendered UI in a live browser — the states and viewports nobody renders (empty, error, loading, focus, 375, extremes), what breaks in them, each defect's cause at `file:line`. Use after UI ships. WCAG and target sizes are `accessibility-reviewer`'s. Reports; does not edit. Use proactively for this seat's stack; dispatch it with the Task tool as kru-visual-reviewer.
 model: claude-sonnet-5-5
 readonly: true
 permissionMode: readonly

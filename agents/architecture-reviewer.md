@@ -1,6 +1,6 @@
 ---
 name: kru-architecture-reviewer
-description: Structural review of a change or proposed interface — module boundaries, seams, interface depth, coupling, dependency direction, testability. Use at design time to shape seams before code, or at review time to gate boundary integrity. Correctness is `code-reviewer`'s. Reports and specs; no edits.
+description: Structural review of a change or proposed interface — module boundaries, seams, interface depth, coupling, dependency direction, testability. Use at design time to shape seams before code, or at review time to gate boundary integrity. Correctness is `code-reviewer`'s. Reports and specs; no edits. Use proactively for this seat's stack; dispatch it with the Task tool as kru-architecture-reviewer.
 model: claude-opus-5-5[effort=high]
 readonly: true
 permissionMode: readonly

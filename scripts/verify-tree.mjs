@@ -287,6 +287,39 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
   if (/\^tools:/.test(gate)) fail("seats", "hooks/check-handoff.sh still reads a tools: line, which no ported seat has")
 }
 
+// --- dispatch names -----------------------------------------------------------------------
+// agents/<seat>.md declares name: kru-<seat>. The lead, the gates, and the
+// roster have to send that string as the Task subagent_type. A bare seat name
+// there is how a cloud agent does the seat's work itself.
+{
+  const lead = read("skills/kru-lead/SKILL.md")
+  const need = [
+    "subagent_type",
+    "kru-<seat>",
+    "A detailed brief is not fully specified; any CSS/component/route/test change is dispatched.",
+    "If the Task tool or the seat isn't available, report and stop rather than going inline.",
+    "a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement",
+  ]
+  for (const s of need) if (!lead.includes(s)) fail("dispatch", `skills/kru-lead/SKILL.md is missing: ${s}`)
+  if (lead.includes("fully specified and checkable inline")) fail("dispatch", "the inline exception is still open")
+  if (lead.includes("on the seat's skills")) fail("dispatch", "inline work still offers the seat's skills")
+  const rule = read("rules/kru-lead.mdc")
+  if (!rule.includes("subagent_type") || !rule.includes("report and stop rather than going inline"))
+    fail("dispatch", "rules/kru-lead.mdc does not name the Task subagent_type and the stop")
+  const gates = read("skills/kru-lead/references/gates.md")
+  for (const seat of seats) {
+    if (new RegExp("spawn `" + seat + "`", "i").test(gates))
+      fail("dispatch", `gates.md spawns \`${seat}\`; the Task subagent_type is kru-${seat}`)
+    const fm = agentFm.get(seat)
+    const description = String(fm?.description ?? "")
+    if (!description.includes("Use proactively")) fail("dispatch", `agents/${seat}.md description is missing "Use proactively"`)
+    if (!description.includes(`kru-${seat}`)) fail("dispatch", `agents/${seat}.md description does not name kru-${seat}`)
+  }
+  const roster = read("ROSTER.md")
+  if (!roster.includes("Task `subagent_type` is `kru-<seat>`"))
+    fail("dispatch", "ROSTER.md does not say the Task subagent_type is kru-<seat>")
+}
+
 // --- leftover claude-code vocabulary --------------------------------------------------------------------
 // files that name claude's surfaces on purpose: the fork's own docs and
 // checks, and the update skill's claude release ledger (PORTING.md → Known gaps)
@@ -312,7 +345,7 @@ for (const f of files) {
 // the plugin, which the adapter translates, so those lines are not leftovers
 
 // --- report -----------------------------------------------------------------------------------------------
-const CHECKS = ["manifest", "frontmatter", "json/yaml", "hooks", "version", "seats", "claude leftovers"]
+const CHECKS = ["manifest", "frontmatter", "json/yaml", "hooks", "version", "seats", "dispatch", "claude leftovers"]
 const detail = {
   manifest: `${manifest.name}@${manifest.version} · marketplace.json · logo ${manifest.logo}`,
   frontmatter: `${agentFiles.length} agents · ${skillFiles.length} skills · ${ruleFiles.length} rules · ${commandFiles.length} commands`,
@@ -320,6 +353,7 @@ const detail = {
   hooks: `${Object.values(hooks.hooks ?? {}).flat().length} hooks on ${Object.keys(hooks.hooks ?? {}).length} events`,
   version: read("VERSION").trim(),
   seats: `${seats.length} seats · ${READ_ONLY.length} readonly · ${STORE_WRITERS.length} store writers guarded`,
+  dispatch: "Task subagent_type kru-<seat> · closed inline list · Use proactively",
   "claude leftovers": `${SCANS.length} patterns`,
 }
 for (const n of notes) console.log(`note ${n}`)
