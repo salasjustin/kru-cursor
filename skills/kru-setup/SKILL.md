@@ -146,8 +146,8 @@ Three that fail with no error:
   connector and local scope dead-letters every rule naming it: the rule stops matching, nothing
   errors, and the user is re-prompted forever. Re-point the allowlist in the same change that moves
   the server, never after.
-- **A language server is not its compiler.** `typescript-lsp@claude-plugins-official` declares
-  `lspServers` and ships no binary, so it stays inert until `typescript-language-server` is on PATH.
+- **A language server is not its compiler.** A plugin that declares
+  `lspServers` and ships no binary stays inert until `typescript-language-server` is on PATH.
   Verify with an `initialize` handshake — `--version` answers from the compiler and tells you
   nothing about the server. Where a global TypeScript feeds it, pin `typescript@6`: bare `latest`
   resolves to 7.x, the native port, whose `lib/` carries no `tsserver.js`, leaving the stale
@@ -161,7 +161,7 @@ Completion: every seat the derivation named can reach the source its row names, 
 told which one it can't and what enabling it would cost.
 
 ### 1d. Grant what the team does on every run — *full run*
-<!-- hand-owned in kru-cursor (scripts/cursor/setup-1d.md): upstream's section is claude's settings grammar end to end -->
+<!-- hand-owned in kru-cursor (scripts/cursor/setup-1d.md): upstream's section is the non-Cursor settings grammar end to end -->
 Two sets of actions repeat in every project, and each prompts until something grants it — with no
 error and no log line, so the gap survives by being answered rather than noticed.
 
@@ -259,7 +259,7 @@ user's, and setup's part ends at the filing. The report counts them in one claus
 Completion: every catalog row for this stack is wired or filed as a slice for its owner.
 
 ### 2. Read what the repo already says
-Open the repo's `AGENTS.md`, `.claude/rules/*`, `AGENTS.md`, and any nested
+Open the repo's `AGENTS.md` and `.cursor/rules/*.mdc`, and any nested
 member `AGENTS.md`. That is the whole always-loaded surface, and reading it in one pass is the vantage
 step 3 works from.
 

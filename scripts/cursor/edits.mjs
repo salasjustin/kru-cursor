@@ -1016,3 +1016,101 @@ EDITS.push(E(
   "- A **brief** (`plan/<effort>/brief.md`) is prose, not typed — no frontmatter and no status. Issue ids live in `## Tracker`, not in frontmatter. Its presence in an effort dir **is** the handoff signal to `planner`, which reads it as the already-scoped brief for to-spec. See *The brief* below.",
   "brief drift: a brief has no frontmatter id; issue ids live in Tracker",
 ))
+
+// --- cursor: skill prose names Cursor cloud agents, not Claude Code ------
+EDITS.push(E(
+  "skills/kru-writing-for-agents/CALIBRATION.md",
+  "<!-- repo-owned, not vendored: the model-generation branch of `writing-for-agents`, sourced from Anthropic's \"The New Rules of Context Engineering for Claude 5 Generation Models\" (claude.dev/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models/). Survives a re-sync of SKILL.md unchanged; SKILL.md's pointer to it is deviation (4) in that file's vendoring note. -->\n\n# Calibrating for the Claude 5 generation\n\nThe model-generation branch of [`writing-for-agents`](SKILL.md): what changes when the reader is a Claude 5 generation model. Anthropic cut over 80% of Claude Code's own system prompt for these models with no measurable eval loss — most of what came out was guardrails written for an older model's worst case. Everything else about writing is the universal reference in `SKILL.md`; this file says where its levers now point.\n\n## Judgment over rules\n\nA rule written against the worst case binds the good case too. _Default to writing no comments_ stopped the noise an older model produced, and also stopped the comment a genuinely tricky block needed. The replacement states the target the rule was serving and lets the model judge each case against it: _write code that reads like the surrounding code — match its comment density, naming, and idiom._\n\nSo the first draft of any rule is its **goal**, and the rule survives only where a wrong judgment can't be walked back — security, money, data loss, a public push, the `⚠` invariants drift has actually dropped. Everywhere else, the goal plus the reason is the instruction. This is **overconstraint**, and it is the failure mode the no-op test under *Pruning* misses: a no-op changes nothing, an overconstraint changes behaviour for the worse in exactly the cases the author didn't picture.\n\n## One voice per topic, across layers\n\nA seat runs under a stack — the harness system prompt, the user's `~/.claude/CLAUDE.md`, the repo's `AGENTS.md`, this plugin's seat prompt and shared blocks, the skills it loads, the brief. Each layer can be right alone and contradict the next: _leave documentation as appropriate_ in one, _do not add comments_ in another. The model spends its judgment reconciling the authors instead of the task.\n\nBefore a rule lands, read what the layers above already say on its topic. Agreement makes the new line a duplicate (*Pruning*); disagreement is a conflict to resolve at its source, never one to win by louder wording or a `⚠`.\n\n## Interfaces over examples\n\nExamples narrow — the model copies their shape and stops exploring past it. A well-typed interface teaches the usage instead: Claude Code's todo tool went from ~9,100 characters of examples and guidelines to a short description, a `pending | in_progress | completed` enum, and one constraint (one task `in_progress` at a time).\n\nHere the interface is a return contract, a frontmatter field, a ticket schema, a hook's checked line. Where a document reaches for a worked example to show a format, give the format a closed set of values and one stated constraint first; keep the example only if the shape still misreads without it.\n\n## Rich references over prose specs\n\nA spec in prose is a lossy description of something that usually exists in a richer form. Point at the richer form: the test suite that pins the behaviour, the function in another codebase to match, an artifact mockup, a **rubric** a verifier agent can grade against. Code is the highest-fidelity spec a model reads — it is written in a language the model knows better than any description of it.\n",
+  "<!-- repo-owned, not vendored: the calibration branch of `writing-for-agents` for a Cursor cloud agent, model-agnostic (best model per task). The levers were first written up in Anthropic's context-engineering note (claude.dev/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models/) and are restated here for this harness. Survives a re-sync of SKILL.md unchanged; SKILL.md's pointer to it is deviation (4) in that file's vendoring note. -->\n\n# Calibrating for Cursor cloud agents\n\nThe calibration branch of [`writing-for-agents`](SKILL.md): what changes when the reader is a Cursor cloud agent. The model is whichever is best for the task; these levers do not change with that pick. The evidence they rest on is a published cut of a coding harness's system prompt — over 80%, no measurable eval loss — most of which was guardrails written for an older model's worst case. Everything else about writing is the universal reference in `SKILL.md`; this file says where its levers now point.\n\n## Judgment over rules\n\nA rule written against the worst case binds the good case too. _Default to writing no comments_ stopped the noise an older model produced, and also stopped the comment a genuinely tricky block needed. The replacement states the target the rule was serving and lets the model judge each case against it: _write code that reads like the surrounding code — match its comment density, naming, and idiom._\n\nSo the first draft of any rule is its **goal**, and the rule survives only where a wrong judgment can't be walked back — security, money, data loss, a public push, the `⚠` invariants drift has actually dropped. Everywhere else, the goal plus the reason is the instruction. This is **overconstraint**, and it is the failure mode the no-op test under *Pruning* misses: a no-op changes nothing, an overconstraint changes behaviour for the worse in exactly the cases the author didn't picture.\n\n## One voice per topic, across layers\n\nA seat runs under a stack — the harness system prompt, `.cursor/rules` and `AGENTS.md`, this plugin's seat prompt and shared blocks, the skills it loads, the brief. Each layer can be right alone and contradict the next: _leave documentation as appropriate_ in one, _do not add comments_ in another. The model spends its judgment reconciling the authors instead of the task.\n\nBefore a rule lands, read what the layers above already say on its topic. Agreement makes the new line a duplicate (*Pruning*); disagreement is a conflict to resolve at its source, never one to win by louder wording or a `⚠`.\n\n## Interfaces over examples\n\nExamples narrow — the model copies their shape and stops exploring past it. A well-typed interface teaches the usage instead: a Cursor cloud agent's todo list is a short description, a `pending | in_progress | completed | cancelled` status, and one constraint (an update merges by id, so one task changes without rewriting the list).\n\nHere the interface is a return contract, a frontmatter field, a ticket schema, a hook's checked line. Where a document reaches for a worked example to show a format, give the format a closed set of values and one stated constraint first; keep the example only if the shape still misreads without it.\n\n## Rich references over prose specs\n\nA spec in prose is a lossy description of something that usually exists in a richer form. Point at the richer form: the test suite that pins the behaviour, the function in another codebase to match, an artifact mockup, a **rubric** a verifier agent can grade against. Code is the highest-fidelity spec a model reads — it is written in a language the model knows better than any description of it.\n",
+  "cursor: calibrate for a cloud agent, model-agnostic",
+))
+EDITS.push(E(
+  "skills/kru-writing-for-agents/SKILL.md",
+  "When you're adding a rule, a worked example, or a prose spec, read [`CALIBRATION.md`](CALIBRATION.md) — where the Claude 5 generation wants judgment, an interface, or a reference instead.",
+  "When you're adding a rule, a worked example, or a prose spec, read [`CALIBRATION.md`](CALIBRATION.md) — where a Cursor cloud agent wants judgment, an interface, or a reference instead. The model is whichever fits the task.",
+  "cursor: the calibration pointer is model-agnostic",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "(the user's `~/.claude/CLAUDE.md`)",
+  "(`.cursor/rules` or `AGENTS.md`)",
+  "cursor: machine budget lives in rules or AGENTS.md",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "(the user's `~/.claude/CLAUDE.md`)",
+  "(`.cursor/rules` or `AGENTS.md`)",
+  "cursor: machine budget lives in rules or AGENTS.md",
+))
+EDITS.push(E(
+  "skills/kru-update/SKILL.md",
+  "a machine constraint the user's `~/.claude/CLAUDE.md` sets",
+  "a machine constraint `.cursor/rules` or `AGENTS.md` sets",
+  "cursor: machine budget lives in rules or AGENTS.md",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "every rule an always-loaded AGENTS.md carries — the working repo's, or the user's own `~/.claude/CLAUDE.md`: its machine budget, its comment standard, its dependency policy, whatever it states). Point at it or say nothing — and an AGENTS.md section, repo or user, loads into every seat on its own",
+  "every rule `.cursor/rules` or an always-loaded AGENTS.md carries: its machine budget, its comment standard, its dependency policy, whatever it states). Point at it or say nothing — and an AGENTS.md section or a `.cursor/rules` file loads into every seat on its own",
+  "cursor: ambient rules are .cursor/rules and AGENTS.md",
+))
+EDITS.push(E(
+  "skills/kru-copy-editing/SKILL.md",
+  "(or `.claude/product-marketing.md`, or the legacy `product-marketing-context.md` filename, in older setups)",
+  "(or the legacy `product-marketing-context.md` filename, in older setups)",
+  "cursor: drop the .claude product-marketing fallback",
+))
+EDITS.push(E(
+  "skills/kru-copywriting/SKILL.md",
+  "(or `.claude/product-marketing.md`, or the legacy `product-marketing-context.md` filename, in older setups)",
+  "(or the legacy `product-marketing-context.md` filename, in older setups)",
+  "cursor: drop the .claude product-marketing fallback",
+))
+EDITS.push(E(
+  "skills/kru-cro/SKILL.md",
+  "(or `.claude/product-marketing.md`, or the legacy `product-marketing-context.md` filename, in older setups)",
+  "(or the legacy `product-marketing-context.md` filename, in older setups)",
+  "cursor: drop the .claude product-marketing fallback",
+))
+EDITS.push(E(
+  "skills/kru-cro/references/form.md",
+  "If `.agents/product-marketing.md` exists (or `.claude/product-marketing.md` in older setups), read it before asking questions.",
+  "If `.agents/product-marketing.md` exists, read it before asking questions.",
+  "cursor: drop the .claude product-marketing fallback",
+))
+EDITS.push(E(
+  "skills/kru-setup/SKILL.md",
+  "- **A language server is not its compiler.** `typescript-lsp@claude-plugins-official` declares\n  `lspServers` and ships no binary, so it stays inert until `typescript-language-server` is on PATH.",
+  "- **A language server is not its compiler.** A plugin that declares\n  `lspServers` and ships no binary stays inert until `typescript-language-server` is on PATH.",
+  "cursor: the language-server check does not name a Claude marketplace plugin",
+))
+EDITS.push(E(
+  "skills/kru-setup/SKILL.md",
+  "Open the repo's `AGENTS.md`, `.cursor/rules/*.mdc`, `AGENTS.md`, and any nested\nmember `AGENTS.md`.",
+  "Open the repo's `AGENTS.md` and `.cursor/rules/*.mdc`, and any nested\nmember `AGENTS.md`.",
+  "cursor: the always-loaded surface is AGENTS.md and .cursor/rules",
+))
+EDITS.push(E(
+  "skills/kru-eval-review/SKILL.md",
+  "description: Audit a `claude plugin eval` suite for checks that pass or fail for the wrong reason, and fix the eval files in place.",
+  "description: Audit an upstream plugin-eval suite already in the tree for checks that pass or fail for the wrong reason, and fix the eval files in place. Cursor has no eval runner; do not install one.",
+  "cursor: eval-review does not send the reader to install a runner",
+))
+EDITS.push(E(
+  "skills/kru-eval-review/SKILL.md",
+  "The format is `code.claude.com/docs/en/plugin-evals.md` (fetch it; grader types, `target` values and the two-arm exclusions change with the CLI). The model-agnostic checklist, the one for any eval, is `shared/evals/eval-audit.md` inside the `/claude-api` skill. Run both; this file carries only what those two don't: the traps specific to grading an agent plugin from its trace. Every trap below was reproduced on Claude Code 2.1.284, 2026-09-29.",
+  "Cursor has no plugin-eval runner, so do not install one or start a `claude` CLI (`PORTING.md`). When an upstream suite is already in the tree, grade it in place. The format those files follow is `code.claude.com/docs/en/plugin-evals.md` (fetch it only then; grader types, `target` values and the two-arm exclusions change). The model-agnostic checklist lives at `shared/evals/eval-audit.md` inside the `/claude-api` skill, which is not installed on this team — the traps below cover an agent plugin when that checklist is absent. Every trap below was reproduced against harness traces from 2.1.284 on 2026-09-29.",
+  "cursor: eval-review grades an existing suite and does not start Claude Code",
+))
+EDITS.push(E(
+  "SOURCES.md",
+  "Its **`CALIBRATION.md`** is repo-owned too, sourced from Anthropic's *New Rules of Context Engineering for Claude 5 Generation Models* — judgment over rules, one voice per topic across layers, interfaces over examples, rich references over prose specs.",
+  "Its **`CALIBRATION.md`** is repo-owned too: calibration for a Cursor cloud agent, model-agnostic (best model per task) — judgment over rules, one voice per topic across layers, interfaces over examples, rich references over prose specs. The levers were first written up for a newer model generation; the file restates them for this harness.",
+  "cursor: the source map describes calibration for a cloud agent",
+))
+EDITS.push(E(
+  "SOURCES.md",
+  "and a second pointing at **`CALIBRATION.md`**, the repo-owned model-generation reference (sourced from Anthropic's Claude 5 context-engineering post)",
+  "and a second pointing at **`CALIBRATION.md`**, the repo-owned calibration for a Cursor cloud agent (model-agnostic; the levers were first written up in Anthropic's context-engineering post)",
+  "cursor: the vendored-resources note matches the reframed calibration file",
+))

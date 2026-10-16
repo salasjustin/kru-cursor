@@ -1,13 +1,13 @@
 ---
 name: kru-eval-review
-description: Audit a `claude plugin eval` suite for checks that pass or fail for the wrong reason, and fix the eval files in place.
+description: Audit an upstream plugin-eval suite already in the tree for checks that pass or fail for the wrong reason, and fix the eval files in place. Cursor has no eval runner; do not install one.
 disable-model-invocation: true
 argument-hint: "[<eval dir> — omit for evals/]"
 ---
 
 A plugin eval is trustworthy when every grader can go **red** on the failure it names and stays green on every valid way of succeeding. A suite drifts off that by passing on the wrong evidence (the rule was read, not followed), crediting the wrong actor (the lead did what the seat was supposed to), or failing a correct answer written in a form the pattern didn't expect. This pass finds those and fixes them in the eval files; the plugin under test is out of scope.
 
-The format is `code.claude.com/docs/en/plugin-evals.md` (fetch it; grader types, `target` values and the two-arm exclusions change with the CLI). The model-agnostic checklist, the one for any eval, is `shared/evals/eval-audit.md` inside the `/claude-api` skill. Run both; this file carries only what those two don't: the traps specific to grading an agent plugin from its trace. Every trap below was reproduced on Claude Code 2.1.284, 2026-09-29.
+Cursor has no plugin-eval runner, so do not install one or start a `claude` CLI (`PORTING.md`). When an upstream suite is already in the tree, grade it in place. The format those files follow is `code.claude.com/docs/en/plugin-evals.md` (fetch it only then; grader types, `target` values and the two-arm exclusions change). The model-agnostic checklist lives at `shared/evals/eval-audit.md` inside the `/claude-api` skill, which is not installed on this team — the traps below cover an agent plugin when that checklist is absent. Every trap below was reproduced against harness traces from 2.1.284 on 2026-09-29.
 
 **Completion criterion:** every grader in the target has been shown red on a synthetic failing line and green on a synthetic passing one, and every finding is fixed or reported. Checkable: step 3's output names every grader that carries a pattern.
 

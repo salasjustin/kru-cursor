@@ -9,7 +9,7 @@ The roles below are the ones defined in `skills/kru-lead/SKILL.md` (first paragr
 
 | step | who |
 |---|---|
-| the version bump commit, local, with `bash scripts/verify.sh` green | Claude Code (the lead), on the PM's ask |
+| the version bump commit, local, with `bash scripts/verify.sh` green | the lead, in Cursor, on the PM's ask |
 | push, pull request, merge, tag | the plugin maintainer — pushes and opens the pull request, and merges and tags this plugin's releases |
 | resubmitting to Cursor's marketplace, or making the repo public for it | the owner: anything public or live goes to the owner. The lead reports to the PM, which carries this to the owner |
 | a Teams marketplace, the Cursor GitHub App, any new outside account | the owner decides (money, outside services); ops sets the account up |
