@@ -35,9 +35,11 @@ fi
 sync=$(printf '%s' "$input" | bash "$plugin_root/hooks/store-sync.sh" start "$plugin_root" 2>/dev/null)
 nudge=$(printf '%s' "$input" | bash "$plugin_root/hooks/setup-nudge.sh" "$plugin_root" 2>/dev/null)
 
-# names Cursor will actually offer the Task tool. plugin agents/ is not one of
-# these dirs (cursor.com/docs/subagents → File locations). same cloud test as
-# scripts/kru-store.sh kru_is_cloud.
+# names on disk. Cursor's plugin loader reads $plugin_root/agents (MODELS.md);
+# project and user agents are the .cursor/.claude/.codex dirs. the list is
+# informational. the stop is a Task call that rejects kru-<seat> or does not
+# offer it (skills/kru-lead/SKILL.md), not this scan, so a plugin install is
+# not told to stop because the three doc dirs are empty.
 front_name() {
   local line
   line=$(awk 'BEGIN{fm=0} /^---$/{fm++; if(fm==2) exit; next} fm==1 && /^name:/{sub(/^name:[[:space:]]*/,""); print; exit}' "$1")
@@ -55,14 +57,7 @@ registered_names() {
     done
   done
 }
-plugin_kru=0
-if [ -d "$plugin_root/agents" ]; then
-  for f in "$plugin_root/agents"/*.md; do
-    [ -f "$f" ] || continue
-    front_name "$f" | grep -q '^kru-' && plugin_kru=$((plugin_kru + 1))
-  done
-fi
-reg_dirs=("$PWD/.cursor/agents" "$PWD/.claude/agents" "$PWD/.codex/agents")
+reg_dirs=("$plugin_root/agents" "$PWD/.cursor/agents" "$PWD/.claude/agents" "$PWD/.codex/agents")
 if [ -n "${HOME:-}" ]; then
   reg_dirs+=("$HOME/.cursor/agents" "$HOME/.claude/agents" "$HOME/.codex/agents")
 fi
@@ -70,25 +65,11 @@ names=$(registered_names "${reg_dirs[@]}" | sort -u)
 kru=$(printf '%s\n' "$names" | grep '^kru-' || true)
 if [ -n "$kru" ]; then
   seats_msg="Registered subagents: $(printf '%s\n' "$kru" | paste -sd ', ' -)"
-  seats_sys=""
 else
   shown=${names:-none}
-  seats_msg="KRU SEATS MISSING from Cursor's subagent load paths (.cursor/agents, .claude/agents, .codex/agents, and the same three under the home directory). Registered subagents: ${shown}. Plugin agents on disk whose name starts with kru-: ${plugin_kru}. If the Task tool does not offer a kru-<seat> subagent_type, report and stop rather than going inline."
-  seats_sys="$seats_msg"
+  seats_msg="Registered subagents: ${shown}"
 fi
-# a cloud agent with no kru seat in those dirs is the session that does the
-# seat's work itself. refuse the first tool of the conversation and say why.
-# the mark above makes it once. KRU_CLOUD=0 keeps a machine with the metadata
-# socket on the local path (scripts/kru-store.sh).
-kru_is_cloud=1
-[ "${KRU_CLOUD:-}" = "0" ] && kru_is_cloud=0
-if [ "$kru_is_cloud" = 1 ]; then
-  [ "${KRU_CLOUD:-}" = "1" ] || [ -n "${CURSOR_AGENT_SOCKET:-}" ] || [ -S /run/cursor/api.sock ] || kru_is_cloud=0
-fi
-if [ -z "$kru" ] && [ "$kru_is_cloud" = 1 ]; then
-  printf '%s\n' "$seats_msg" >&2
-  exit 2
-fi
+seats_sys=""
 
 # both speak claude's sessionStart shape; cursor-hook.sh maps the result
 jq -nc --arg a "$sync" --arg b "$nudge" --arg c "$seats_msg" --arg m "$seats_sys" '

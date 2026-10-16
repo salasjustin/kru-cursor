@@ -260,7 +260,7 @@ PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store fire preToolUse "$(tool bud2
 PATH="$sandbox/bin:$PATH" KRU_STORE_REPO=acme/store KRU_STORE_SYNC_TIMEOUT=7 fire preToolUse "$(tool bud3 Read '{"path":"README.md"}')"
 check "first-turn: 45s from sessionStart, 10s from the first tool call, an explicit value wins" test "$(tr '\n' ' ' < "$sandbox/budget")" = "45 10 7 "
 fire preToolUse "$(tool seats1 Read '{"path":"README.md"}')"
-check "bootstrap: no kru seat in the load paths fails loudly" has '.permission == "allow" and (.additional_context | test("KRU SEATS MISSING"))'
+check "bootstrap: a plugin install lists kru seats and does not deny" has '.permission == "allow" and (.additional_context | test("Registered subagents")) and (.additional_context | test("kru-")) and (.additional_context | test("report and stop|KRU SEATS MISSING") | not)'
 # a budget that isn't a positive count of seconds falls back to the default
 # (0 included), and 08 is eight rather than an octal error. a clone that fails
 # at once is a failure, not a timeout

@@ -101,7 +101,7 @@ Pass the repo directory when the shell is not already inside it. With no argumen
 this repo and `pstack/` from `cursor/plugins` (latest `main`) into `~/.cache/kru-cloud-skills`,
 copies each skill flat into `.claude/skills/<name>/` and each agent into `.claude/agents/` and
 `~/.cursor/agents/`, and overwrites an untracked copy. A name the repo already tracks is left as
-it is in the repo; the home copy is always refreshed. On a shared name, this repo's copy wins over
+it is in the repo. A home agent whose frontmatter `name:` starts with `kru-` is replaced, and a missing home file is copied. An existing home agent whose `name:` is not `kru-*` is left untouched. On a shared name, this repo's copy wins over
 pstack. It then lists the registered subagent `name:` values. If none start with `kru-`, it exits
 1. Each copied repo path is one line in the checkout's `info/exclude`
 (`git rev-parse --git-path info/exclude`), between `# kru-cloud-skills begin` and
@@ -109,8 +109,8 @@ pstack. It then lists the registered subagent `name:` values. If none start with
 
 A repo that uses this installer must not negate `.claude/skills` or `.claude/agents` in
 `.gitignore`. A negation beats `info/exclude`, and the copies would show up as untracked. Repos
-align to that contract; the installer does not try to outrank a root gitignore. If the clone or
-fetch fails, the script warns and exits 0 so the environment step still succeeds.
+align to that contract; the installer does not try to outrank a root gitignore. If the kru clone or
+fetch fails, the script warns and exits 1. If the plugins clone or fetch fails, it warns and exits 0.
 
 ## What it does in your session
 The team is opinionated about process and enforces it with hooks. Each fails open (a crash, a missing

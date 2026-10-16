@@ -57,7 +57,7 @@ names the seat and its skills has this question answered — take the answer.
 | the user wants to work what's parked or what's broken — the `TODOS.md` lines, the open defect files, the work tracker's open bugs and wants | **`/kru-todos`** / **`/kru-issues`** — user-invoked; each reconciles the store and the work tracker against the code, scores, proposes a batch and waits for the pick before building. Name the one they want; only the user can fire them. Mid-task you already read the store directly when a step needs it |
 | the user wants to know where their efforts stand, or to pick one back up — the `plan/<effort>/brief.md` files | **`/kru-briefs`** — user-invoked; reconciles every brief's ticks against git and the code, and waits for the pick before ticking, archiving or resuming |
 | work too big for one context / needs a durable plan of record / decompose a spec into parallelizable slices | `planner` (Step 2.6) |
-| **no specialist matches** | the **user**, naming the seat it would need (*Handling gaps*); the general path only on their say-so |
+| **no specialist matches** | the **PM**, naming the seat it would need (*Handling gaps*); report and stop until that seat exists. Do not implement it |
 
 **Contested lanes — the tie-breaks the table can't hold.** Each seat's own definition states its half; read that rather than a copy, and reach for these when two rows look plausible:
 - **Hono splits like a framework on Workers**: the Hono app = `hono-builder` · `wrangler` config, bindings, D1 and deploy = `cloudflare-builder` (on Node/Bun, the image and deploy = `fly-platform-engineer`) · the code calling its `hc` client = that consumer's seat.

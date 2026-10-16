@@ -65,6 +65,9 @@ printf '# keep me\n*.tmp\n' > "$target/.git/info/exclude"
 gitignore_before=$(sha256sum "$target/.gitignore" | awk '{print $1}')
 
 cache="$sandbox/cache"
+mkdir -p "$sandbox/home/.cursor/agents"
+printf '%s\n' '---' 'name: kru-lead' '---' 'stale lead' > "$sandbox/home/.cursor/agents/lead.md"
+printf '%s\n' '---' 'name: local-helper' '---' 'user helper stays' > "$sandbox/home/.cursor/agents/helper.md"
 run_install() {
   local dir=$1
   shift
@@ -89,6 +92,9 @@ report "pstack skill copied" "$([ "$(cat "$target/.claude/skills/pstack-beta/SKI
 report "kru wins the shared skill" "$([ "$(cat "$target/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" "$(cat "$target/.claude/skills/shared/SKILL.md" 2>/dev/null)"
 report "kru wins the shared agent" "$([ "$(cat "$target/.claude/agents/lead.md")" = "$(cat "$kru/agents/lead.md")" ] && echo yes || echo no)" "$(cat "$target/.claude/agents/lead.md" 2>/dev/null)"
 report "home agent installed" "$([ "$(cat "$sandbox/home/.cursor/agents/lead.md")" = "$(cat "$kru/agents/lead.md")" ] && echo yes || echo no)" "$(cat "$sandbox/home/.cursor/agents/lead.md" 2>/dev/null)"
+report "home kru-* agent is replaced" "$(grep -q 'kru lead' "$sandbox/home/.cursor/agents/lead.md" && ! grep -q 'stale lead' "$sandbox/home/.cursor/agents/lead.md" && echo yes || echo no)" "$(cat "$sandbox/home/.cursor/agents/lead.md" 2>/dev/null)"
+report "home agent whose name is not kru-* is left untouched" "$([ "$(cat "$sandbox/home/.cursor/agents/helper.md")" = "$(printf '%s\n' '---' 'name: local-helper' '---' 'user helper stays')" ] && echo yes || echo no)" "$(cat "$sandbox/home/.cursor/agents/helper.md" 2>/dev/null)"
+report "home skip warns" "$(grep -q 'leaving home agent helper.md (name is not kru-\*)' "$sandbox/err1" && echo yes || echo no)" "$(cat "$sandbox/err1")"
 report "home copy includes a tracked repo agent" "$([ "$(cat "$sandbox/home/.cursor/agents/kept.md")" = "pstack kept" ] && echo yes || echo no)" "$(cat "$sandbox/home/.cursor/agents/kept.md" 2>/dev/null)"
 report "pstack agent copied" "$([ "$(cat "$target/.claude/agents/helper.md")" = "pstack helper" ] && echo yes || echo no)" "missing helper"
 report "tracked skill skipped" "$([ "$(cat "$target/.claude/skills/foo/SKILL.md")" = "tracked foo" ] && echo yes || echo no)" "$(cat "$target/.claude/skills/foo/SKILL.md")"
@@ -124,6 +130,7 @@ status2=$(git -C "$target" status --porcelain)
 report "second run exits 0" "$([ "$code2" = 0 ] && echo yes || echo no)" "exit $code2; $(cat "$sandbox/err2")"
 report "second run is idempotent" "$([ "$before" = "$after" ] && echo yes || echo no)" "tree hash $before -> $after"
 report "second run leaves git status clean" "$([ -z "$status2" ] && echo yes || echo no)" "$status2"
+report "second run still leaves the non-kru home agent" "$([ "$(cat "$sandbox/home/.cursor/agents/helper.md")" = "$(printf '%s\n' '---' 'name: local-helper' '---' 'user helper stays')" ] && echo yes || echo no)" "$(cat "$sandbox/home/.cursor/agents/helper.md" 2>/dev/null)"
 report "no-arg run from a subdir uses the toplevel" "$(printf '%s' "$out2" | grep -F -q -- "-> $target " && echo yes || echo no)" "$out2"
 
 printf 'kru shared v2\n' > "$kru/skills/shared/SKILL.md"
@@ -144,13 +151,14 @@ commit_repo "$offline_target" "init"
 offline_out=$(
   cd "$sandbox"
   cat "$script" | env \
+    HOME="$sandbox/offline-home" \
     KRU_CLOUD_SKILLS_CACHE="$offline_cache" \
     KRU_CLOUD_SKILLS_KRU_URL="https://127.0.0.1:9/kru.git" \
     KRU_CLOUD_SKILLS_PLUGINS_URL="https://127.0.0.1:9/plugins.git" \
     bash -s -- "$offline_target" 2>"$sandbox/offline.err"
 )
 offline_code=$?
-report "offline run exits 0" "$([ "$offline_code" = 0 ] && echo yes || echo no)" "exit $offline_code; $offline_out"
+report "offline kru clone exits non-zero" "$([ "$offline_code" != 0 ] && echo yes || echo no)" "exit $offline_code; $offline_out"
 report "offline run warns" "$(grep -q 'cloud-skills:' "$sandbox/offline.err" && echo yes || echo no)" "$(cat "$sandbox/offline.err")"
 report "offline run leaves the checkout alone" \
   "$([ "$(cat "$offline_target/.claude/skills/foo/SKILL.md")" = "tracked foo" ] && [ ! -e "$offline_target/.claude/skills/shared" ] && echo yes || echo no)" \

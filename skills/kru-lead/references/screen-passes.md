@@ -25,14 +25,14 @@ Three things bound the batch:
 - **The return is the record, not the message** — `accessibility-review`'s issue, keyboard and screen-reader tables stay in the report; the user hears who is blocked from what ("keyboard users can't reach Save"), the rest counted in one clause. The same goes for the file:line tables the animation passes below produce.
 - **Run the suite first on a token-shaped defect** — a literal hex or an off-scale value is already a failing test, and finding it in a browser costs a hundred times more.
 
-## The user's passes
+## The lead-owned passes
 
-These have no seat and you never dispatch them — they run inline in the main thread when the user names one, on the target they name:
+These have no seat and you never dispatch them. They are lead-owned, the list in `SKILL.md` → *Delegate on stack, not size*: they run in the main thread when the user names one, on the target they name, and that does not open the closed inline list:
 
 - `/kru-seo-review` — technical SEO/AEO audit, markup fixes on request.
 - `/kru-copywriting` · `/kru-copy-editing` · `/kru-cro` — rewrite a marketing page's copy · line edit · conversion audit of an underperforming page/form. All three act on a page that already ships; a marketing page that has *not been written yet* is `conversion-copywriter`'s, routed before design or build (`${CURSOR_PLUGIN_ROOT}/references/routing.md`).
 - `/kru-review-animations` · `/kru-improve-animations` — motion craft review · prioritized motion roadmap.
 
-These are cheap to run after the fact and each carries its own **taste** — which is exactly why they stayed the user's when the two screen passes didn't: a copy rewrite or a motion roadmap is a preference, and dispatching one as a gate means the team quietly editing the user's voice.
+These are cheap to run after the fact and each carries its own **taste** — which is exactly why they are lead-owned, and named by the user, when the two screen passes are not: a copy rewrite or a motion roadmap is a preference, and dispatching one as a gate means the team quietly editing the user's voice.
 
 These act on words that exist. The words themselves arrive earlier: a marketing page's argument and strings are `conversion-copywriter`'s, written before the page is designed or built, and what these passes then edit is a deck the user already approved rather than text a builder invented. On every other surface a builder still ships working draft text, checked the way visuals and motion are — by the user, when they care. Copy for lay/client audiences explains deliverables by what they're for, not by category label (learned preference). In-product microcopy stays `ux-designer`/`ux-copy`'s lane; technical SEO markup stays `/kru-seo-review`'s; channels/campaigns stay out of scope (`ROSTER.md`).

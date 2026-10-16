@@ -296,20 +296,51 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
   const need = [
     "subagent_type",
     "kru-<seat>",
-    "A detailed brief is not fully specified; any CSS/component/route/test change is dispatched.",
-    "If the Task tool or the seat isn't available, report and stop rather than going inline.",
+    "Try the call. If the Task tool rejects `kru-<seat>` or does not offer it, report the types it offered and stop.",
+    "do not decide that from a directory listing.",
+    "the list does not depend on file type",
+    "A typo or a comment in a CSS, component, route, or test file is still on this list.",
+    "Lead-owned work is not that list",
+    "No covering seat: report and stop.",
+    "Until that seat exists, report and stop on the slice.",
     "a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement",
   ]
   for (const s of need) if (!lead.includes(s)) fail("dispatch", `skills/kru-lead/SKILL.md is missing: ${s}`)
   if (lead.includes("fully specified and checkable inline")) fail("dispatch", "the inline exception is still open")
   if (lead.includes("on the seat's skills")) fail("dispatch", "inline work still offers the seat's skills")
+  if (lead.includes("any CSS/component/route/test change is dispatched")) fail("dispatch", "file type still overrides the closed inline list")
+  if (lead.includes("the general path")) fail("dispatch", "a slice with no seat still offers the general path")
+  if (lead.includes("config tweak")) fail("dispatch", "inline still names a config tweak")
+  if (lead.includes("If that list has no")) fail("dispatch", "the stop still keys off a directory list")
   const rule = read("rules/kru-lead.mdc")
-  if (!rule.includes("subagent_type") || !rule.includes("report and stop rather than going inline"))
-    fail("dispatch", "rules/kru-lead.mdc does not name the Task subagent_type and the stop")
+  if (!rule.includes("report the types it offered and stop"))
+    fail("dispatch", "rules/kru-lead.mdc does not stop on Task rejection")
+  if (!rule.includes("does not depend on file type"))
+    fail("dispatch", "rules/kru-lead.mdc does not keep the closed list independent of file type")
+  if (!rule.includes("Lead-owned"))
+    fail("dispatch", "rules/kru-lead.mdc does not list lead-owned work")
+  if (!rule.includes("Do not implement it"))
+    fail("dispatch", "rules/kru-lead.mdc still lets a slice with no seat be implemented")
+  const passes = read("skills/kru-lead/references/screen-passes.md")
+  if (!passes.includes("They are lead-owned"))
+    fail("dispatch", "screen-passes.md does not list the user-named passes as lead-owned")
   const gates = read("skills/kru-lead/references/gates.md")
+  if (!gates.includes("the comment pass stays lead-owned"))
+    fail("dispatch", "gates.md does not list the comment pass as lead-owned")
+  if (!gates.includes("a scoped test-count check is lead-owned"))
+    fail("dispatch", "gates.md does not list the scoped test-count check as lead-owned")
+  if (read("references/routing.md").includes("the general path only on their say-so"))
+    fail("dispatch", "routing.md still sends an uncovered slice down the general path")
+  if (read("SOURCES.md").includes("use the general path"))
+    fail("dispatch", "SOURCES.md still sends an uncovered stack down the general path")
   for (const seat of seats) {
     if (new RegExp("spawn `" + seat + "`", "i").test(gates))
       fail("dispatch", `gates.md spawns \`${seat}\`; the Task subagent_type is kru-${seat}`)
+  }
+  for (const m of gates.matchAll(/spawn `kru-([a-z0-9-]+)`/gi)) {
+    if (!seats.includes(m[1])) fail("dispatch", `gates.md spawns kru-${m[1]}, which has no agents/${m[1]}.md`)
+  }
+  for (const seat of seats) {
     const fm = agentFm.get(seat)
     const description = String(fm?.description ?? "")
     if (!description.includes("Use proactively")) fail("dispatch", `agents/${seat}.md description is missing "Use proactively"`)
