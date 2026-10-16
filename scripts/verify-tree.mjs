@@ -303,9 +303,12 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
     "Lead-owned work is not that list",
     "No covering seat: report and stop.",
     "Until that seat exists, report and stop on the slice.",
-    "a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement",
+    "a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement after the loop closed",
+    "only deeper nesting can't",
   ]
   for (const s of need) if (!lead.includes(s)) fail("dispatch", `skills/kru-lead/SKILL.md is missing: ${s}`)
+  if (lead.includes("subagents can't spawn subagents"))
+    fail("dispatch", "skills/kru-lead/SKILL.md still says subagents can't spawn subagents")
   if (lead.includes("fully specified and checkable inline")) fail("dispatch", "the inline exception is still open")
   if (lead.includes("on the seat's skills")) fail("dispatch", "inline work still offers the seat's skills")
   if (lead.includes("any CSS/component/route/test change is dispatched")) fail("dispatch", "file type still overrides the closed inline list")
@@ -319,6 +322,15 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
     fail("dispatch", "rules/kru-lead.mdc does not keep the closed list independent of file type")
   if (!rule.includes("Lead-owned"))
     fail("dispatch", "rules/kru-lead.mdc does not list lead-owned work")
+  if (!rule.includes("a reviewer's exact replacement after the loop closed"))
+    fail("dispatch", "rules/kru-lead.mdc lacks the loop-closed timing on a reviewer's exact replacement")
+  if (rule.includes("Anything not on that list is dispatched"))
+    fail("dispatch", "rules/kru-lead.mdc says anything off the inline list is dispatched, which includes lead-owned work")
+  const ownedStart = lead.indexOf("**Lead-owned work is not that list")
+  const ownedEnd = lead.indexOf("\n\n**No covering seat:")
+  const owned = ownedStart >= 0 && ownedEnd > ownedStart ? lead.slice(ownedStart, ownedEnd) : ""
+  if (!owned) fail("dispatch", "skills/kru-lead/SKILL.md has no lead-owned paragraph")
+  else if (!rule.includes(owned)) fail("dispatch", "rules/kru-lead.mdc does not match the skill's lead-owned paragraph")
   if (!rule.includes("Do not implement it"))
     fail("dispatch", "rules/kru-lead.mdc still lets a slice with no seat be implemented")
   const passes = read("skills/kru-lead/references/screen-passes.md")
@@ -333,12 +345,21 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
     fail("dispatch", "routing.md still sends an uncovered slice down the general path")
   if (read("SOURCES.md").includes("use the general path"))
     fail("dispatch", "SOURCES.md still sends an uncovered stack down the general path")
-  for (const seat of seats) {
-    if (new RegExp("spawn `" + seat + "`", "i").test(gates))
-      fail("dispatch", `gates.md spawns \`${seat}\`; the Task subagent_type is kru-${seat}`)
+  // `spawn \`kru-<seat>\`` is one shape. The screen passes name the same seats
+  // as `— \`kru-accessibility-reviewer\`` and `and \`kru-visual-reviewer\``.
+  // Every backtick kru-* name in gates.md has to be a real agent, and a bare
+  // seat in backticks is the Task name with the prefix dropped.
+  const named = new Set()
+  for (const m of gates.matchAll(/`kru-([a-z0-9-]+)`/gi)) named.add(m[1])
+  for (const seat of ["accessibility-reviewer", "visual-reviewer"]) {
+    if (!named.has(seat)) fail("dispatch", `gates.md does not name kru-${seat}`)
   }
-  for (const m of gates.matchAll(/spawn `kru-([a-z0-9-]+)`/gi)) {
-    if (!seats.includes(m[1])) fail("dispatch", `gates.md spawns kru-${m[1]}, which has no agents/${m[1]}.md`)
+  for (const seat of named) {
+    if (!seats.includes(seat)) fail("dispatch", `gates.md names kru-${seat}, which has no agents/${seat}.md`)
+  }
+  for (const seat of seats) {
+    if (new RegExp("(?<!kru-)`" + seat + "`", "i").test(gates))
+      fail("dispatch", `gates.md names \`${seat}\`; the Task subagent_type is kru-${seat}`)
   }
   for (const seat of seats) {
     const fm = agentFm.get(seat)

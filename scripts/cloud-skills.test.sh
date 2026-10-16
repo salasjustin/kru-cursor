@@ -186,12 +186,56 @@ report "piped SHELLOPTS run copies a skill and stays clean" \
   "$([ "$(cat "$shell_repo/.claude/skills/shared/SKILL.md" 2>/dev/null)" = "kru shared v2" ] && [ -z "$shell_status" ] && echo yes || echo no)" \
   "status [$shell_status]; $shell_out"
 
+# kru checkout is good and the plugins clone fails. seats from kru still land,
+# and the run is green only because a kru-* agent is on disk.
+mkdir -p "$sandbox/not-a-git"
+pf_target="$sandbox/pf-repo"
+pf_home="$sandbox/pf-home"
+mkdir -p "$pf_target"
+init_repo "$pf_target"
+git -C "$pf_target" commit -q --allow-empty -m init
+pf_out=$(
+  cd "$sandbox"
+  cat "$script" | env \
+    HOME="$pf_home" \
+    KRU_CLOUD_SKILLS_CACHE="$sandbox/pf-cache" \
+    KRU_CLOUD_SKILLS_KRU_URL="$kru" \
+    KRU_CLOUD_SKILLS_PLUGINS_URL="$sandbox/not-a-git" \
+    bash -s -- "$pf_target" 2>"$sandbox/pf.err"
+)
+pf_code=$?
+report "kru ok + plugins fail exits 0" "$([ "$pf_code" = 0 ] && echo yes || echo no)" "exit $pf_code; $(cat "$sandbox/pf.err"); $pf_out"
+report "kru ok + plugins fail warns and continues" "$(grep -q 'installing kru seats without pstack' "$sandbox/pf.err" && echo yes || echo no)" "$(cat "$sandbox/pf.err")"
+report "kru ok + plugins fail copies the kru skill" "$([ "$(cat "$pf_target/.claude/skills/kru-alpha/SKILL.md" 2>/dev/null)" = "kru alpha" ] && echo yes || echo no)" "$(find "$pf_target/.claude" -type f -print 2>/dev/null)"
+report "kru ok + plugins fail copies the kru agent" "$([ "$(cat "$pf_target/.claude/agents/lead.md" 2>/dev/null)" = "$(cat "$kru/agents/lead.md")" ] && echo yes || echo no)" "$(cat "$pf_target/.claude/agents/lead.md" 2>/dev/null)"
+report "kru ok + plugins fail copies the home agent" "$([ "$(cat "$pf_home/.cursor/agents/lead.md" 2>/dev/null)" = "$(cat "$kru/agents/lead.md")" ] && echo yes || echo no)" "$(cat "$pf_home/.cursor/agents/lead.md" 2>/dev/null)"
+report "kru ok + plugins fail lists the kru seat" "$(printf '%s\n' "$pf_out" | grep -qx 'registered subagents: kru-lead' && echo yes || echo no)" "$pf_out"
+report "kru ok + plugins fail skips pstack" "$([ ! -e "$pf_target/.claude/skills/pstack-beta" ] && echo yes || echo no)" "$(find "$pf_target/.claude" -type f -print 2>/dev/null)"
+
 printf '%s\n' '---' 'name: helper' '---' 'not a kru seat' > "$kru/agents/lead.md"
 commit_repo "$kru" "no kru seat"
 missing_out=$(run_install "$target" 2>"$sandbox/err-missing")
 missing_code=$?
 report "missing kru seat exits non-zero" "$([ "$missing_code" != 0 ] && echo yes || echo no)" "exit $missing_code; $missing_out"
 report "missing kru seat names the failure" "$(grep -q 'no kru seat' "$sandbox/err-missing" && echo yes || echo no)" "$(cat "$sandbox/err-missing")"
+
+# plugins failed and the kru checkout has no kru-* name. that must not exit 0.
+nk_target="$sandbox/nk-repo"
+mkdir -p "$nk_target"
+init_repo "$nk_target"
+git -C "$nk_target" commit -q --allow-empty -m init
+nk_out=$(
+  cd "$sandbox"
+  cat "$script" | env \
+    HOME="$sandbox/nk-home" \
+    KRU_CLOUD_SKILLS_CACHE="$sandbox/nk-cache" \
+    KRU_CLOUD_SKILLS_KRU_URL="$kru" \
+    KRU_CLOUD_SKILLS_PLUGINS_URL="$sandbox/not-a-git" \
+    bash -s -- "$nk_target" 2>"$sandbox/nk.err"
+)
+nk_code=$?
+report "plugins fail with no kru seat exits non-zero" "$([ "$nk_code" != 0 ] && echo yes || echo no)" "exit $nk_code; $nk_out; $(cat "$sandbox/nk.err")"
+report "plugins fail with no kru seat names the failure" "$(grep -q 'no kru seat' "$sandbox/nk.err" && echo yes || echo no)" "$(cat "$sandbox/nk.err")"
 
 printf 'cloud-skills tests: %d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

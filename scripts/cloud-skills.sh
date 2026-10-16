@@ -12,9 +12,9 @@
 # (git rev-parse --git-path info/exclude), between begin and end markers,
 # rewritten every run. A repo using this must not negate .claude/skills or
 # .claude/agents in .gitignore. The kru clone or fetch failure warns and exits
-# 1. The plugins clone or fetch failure warns and exits 0.
-# After a successful copy, list registered subagent name: values. Exit 1 when
-# none start with kru- — that is a missing seat, not a network failure.
+# 1. A plugins clone or fetch failure warns and still installs the kru seats.
+# After the copy, list registered subagent name: values. Exit 1 when none start
+# with kru- — a missing seat, including when plugins failed and nothing landed.
 # KRU_CLOUD_SKILLS_CACHE KRU_CLOUD_SKILLS_KRU_URL KRU_CLOUD_SKILLS_PLUGINS_URL KRU_CLOUD_SKILLS_FALLBACK
 set -euo pipefail
 export LC_ALL=C
@@ -149,7 +149,11 @@ main() {
   kru_url=${KRU_CLOUD_SKILLS_KRU_URL:-https://github.com/salasjustin/kru-cursor.git}
   plugins_url=${KRU_CLOUD_SKILLS_PLUGINS_URL:-https://github.com/cursor/plugins.git}
   refresh "$kru_url" "$cache/kru-cursor" skills agents || exit 1
-  refresh "$plugins_url" "$cache/plugins" pstack || exit 0
+  # pstack is optional. a plugins failure must not skip the kru copy, and the
+  # run still exits 1 below when no kru-* agent is on disk.
+  if ! refresh "$plugins_url" "$cache/plugins" pstack; then
+    warn "plugins clone or fetch failed; installing kru seats without pstack"
+  fi
 
   collect "$cache/plugins/pstack/skills" skill
   collect "$cache/kru-cursor/skills" skill

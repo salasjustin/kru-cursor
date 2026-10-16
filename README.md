@@ -86,7 +86,8 @@ A Cursor cloud agent loads project skills from `<repo>/.claude/skills/<name>/SKI
 files git does not track. It does not load `<repo>/.cursor/skills` or `~/.cursor/skills`.
 `scripts/cloud-skills.sh` fills `.claude/skills` and `.claude/agents` from this repo and from
 [pstack](https://github.com/cursor/plugins/tree/main/pstack), and copies each agent to
-`~/.cursor/agents/` as well, for any repo, from the environment install or start step.
+`~/.cursor/agents/` as well, for any repo. Run the installer in the environment install step
+only. Subagents load at session start, so the start step is too late for that session.
 Cursor loads custom subagents from `.cursor/agents`, `~/.cursor/agents`, and `.claude/agents`
 ([subagents](https://cursor.com/docs/subagents)). A copy that lands only in the repo mid-session
 is not offered to the Task tool for that session, so the home directory has to be filled before
@@ -110,7 +111,9 @@ pstack. It then lists the registered subagent `name:` values. If none start with
 A repo that uses this installer must not negate `.claude/skills` or `.claude/agents` in
 `.gitignore`. A negation beats `info/exclude`, and the copies would show up as untracked. Repos
 align to that contract; the installer does not try to outrank a root gitignore. If the kru clone or
-fetch fails, the script warns and exits 1. If the plugins clone or fetch fails, it warns and exits 0.
+fetch fails, the script warns and exits 1. If the plugins clone or fetch fails, it warns and still
+installs the kru seats. The run exits 1 when no registered subagent name starts with `kru-`, so a
+plugins failure is not success when no kru seat is on disk.
 
 ## What it does in your session
 The team is opinionated about process and enforces it with hooks. Each fails open (a crash, a missing
