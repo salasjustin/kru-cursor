@@ -36,7 +36,7 @@ A bare changelog date (`2026-04-15`) is `claude 2026-04-15`.
 
 Each sweep file names its own **action** verdict (*Adopt* · *Re-sync* · *Re-verify*) and the cases that fall short of it; these three are shared, and every verdict names the file it lands in:
 
-- **Consider** — the only verdict that goes to the plugin maintainer first; the action verdicts run through `/kru-roster` without a question. Real value at a cost someone has to decide — the plugin maintainer does, and takes it on to the owner when the PM's own operating rules say so, or under the plugin's generic default when the PM has none (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md`, first section): money, a machine constraint the user's `~/.claude/CLAUDE.md` sets, a UX change to a skill they type, a reproduction session.
+- **Consider** — the only verdict that goes to the plugin maintainer first; the action verdicts run through `/kru-roster` without a question. Real value at a cost someone has to decide — the plugin maintainer does, and takes it on to the owner when the PM's own operating rules say so, or under the plugin's generic default when the PM has none (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md`, first section): money, a machine constraint root `AGENTS.md` or an `alwaysApply: true` rule sets, a UX change to a skill they type, a reproduction session.
 - **Decline** — with the one-line reason, so the next sweep doesn't re-litigate it.
 - **Current** — nothing moved that the copy carries; the mark advances.
 

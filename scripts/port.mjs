@@ -163,7 +163,8 @@ const FORK_OWNED_DIRS = /^(scripts\/cursor\/|\.cursor-plugin\/|rules\/|commands\
 
 // files that talk about claude on purpose and get only the layout and name
 // rules: the official-source map's vendoring rows, the claude release ledger the
-// update skill keeps, eval-review (it audits a claude plugin eval suite).
+// update skill keeps, eval-review (grades an upstream suite already in the tree;
+// layout rules, plus fork edits that drop the default evals/ directory).
 const PATHS_ONLY = /^(skills\/kru-update\/(claude|reviewed)\.md|skills\/kru-eval-review\/SKILL\.md)$/
 
 // ---------------------------------------------------------------------------
@@ -442,9 +443,11 @@ const RULES = [
   R(/written = await optimizeAndWrite\(await generate\(\)\);/g, "written = await optimizeAndWrite(useXai ? await generateXai() : await generate());", { files: /^scripts\/asset\/gen-asset\.ts$/, required: /useXai \? await generateXai\(\) : await generate\(\)/ }),
 
   // --- prose (markdown) ---------------------------------------------------------
-  // the instruction files: cursor reads AGENTS.md (and CLAUDE.md) at a repo
-  // root and .cursor/rules/*.mdc. the user's own ~/.claude/CLAUDE.md is kept as
-  // is — it's the user's rules file, which the handoff gate still reads.
+  // the instruction files: cursor reads AGENTS.md and .cursor/rules/*.mdc.
+  // ~/.claude/CLAUDE.md is shielded from the CLAUDE.md → AGENTS.md rewrite, then
+  // restored, so a fork edit can point skill prose at .cursor/rules and AGENTS.md.
+  // the handoff gate reads root AGENTS.md and alwaysApply rules, and the home
+  // file only as a fallback (check-handoff.sh).
   R(/(~|\$HOME)\/\.claude\/CLAUDE\.md/g, "{USER_RULES}$1", { md: true }),
   R(/(^|[\s`('"(\/])\.claude\/CLAUDE\.md/gm, "$1AGENTS.md", { md: true }),
   R(/\bCLAUDE\.md\b/g, "AGENTS.md", { md: true }),
@@ -452,6 +455,11 @@ const RULES = [
   R(/(`?)AGENTS\.md\1(?:\s*(?:\/|,|\bor\b)\s*\1AGENTS\.md\1)+/g, "$1AGENTS.md$1", { md: true }),
   R(/\ba (`?)AGENTS\.md/g, "an $1AGENTS.md", { md: true }),
   R(/`\.claude\/rules\/`/g, "`.cursor/rules/`", { md: true }),
+  // `.claude/rules/*` is not the backtick-closed form above; setup's read-the-repo
+  // line is this shape. *.mdc is what Cursor loads (cursor.com/docs/rules).
+  // the fork edit then writes **/*.mdc; required accepts both so a second port
+  // still sees the rule's output.
+  R(/\.claude\/rules\/\*/g, ".cursor/rules/*.mdc", { md: true, files: /^skills\/kru-setup\/SKILL\.md$/, required: /\.cursor\/rules\/(?:\*\*\/)?\*\.mdc/ }),
   R(/\.claude\/skills\//g, ".cursor/skills/", { md: true }),
   R(/\.claude\/agents\//g, ".cursor/agents/", { md: true }),
   // the tools: cursor's subagent tool is Task, its shell tool Shell, and it has
@@ -517,7 +525,8 @@ const RULES = [
   // the fork's release and sync runbooks are hand-owned files beside the roster skill
   R(/(?<!follow `release\.md`\.\n\n)^## Wiring map — the single source of truth$/m, "**This fork's release and upstream sync** are `release.md` (version, tag, Cursor's marketplace) and `fork-sync.md` (the weekly upstream pull request), beside this file. The version and git rows below follow `release.md`.\n\n## Wiring map — the single source of truth", { md: true, files: /^skills\/kru-roster\/SKILL\.md$/, required: /^\*\*This fork's release and upstream sync\*\*/m }),
   // the harness itself. "Claude Code channel(s)" is a product extension-builder
-  // builds, not the harness, so it stays
+  // builds, not the harness, so it stays. the system-prompt and todo-tool
+  // phrases stay too, so the calibration fork edit replaces those sentences whole.
   R(/\s*\(resolves in both local and web plugin loads\)/g, " (it resolves in local and cloud-agent loads alike)", { md: true }),
   R(/\bClaude Code's own plan mode\b/g, "Cursor's own Plan mode", { md: true }),
   R(/\bClaude Code\b(?! channels?\b)(?!'s own system prompt)(?!'s todo tool)/g, "Cursor", { md: true }),

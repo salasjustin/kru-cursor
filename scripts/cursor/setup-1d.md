@@ -1,5 +1,5 @@
 ### 1d. Grant what the team does on every run — *full run*
-<!-- hand-owned in kru-cursor (scripts/cursor/setup-1d.md): upstream's section is claude's settings grammar end to end -->
+<!-- hand-owned in kru-cursor (scripts/cursor/setup-1d.md): upstream's section is the non-Cursor settings grammar end to end -->
 Two sets of actions repeat in every project, and each prompts until something grants it — with no
 error and no log line, so the gap survives by being answered rather than noticed.
 
