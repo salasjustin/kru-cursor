@@ -39,7 +39,8 @@ Plugin Imports** on, and a marketplace install of the same name takes precedence
 ## Requirements
 - **`jq` and `bash`**, for the hooks. Without `jq` every hook fails open: the team still runs, ungated.
 - **Model access** to the ids the seats pin — Claude Opus, Sonnet and Haiku 5.5, Kimi K3, Grok 4.7 and
-  Composer 2.5 ([`MODELS.md`](MODELS.md), which also records each seat's fallback). A model your plan or
+  Composer 2.5 ([`MODELS.md`](MODELS.md), which also records each seat's fallback). The lead's default
+  is Claude Opus 5.5 (`claude-opus-5-5`). A model your plan or
   admin blocks falls back to a compatible one.
 - **The `chrome-devtools` MCP server**, for the visual and accessibility reviewers only; without it
   they audit from source. In `~/.cursor/mcp.json`:
@@ -82,6 +83,9 @@ the repo's dependencies. A repo that should carry the skills themselves, plugin 
 the installer in [Cloud agents](#cloud-agents).
 
 ## Cloud agents
+Start the agent on the lead default, `claude-opus-5-5` ([`MODELS.md`](MODELS.md)). The installer
+below copies skills and agents; it does not set the model.
+
 A Cursor cloud agent loads project skills from `<repo>/.claude/skills/<name>/SKILL.md`, including
 files git does not track. It does not load `<repo>/.cursor/skills` or `~/.cursor/skills`.
 `scripts/cloud-skills.sh` fills `.claude/skills` and `.claude/agents` from this repo and from

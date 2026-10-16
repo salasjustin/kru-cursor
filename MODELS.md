@@ -20,7 +20,7 @@ file is edited by hand. `node scripts/port.mjs --list-models --seats` prints the
 | `graphic-designer` | `composer-2.5[fast=false]` | `claude-sonnet-5-5` | the seat drives the asset generator, and the generation model makes the image; Composer 2.5 is the cheapest capable tool user ($0.50 / $2.50, *Cursor Models* pool). `[fast=false]` because bare `composer-2.5` selects the fast variant at $3 / $15 | [composer-2-5](https://cursor.com/docs/models/cursor-composer-2-5), [subagents → Model parameters](https://cursor.com/docs/subagents) |
 | `accessibility-reviewer`, `visual-reviewer` | `claude-sonnet-5-5` | `grok-4.7` | upstream's tier: restraint-heavy review. `visual-reviewer` stays off Kimi K3 — it judges screenshots, and Kimi K3's page doesn't claim vision beyond the generic "images for vision-capable models" line | [sonnet-5-5](https://cursor.com/docs/models/claude-sonnet-5-5) |
 | `dispatch-auditor` | `claude-haiku-5-5[effort=medium]` | `composer-2.5[fast=false]` | checklist seat that fires every turn: the cheapest model on the list ($0.10 / $0.50) | [haiku-5-5](https://cursor.com/docs/models/claude-haiku-5-5) |
-| the lead (`kru-lead` skill) | the conversation's model | — | main thread, not settable from a file | — |
+| the lead (`kru-lead` skill) | `claude-opus-5-5` | `gpt-5.6-sol` | the main thread. A skill has no `model` field ([skills](https://cursor.com/docs/skills)), so this is the default a kru session is started on — the cloud-agent default model, or `cursor-agent --model claude-opus-5-5` ([parameters](https://cursor.com/docs/cli/reference/parameters)). A session started on another model still runs the lead there. When Opus isn't served, start on the fallback, the same band as the other Opus seats. The fork edit on `ROSTER.md`'s lead row keeps this across an upstream sync; `SEAT_MODELS` does not list the lead, because there is no `agents/lead.md` | [opus-5-5](https://cursor.com/docs/models/claude-opus-5-5), [gpt-5-6-sol](https://cursor.com/docs/models/gpt-5-6-sol) |
 
 `svelte-ui-builder` stays on Opus: it is outside the four design seats the fork moved, and its
 loop runs on the Svelte MCP's autofixer, which the model doesn't change. Moving it is one line in
@@ -75,7 +75,9 @@ levels:
   for a *plugin's* agents drops `model` and `tools` (`fu(e, {stripModel: true, stripTools: true})`)
   and builds each with `model: "inherit"`, reading read-only from `permissionMode`. Project and user
   agents (`.cursor/agents/`, `~/.cursor/agents/`) keep their `model`. So in that CLI every kru seat
-  runs on the conversation's model; the pins apply where Cursor reads a plugin agent's `model`, which
+  runs on the conversation's model. Start that conversation on the lead default above
+  (`claude-opus-5-5`): those seats then follow it, and their `model:` lines stay as pinned for the
+  loader that honors them. The pins apply where Cursor reads a plugin agent's `model`, which
   is the documented behavior. The pins stay: they are right for the documented loader, and `inherit`
   is what the CLI substitutes anyway. Copying `agents/*.md` into a repo's `.cursor/agents/` forces
   them in that CLI, at the cost of a copy that drifts.

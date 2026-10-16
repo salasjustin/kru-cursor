@@ -961,6 +961,28 @@ EDITS.push(E(
   "tracker: the wayfinder map stays in the plan store",
 ))
 
+// --- lead model: the main thread's default is Claude Opus 5.5 -------
+// Justin's call. Cursor skills have no model field, so this is the id a kru
+// session is started on (MODELS.md). Other seats keep their own pins.
+EDITS.push(E(
+  "ROSTER.md",
+  "Pinning decouples them: the lead runs on any tier while specialists cost what their work requires.",
+  "Pinning decouples them: the lead's default is `claude-opus-5-5`, and specialists cost what their work requires.",
+  "lead model: the lead default is claude-opus-5-5",
+))
+EDITS.push(E(
+  "ROSTER.md",
+  "| `lead` skill (`/kru-lead`) | inherit (main thread) | routes/integrates/verifies on the session model. Not settable via frontmatter |",
+  "| `lead` skill (`/kru-lead`) | **`claude-opus-5-5`** (default) | routes/integrates/verifies on the main thread. A skill has no `model` field, so this is the model a kru session is started on (`MODELS.md`) |",
+  "lead model: the lead row names claude-opus-5-5",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "You run in the main thread — you are the orchestrator, not a subagent (subagents can't spawn subagents).",
+  "You run in the main thread — you are the orchestrator, not a subagent (subagents can't spawn subagents). The lead default is `claude-opus-5-5` (`MODELS.md`). A skill has no `model` field, so a session started on another model still runs you there.",
+  "lead model: the lead contract names claude-opus-5-5",
+))
+
 // --- brief drift: re-run reconciles tracker issues ----------------
 EDITS.push(E(
   "skills/kru-brief/SKILL.md",
