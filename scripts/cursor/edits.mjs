@@ -962,8 +962,8 @@ EDITS.push(E(
 ))
 
 // --- lead model: the main thread's default is Claude Opus 5.5 -------
-// Justin's call. Cursor skills have no model field, so this is the id a kru
-// session is started on (MODELS.md). Other seats keep their own pins.
+// Cursor skills have no model field, so this is the id a kru session is
+// started on (MODELS.md). Other seats keep their own pins.
 EDITS.push(E(
   "ROSTER.md",
   "Pinning decouples them: the lead runs on any tier while specialists cost what their work requires.",
