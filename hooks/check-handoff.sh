@@ -79,8 +79,8 @@ opencall=$(printf '%s' "$prompt" | tr '\n' ' ' | tr '.' '\n' | grep -viE '(^| )i
 
 # the two texts briefs re-type as paraphrase, which no shingle sees — lead scan 2
 # names these greps. the machine budget is what loads into every seat: root
-# AGENTS.md, a .cursor/rules file with alwaysApply: true (nested included), and
-# ~/.claude/CLAUDE.md when that file is still present.
+# AGENTS.md and a .cursor/rules file with alwaysApply: true (nested included).
+# ~/.claude/CLAUDE.md is the fallback only when the repo has neither.
 USER_CANON="$HOME/.claude/CLAUDE.md"
 budget_root="$cwd"
 d="$cwd"
@@ -94,26 +94,28 @@ rule_always() {
     fm == 1 && /^[[:space:]]*alwaysApply:[[:space:]]*true[[:space:]]*$/ { found = 1; exit }
     END { exit found ? 0 : 1 }' "$1"
 }
-budget_files=""
+budget_files=()
 if [ -n "$budget_root" ] && [ -f "$budget_root/AGENTS.md" ]; then
-  budget_files="$budget_root/AGENTS.md"
+  budget_files+=("$budget_root/AGENTS.md")
 fi
 if [ -n "$budget_root" ] && [ -d "$budget_root/.cursor/rules" ]; then
-  while IFS= read -r f; do
-    [ -n "$f" ] && rule_always "$f" && budget_files="${budget_files:+$budget_files }$f"
-  done < <(find "$budget_root/.cursor/rules" -type f -name '*.mdc')
+  while IFS= read -r -d '' f; do
+    [ -n "$f" ] && rule_always "$f" && budget_files+=("$f")
+  done < <(find "$budget_root/.cursor/rules" -type f -name '*.mdc' -print0)
 fi
-if [ -f "$USER_CANON" ]; then
-  budget_files="${budget_files:+$budget_files }$USER_CANON"
+# a home file beside a repo budget is a stale second copy — the 8 GB left in
+# ~/.claude/CLAUDE.md must not refuse a brief when AGENTS.md says 16 GB.
+if [ "${#budget_files[@]}" -eq 0 ] && [ -f "$USER_CANON" ]; then
+  budget_files+=("$USER_CANON")
 fi
-if [ -n "$budget_files" ]; then
+if [ "${#budget_files[@]}" -gt 0 ]; then
   # a brief naming some other limit — an R2 object cap, a container's memory
   # request, a machine that isn't this one — states a fact about the slice, so
   # the figure has to be one these files spend before it reads as re-typed, and
   # its sentence can't be about a deployed resource ("resize the Machine to 8 GB").
   DEPLOYED='\b(resize|scale|deploy(ed|s)?|provision(ed)?|instances?|vms?|containers?|pods?|fly|vercel|tier|region)\b'
   nfig() { tr '[:upper:]' '[:lower:]' | tr -d ' ' | sed 's/cores$/core/'; }
-  figs=$(for f in $budget_files; do [ -f "$f" ] && grep -oiE '\b[0-9]+ ?(gb|cores?)\b' "$f"; done | nfig | sort -u)
+  figs=$(for f in "${budget_files[@]}"; do [ -f "$f" ] && grep -oiE '\b[0-9]+ ?(gb|cores?)\b' "$f"; done | nfig | sort -u)
   budget=""
   # the reason quotes the brief's own spelling — the lead greps for the
   # sentence it names.

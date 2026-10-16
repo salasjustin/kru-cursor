@@ -125,6 +125,28 @@ budget_check() {
 budget_check refuse $ui "The box has 16 GB so be careful." "machine budget" "$budget_repo/pkg"
 budget_check refuse $ui "Stay under 32 GB." "machine budget"
 budget_check allow $ui "The laptop has 64 GB."
+# the home file is a fallback, not a second canon: its 8 GB must not refuse a
+# brief once the repo has an AGENTS.md or an alwaysApply rule.
+budget_check allow $ui "The box has 8 GB so be careful."
+rules_only=$sandbox/rules-only
+mkdir -p "$rules_only/.cursor/rules"
+git -C "$rules_only" init -q
+printf '%s\n' '---' 'alwaysApply: true' '---' 'One suite: 32 GB is the cap.' > "$rules_only/.cursor/rules/budget.mdc"
+budget_check allow $ui "The box has 8 GB so be careful." "" "$rules_only"
+budget_check refuse $ui "Stay under 32 GB." "machine budget" "$rules_only"
+bare=$sandbox/bare
+mkdir -p "$bare"
+git -C "$bare" init -q
+budget_check refuse $ui "The box has 8 GB so be careful." "machine budget" "$bare"
+# a space in the repo path, and in a rule's filename, still reaches the figure
+space_repo="$sandbox/budget box"
+mkdir -p "$space_repo/.cursor/rules"
+git -C "$space_repo" init -q
+printf '%s\n' 'The workstation has 24 GB.' > "$space_repo/AGENTS.md"
+printf '%s\n' '---' 'alwaysApply: true' '---' 'Cap the suite at 48 GB.' > "$space_repo/.cursor/rules/my budget.mdc"
+budget_check refuse $ui "The workstation has 24 GB." "machine budget" "$space_repo"
+budget_check refuse $ui "Cap the suite at 48 GB." "machine budget" "$space_repo"
+budget_check allow $ui "The box has 8 GB so be careful." "" "$space_repo"
 
 # coordinates and hedges
 check refuse $ui "Edit src/Form.tsx:42 to add the field." "coordinates"
