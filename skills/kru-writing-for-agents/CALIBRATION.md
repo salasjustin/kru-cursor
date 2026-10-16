@@ -12,13 +12,13 @@ So the first draft of any rule is its **goal**, and the rule survives only where
 
 ## One voice per topic, across layers
 
-A seat runs under a stack — the harness system prompt, `.cursor/rules` and `AGENTS.md`, this plugin's seat prompt and shared blocks, the skills it loads, the brief. Each layer can be right alone and contradict the next: _leave documentation as appropriate_ in one, _do not add comments_ in another. The model spends its judgment reconciling the authors instead of the task.
+A seat runs under a stack — the harness system prompt, User Rules, Team Rules, root `AGENTS.md`, and a `.cursor/rules` file with `alwaysApply: true`, this plugin's seat prompt and shared blocks, the skills it loads, the brief. Each layer can be right alone and contradict the next: _leave documentation as appropriate_ in one, _do not add comments_ in another. The model spends its judgment reconciling the authors instead of the task.
 
 Before a rule lands, read what the layers above already say on its topic. Agreement makes the new line a duplicate (*Pruning*); disagreement is a conflict to resolve at its source, never one to win by louder wording or a `⚠`.
 
 ## Interfaces over examples
 
-Examples narrow — the model copies their shape and stops exploring past it. A well-typed interface teaches the usage instead: a Cursor cloud agent's todo list is a short description, a `pending | in_progress | completed | cancelled` status, and one constraint (an update merges by id, so one task changes without rewriting the list).
+Examples narrow — the model copies their shape and stops exploring past it. A well-typed interface teaches the usage instead: a Cursor cloud agent's todo list is a short description and a `pending | in_progress | completed | cancelled` status. `merge: true` patches todos by id; `merge: false` replaces the list.
 
 Here the interface is a return contract, a frontmatter field, a ticket schema, a hook's checked line. Where a document reaches for a worked example to show a format, give the format a closed set of values and one stated constraint first; keep the example only if the shape still misreads without it.
 

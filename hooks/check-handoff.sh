@@ -2,8 +2,8 @@
 # pretooluse on the subagent-dispatch tool: the mechanized half of the lead
 # contract's handoff scan (lead SKILL.md step 3). refuses a team-seat dispatch
 # whose brief asserts a file:line coordinate, a verbatim run of an always-loaded
-# rule, a paraphrase of the user CLAUDE.md
-# machine budget or the comment standard, a request for the return-pass line,
+# rule, a paraphrase of the machine budget (root AGENTS.md, an alwaysApply
+# rule, or ~/.claude/CLAUDE.md as fallback) or the comment standard, a request for the return-pass line,
 # or a hedged term — or a planner brief
 # naming no brief.md, or a review brief naming no report path — and hands the
 # reason back so the lead re-anchors and dispatches again, logging the refusal
@@ -78,16 +78,42 @@ opencall=$(printf '%s' "$prompt" | tr '\n' ' ' | tr '.' '\n' | grep -viE '(^| )i
 [ -n "$opencall" ] && reasons="${reasons}open design call: \"${opencall}\" — resolve the decision, or make it an investigation naming what each answer resolves to (item 3, scan 3). "
 
 # the two texts briefs re-type as paraphrase, which no shingle sees — lead scan 2
-# names these greps.
+# names these greps. the machine budget is what loads into every seat: root
+# AGENTS.md, a .cursor/rules file with alwaysApply: true (nested included), and
+# ~/.claude/CLAUDE.md when that file is still present.
 USER_CANON="$HOME/.claude/CLAUDE.md"
+budget_root="$cwd"
+d="$cwd"
+while [ -n "$d" ] && [ "$d" != "/" ] && [ "$d" != "." ]; do
+  [ -e "$d/.git" ] && { budget_root="$d"; break; }
+  d=$(dirname "$d")
+done
+rule_always() {
+  awk 'BEGIN { fm = 0 }
+    /^---[[:space:]]*$/ { fm++; if (fm >= 2) exit; next }
+    fm == 1 && /^[[:space:]]*alwaysApply:[[:space:]]*true[[:space:]]*$/ { found = 1; exit }
+    END { exit found ? 0 : 1 }' "$1"
+}
+budget_files=""
+if [ -n "$budget_root" ] && [ -f "$budget_root/AGENTS.md" ]; then
+  budget_files="$budget_root/AGENTS.md"
+fi
+if [ -n "$budget_root" ] && [ -d "$budget_root/.cursor/rules" ]; then
+  while IFS= read -r f; do
+    [ -n "$f" ] && rule_always "$f" && budget_files="${budget_files:+$budget_files }$f"
+  done < <(find "$budget_root/.cursor/rules" -type f -name '*.mdc')
+fi
 if [ -f "$USER_CANON" ]; then
+  budget_files="${budget_files:+$budget_files }$USER_CANON"
+fi
+if [ -n "$budget_files" ]; then
   # a brief naming some other limit — an R2 object cap, a container's memory
   # request, a machine that isn't this one — states a fact about the slice, so
-  # the figure has to be one this file spends before it reads as re-typed, and
+  # the figure has to be one these files spend before it reads as re-typed, and
   # its sentence can't be about a deployed resource ("resize the Machine to 8 GB").
   DEPLOYED='\b(resize|scale|deploy(ed|s)?|provision(ed)?|instances?|vms?|containers?|pods?|fly|vercel|tier|region)\b'
   nfig() { tr '[:upper:]' '[:lower:]' | tr -d ' ' | sed 's/cores$/core/'; }
-  figs=$(grep -oiE '\b[0-9]+ ?(gb|cores?)\b' "$USER_CANON" | nfig | sort -u)
+  figs=$(for f in $budget_files; do [ -f "$f" ] && grep -oiE '\b[0-9]+ ?(gb|cores?)\b' "$f"; done | nfig | sort -u)
   budget=""
   # the reason quotes the brief's own spelling — the lead greps for the
   # sentence it names.
@@ -106,7 +132,7 @@ if [ -f "$USER_CANON" ]; then
     grep -oiE '[^.]*\b(one|a single)( [a-z-]+){1,3} at a time\b[^.]*' |
     grep -iE '\b(ram|memory|swap|cores?|cpu|machine|budget|background shells?|long-running|headless|chromium|vitest|playwright|tsc)\b' |
     grep -oiE '\b(one|a single)( [a-z-]+){1,3} at a time\b' | head -1)
-  [ -n "$budget" ] && reasons="${reasons}paraphrases the user CLAUDE.md machine budget: \"${budget}\" — that file loads into every seat on its own; cut that clause, keep any command the slice runs (scan 2). "
+  [ -n "$budget" ] && reasons="${reasons}paraphrases the machine budget: \"${budget}\" — root AGENTS.md and an alwaysApply rule load into every seat; ~/.claude/CLAUDE.md is only the fallback. Cut that clause, keep any command the slice runs (scan 2). "
 fi
 # Block I rules on comments as a class; a brief naming one comment — "a
 # lowercase doc comment on `ticker`", "the `SKIP_STATUSES` comment", "keep what

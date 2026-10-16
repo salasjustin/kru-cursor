@@ -259,8 +259,7 @@ user's, and setup's part ends at the filing. The report counts them in one claus
 Completion: every catalog row for this stack is wired or filed as a slice for its owner.
 
 ### 2. Read what the repo already says
-Open the repo's `AGENTS.md` and `.cursor/rules/*.mdc`, and any nested
-member `AGENTS.md`. That is the whole always-loaded surface, and reading it in one pass is the vantage
+Open root `AGENTS.md`, nested `AGENTS.md`, and `.cursor/rules/**/*.mdc`. Root `AGENTS.md` and a rule with `alwaysApply: true` load every session; a rule with globs or a description loads only when it matches ([rules](https://cursor.com/docs/rules)). User Rules and Team Rules are not files in the repo — Customize, and the team dashboard. That is the whole always-loaded surface, and reading it in one pass is the vantage
 step 3 works from.
 
 Completion: every always-loaded file in the repo is read.

@@ -163,7 +163,8 @@ const FORK_OWNED_DIRS = /^(scripts\/cursor\/|\.cursor-plugin\/|rules\/|commands\
 
 // files that talk about claude on purpose and get only the layout and name
 // rules: the official-source map's vendoring rows, the claude release ledger the
-// update skill keeps, eval-review (it audits a claude plugin eval suite).
+// update skill keeps, eval-review (grades an upstream suite already in the tree;
+// layout rules, plus fork edits that drop the default evals/ directory).
 const PATHS_ONLY = /^(skills\/kru-update\/(claude|reviewed)\.md|skills\/kru-eval-review\/SKILL\.md)$/
 
 // ---------------------------------------------------------------------------
@@ -445,7 +446,8 @@ const RULES = [
   // the instruction files: cursor reads AGENTS.md and .cursor/rules/*.mdc.
   // ~/.claude/CLAUDE.md is shielded from the CLAUDE.md → AGENTS.md rewrite, then
   // restored, so a fork edit can point skill prose at .cursor/rules and AGENTS.md.
-  // the handoff gate still reads the home file when it exists (check-handoff.sh).
+  // the handoff gate reads root AGENTS.md and alwaysApply rules, and the home
+  // file only as a fallback (check-handoff.sh).
   R(/(~|\$HOME)\/\.claude\/CLAUDE\.md/g, "{USER_RULES}$1", { md: true }),
   R(/(^|[\s`('"(\/])\.claude\/CLAUDE\.md/gm, "$1AGENTS.md", { md: true }),
   R(/\bCLAUDE\.md\b/g, "AGENTS.md", { md: true }),
@@ -455,7 +457,9 @@ const RULES = [
   R(/`\.claude\/rules\/`/g, "`.cursor/rules/`", { md: true }),
   // `.claude/rules/*` is not the backtick-closed form above; setup's read-the-repo
   // line is this shape. *.mdc is what Cursor loads (cursor.com/docs/rules).
-  R(/\.claude\/rules\/\*/g, ".cursor/rules/*.mdc", { md: true, files: /^skills\/kru-setup\/SKILL\.md$/, required: /\.cursor\/rules\/\*\.mdc/ }),
+  // the fork edit then writes **/*.mdc; required accepts both so a second port
+  // still sees the rule's output.
+  R(/\.claude\/rules\/\*/g, ".cursor/rules/*.mdc", { md: true, files: /^skills\/kru-setup\/SKILL\.md$/, required: /\.cursor\/rules\/(?:\*\*\/)?\*\.mdc/ }),
   R(/\.claude\/skills\//g, ".cursor/skills/", { md: true }),
   R(/\.claude\/agents\//g, ".cursor/agents/", { md: true }),
   // the tools: cursor's subagent tool is Task, its shell tool Shell, and it has

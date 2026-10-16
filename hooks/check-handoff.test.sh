@@ -95,6 +95,37 @@ check allow $ui "The R2 object cap is 5 GB."
 # a figure about the deployed resource is slice content, not the dev machine
 check allow kru-fly-platform-engineer "Resize the Machine to 8 GB in fly.toml."
 
+# root AGENTS.md and an alwaysApply rule are budget canon; a rule without it is not.
+# the legacy home file stays the fallback (the cases above). cwd is the repo, not /x.
+budget_repo=$sandbox/budget
+mkdir -p "$budget_repo/.cursor/rules/nested" "$budget_repo/pkg"
+git -C "$budget_repo" init -q
+printf '%s\n' 'The dev box has 16 GB.' > "$budget_repo/AGENTS.md"
+printf '%s\n' '---' 'alwaysApply: true' '---' 'One suite: 32 GB is the cap.' > "$budget_repo/.cursor/rules/nested/budget.mdc"
+printf '%s\n' '---' 'alwaysApply: false' '---' 'The laptop has 64 GB.' > "$budget_repo/.cursor/rules/optional.mdc"
+budget_check() {
+  local expect=$1 seat=$2 prompt=$3 needle=${4:-} cwd=${5:-$budget_repo}
+  local input out code
+  input=$(jq -nc --arg s "$seat" --arg p "$prompt inbox.md" --arg c "$cwd" \
+    '{session_id:"test", cwd:$c, tool_input:{subagent_type:$s, prompt:$p, description:"t"}}')
+  out=$(cd "$sandbox/cwd" && printf '%s' "$input" | env -u KRU_HOME -u KRU_PROJECT_STORE -u KRU_STORE_URL -u KRU_NO_GATE -u CURSOR_PLUGIN_ROOT HOME="$sandbox/home" bash "$hook" "$root" 2>&1)
+  code=$?
+  local ok=true
+  if [ "$expect" = refuse ]; then
+    [ "$code" -eq 2 ] || ok=false
+    [ -n "$needle" ] && ! printf '%s' "$out" | grep -qF "$needle" && ok=false
+  else
+    [ "$code" -eq 0 ] || ok=false
+  fi
+  if $ok; then pass=$((pass + 1)); else
+    fail=$((fail + 1))
+    printf 'FAIL (%s, exit %s): %s\n  %s\n' "$expect" "$code" "$prompt" "$out"
+  fi
+}
+budget_check refuse $ui "The box has 16 GB so be careful." "machine budget" "$budget_repo/pkg"
+budget_check refuse $ui "Stay under 32 GB." "machine budget"
+budget_check allow $ui "The laptop has 64 GB."
+
 # coordinates and hedges
 check refuse $ui "Edit src/Form.tsx:42 to add the field." "coordinates"
 check refuse $ui "The cursor math in \`donor.ts ~:54-59\` drops the last page." "coordinates"
