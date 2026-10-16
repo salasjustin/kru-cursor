@@ -82,40 +82,54 @@ opencall=$(printf '%s' "$prompt" | tr '\n' ' ' | tr '.' '\n' | grep -viE '(^| )i
 # AGENTS.md and a .cursor/rules file with alwaysApply: true (nested included).
 # ~/.claude/CLAUDE.md is the fallback only when the repo has neither.
 USER_CANON="$HOME/.claude/CLAUDE.md"
-budget_root="$cwd"
-d="$cwd"
-while [ -n "$d" ] && [ "$d" != "/" ] && [ "$d" != "." ]; do
-  [ -e "$d/.git" ] && { budget_root="$d"; break; }
-  d=$(dirname "$d")
-done
 rule_always() {
   awk 'BEGIN { fm = 0 }
     /^---[[:space:]]*$/ { fm++; if (fm >= 2) exit; next }
     fm == 1 && /^[[:space:]]*alwaysApply:[[:space:]]*true[[:space:]]*$/ { found = 1; exit }
     END { exit found ? 0 : 1 }' "$1"
 }
-budget_files=()
-if [ -n "$budget_root" ] && [ -f "$budget_root/AGENTS.md" ]; then
-  budget_files+=("$budget_root/AGENTS.md")
-fi
-if [ -n "$budget_root" ] && [ -d "$budget_root/.cursor/rules" ]; then
-  while IFS= read -r -d '' f; do
-    [ -n "$f" ] && rule_always "$f" && budget_files+=("$f")
-  done < <(find "$budget_root/.cursor/rules" -type f -name '*.mdc' -print0)
-fi
-# a home file beside a repo budget is a stale second copy — the 8 GB left in
-# ~/.claude/CLAUDE.md must not refuse a brief when AGENTS.md says 16 GB.
-if [ "${#budget_files[@]}" -eq 0 ] && [ -f "$USER_CANON" ]; then
-  budget_files+=("$USER_CANON")
-fi
-if [ "${#budget_files[@]}" -gt 0 ]; then
+# one source set for the budget paraphrase and the verbatim shingle. walks to
+# the git root: root AGENTS.md, then every .cursor/rules file with
+# alwaysApply: true, nested included. a top-level .cursor/rules/*.mdc glob is
+# not this set — it skips nested rules and ignores alwaysApply.
+# ~/.claude/CLAUDE.md is the only entry when that set is empty — a stale 8 GB
+# must not refuse a brief the repo's own file already contradicts.
+always_loaded() { # start dir → NUL-delimited paths
+  local start=$1 root d f any=false
+  root=$start
+  d=$start
+  while [ -n "$d" ] && [ "$d" != "/" ] && [ "$d" != "." ]; do
+    [ -e "$d/.git" ] && { root=$d; break; }
+    d=$(dirname "$d")
+  done
+  if [ -n "$root" ] && [ -f "$root/AGENTS.md" ]; then
+    printf '%s\0' "$root/AGENTS.md"
+    any=true
+  fi
+  if [ -n "$root" ] && [ -d "$root/.cursor/rules" ]; then
+    while IFS= read -r -d '' f; do
+      if [ -n "$f" ] && rule_always "$f"; then
+        printf '%s\0' "$f"
+        any=true
+      fi
+    done < <(find "$root/.cursor/rules" -type f -name '*.mdc' -print0)
+  fi
+  if ! $any && [ -f "$USER_CANON" ]; then
+    printf '%s\0' "$USER_CANON"
+  fi
+}
+always_files=()
+while IFS= read -r -d '' f; do
+  [ -n "$f" ] && always_files+=("$f")
+done < <(always_loaded "$cwd")
+if [ "${#always_files[@]}" -gt 0 ]; then
   # a brief naming some other limit — an R2 object cap, a container's memory
   # request, a machine that isn't this one — states a fact about the slice, so
   # the figure has to be one these files spend before it reads as re-typed, and
   # its sentence can't be about a deployed resource ("resize the Machine to 8 GB").
   DEPLOYED='\b(resize|scale|deploy(ed|s)?|provision(ed)?|instances?|vms?|containers?|pods?|fly|vercel|tier|region)\b'
   nfig() { tr '[:upper:]' '[:lower:]' | tr -d ' ' | sed 's/cores$/core/'; }
-  figs=$(for f in "${budget_files[@]}"; do [ -f "$f" ] && grep -oiE '\b[0-9]+ ?(gb|cores?)\b' "$f"; done | nfig | sort -u)
+  figs=$(for f in "${always_files[@]}"; do [ -f "$f" ] && grep -oiE '\b[0-9]+ ?(gb|cores?)\b' "$f"; done | nfig | sort -u)
   budget=""
   # the reason quotes the brief's own spelling — the lead greps for the
   # sentence it names.
@@ -197,33 +211,41 @@ esac
 # one: a run of SHINGLE words from the brief found unchanged in a canonical
 # text. paraphrase stays a reading check; a shorter run would misfire on
 # ordinary phrasing, so the length is the fail-open margin. rule files are
-# terse, so the run shortens with them: six words from the repo's own
-# CLAUDE.md or rules, five from the user's, where the machine budget is the
-# text briefs re-type most.
+# terse, so the run shortens with them: six words from root AGENTS.md or an
+# alwaysApply rule, five from ~/.claude/CLAUDE.md when it is the fallback,
+# where the machine budget is the text briefs re-type most.
 SHINGLE=8
 SHINGLE_REPO=6
 SHINGLE_USER=5
-canon=""
-repo_canon=""
-for f in "$cwd/CLAUDE.md" "$cwd/AGENTS.md" "$cwd"/.cursor/rules/*.mdc; do
-  [ -f "$f" ] && canon="$canon $f" && repo_canon="$repo_canon $f"
-done
-for f in "$USER_CANON" "$plugin_root/skills/kru-roster/shared-blocks.md"; do
-  [ -f "$f" ] && canon="$canon $f"
-done
+# always_files is the budget's source set (always_loaded, above). a home file
+# in it is the fallback, so it keeps the shorter run; repo files keep six.
+canon_files=()
+repo_files=()
+if [ "${#always_files[@]}" -gt 0 ]; then
+  for f in "${always_files[@]}"; do
+    canon_files+=("$f")
+    [ "$f" = "$USER_CANON" ] || repo_files+=("$f")
+  done
+fi
+sb="$plugin_root/skills/kru-roster/shared-blocks.md"
+[ -f "$sb" ] && canon_files+=("$sb")
 # the plan store's contract is the file a planner brief re-types (lead step 2.6)
-[ "$seat" = "planner" ] && [ -f "$plugin_root/TRACKER.md" ] && canon="$canon $plugin_root/TRACKER.md"
+[ "$seat" = "planner" ] && [ -f "$plugin_root/TRACKER.md" ] && canon_files+=("$plugin_root/TRACKER.md")
 # a file the brief names is only shadow canon: the seat doesn't load it on its
 # own, and a passage the slice edits or the invariant it codes against is quoted
 # from exactly that file — slice content, not a second source. resolved under
 # cwd, capped so a brief listing a tree doesn't turn the check into a
 # full-corpus read.
-named=""
+named_files=()
 if [ -n "$cwd" ]; then
   for rel in $(printf '%s' "$prompt" | grep -oE '[A-Za-z0-9_./-]+\.md\b' | sed 's#^\./##' | sort -u | head -10); do
     f="$cwd/$rel"
-    case " $canon $named " in *" $f "*) continue ;; esac
-    [ -f "$f" ] && named="$named $f"
+    skip=false
+    for x in "${canon_files[@]}" "${named_files[@]}"; do
+      [ "$x" = "$f" ] && { skip=true; break; }
+    done
+    $skip && continue
+    [ -f "$f" ] && named_files+=("$f")
   done
 fi
 # a path and a backticked identifier are the pointer scan 2 asks for in place
@@ -236,24 +258,30 @@ point() { sed -E -e "s/\`[^\`]*\`/${BARRIER}/g" \
   -e "s#[A-Za-z0-9_@~.-]*/[A-Za-z0-9_@~./-]*#${BARRIER}#g" \
   -e "s/[A-Za-z0-9_-]+\.(tsx?|jsx?|mjs|cjs|svelte|vue|astro|md|go|py|rs|css|scss|json|sql|html|ya?ml|toml|sh)/${BARRIER}/g"; }
 norm() { tr '[:upper:]' '[:lower:]' | tr -c '[:alnum:]\n' ' ' | tr -s ' \n' ' '; }
-shingle() { # files → "file<TAB>run" of the first verbatim hit
-  printf '%s' "$prompt" | point | norm | awk -v n="$SHINGLE" -v nr="$SHINGLE_REPO" -v ns="$SHINGLE_USER" -v short="$USER_CANON" -v repo=" $repo_canon " -v files="$1" '
+shingle() { # paths… → "file<TAB>run" of the first verbatim hit
+  local files_us repo_us
+  files_us=$(printf '%s\036' "$@")
+  repo_us=""
+  [ "${#repo_files[@]}" -gt 0 ] && repo_us=$(printf '%s\036' "${repo_files[@]}")
+  printf '%s' "$prompt" | point | norm | awk -v n="$SHINGLE" -v nr="$SHINGLE_REPO" -v ns="$SHINGLE_USER" -v short="$USER_CANON" -v repo="$repo_us" -v files="$files_us" '
     BEGIN {
-      split(files, fs, " ")
-      for (i in fs) { f = fs[i]; if (f == "") continue
+      nf = split(files, fs, "\036")
+      nrp = split(repo, rs, "\036")
+      for (i = 1; i <= nrp; i++) if (rs[i] != "") isrepo[rs[i]] = 1
+      for (i = 1; i <= nf; i++) { f = fs[i]; if (f == "") continue
         text = ""
         while ((getline line < f) > 0) text = text " " tolower(line)
         close(f)
         gsub(/[^[:alnum:]]+/, " ", text)
         corpus[f] = text }
     }
-    { for (f in corpus) { m = (f == short) ? ns : (index(repo, " " f " ") ? nr : n)
+    { for (f in corpus) { m = (f == short) ? ns : (f in isrepo ? nr : n)
         for (i = 1; i + m - 1 <= NF; i++) {
           s = $i; for (j = 1; j < m; j++) s = s " " $(i + j)
           if (index(corpus[f], " " s " ")) { print f "\t" s; exit } } } }'
 }
-if [ -n "$canon" ]; then
-  hit=$(shingle "$canon")
+if [ "${#canon_files[@]}" -gt 0 ]; then
+  hit=$(shingle "${canon_files[@]}")
   [ -n "$hit" ] && reasons="${reasons}restates a file verbatim: \"${hit#*	}\" is in ${hit%%	*} — point at the file instead (scan 2). "
 fi
 
@@ -266,8 +294,8 @@ fi
 shadow=""
 # the named-file shingle: a brief quoting a file it names is usually the passage
 # under edit, so a hit is shadow only until its rate against real paraphrase is proven.
-if [ -n "$named" ]; then
-  nhit=$(shingle "$named")
+if [ "${#named_files[@]}" -gt 0 ]; then
+  nhit=$(shingle "${named_files[@]}")
   [ -n "$nhit" ] && shadow="${shadow}quotes a named file: \"${nhit#*	}\" is in ${nhit%%	*} — fine for a passage the slice edits or its invariant; a rule the seat already loads is a pointer (scan 2). "
 fi
 # a version pin re-typed beside the sheet line that carries it is a second

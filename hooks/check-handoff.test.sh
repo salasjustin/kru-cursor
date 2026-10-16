@@ -148,6 +148,34 @@ budget_check refuse $ui "The workstation has 24 GB." "machine budget" "$space_re
 budget_check refuse $ui "Cap the suite at 48 GB." "machine budget" "$space_repo"
 budget_check allow $ui "The box has 8 GB so be careful." "" "$space_repo"
 
+# verbatim shingle uses the same always-loaded set as the budget: a rule
+# without alwaysApply is not canon, a nested alwaysApply rule is, and
+# ~/.claude/CLAUDE.md is scanned only when the repo has neither.
+printf '%s\n' 'Purple kettles never boil on tuesdays in the annex.' >> "$sandbox/home/.claude/CLAUDE.md"
+shingle_repo=$sandbox/shingle
+mkdir -p "$shingle_repo/.cursor/rules/nested" "$shingle_repo/pkg"
+git -C "$shingle_repo" init -q
+printf '%s\n' 'Root agents prose stays the shingle canon for this repo.' > "$shingle_repo/AGENTS.md"
+printf '%s\n' '---' 'alwaysApply: true' '---' 'Nested amber rule text loads with every session.' > "$shingle_repo/.cursor/rules/nested/amber.mdc"
+printf '%s\n' '---' 'alwaysApply: false' '---' 'Optional crimson rule text stays out of the brief scan.' > "$shingle_repo/.cursor/rules/optional.mdc"
+printf '%s\n' 'Root claude file text must not count as shingle canon.' > "$shingle_repo/CLAUDE.md"
+budget_check refuse $ui "Root agents prose stays the shingle canon for this repo." "AGENTS.md" "$shingle_repo/pkg"
+budget_check refuse $ui "Nested amber rule text loads with every session." "nested/amber.mdc" "$shingle_repo"
+budget_check allow $ui "Optional crimson rule text stays out of the brief scan." "" "$shingle_repo"
+budget_check allow $ui "Root claude file text must not count as shingle canon." "" "$shingle_repo"
+budget_check allow $ui "Purple kettles never boil on tuesdays in the annex." "" "$shingle_repo"
+# a non-alwaysApply rule is not primary, so the home file is the fallback
+shingle_optional=$sandbox/shingle-optional
+mkdir -p "$shingle_optional/.cursor/rules"
+git -C "$shingle_optional" init -q
+printf '%s\n' '---' 'alwaysApply: false' '---' 'Optional crimson rule text stays out of the brief scan.' > "$shingle_optional/.cursor/rules/optional.mdc"
+budget_check allow $ui "Optional crimson rule text stays out of the brief scan." "" "$shingle_optional"
+budget_check refuse $ui "Purple kettles never boil on tuesdays in the annex." ".claude/CLAUDE.md" "$shingle_optional"
+shingle_bare=$sandbox/shingle-bare
+mkdir -p "$shingle_bare"
+git -C "$shingle_bare" init -q
+budget_check refuse $ui "Purple kettles never boil on tuesdays in the annex." ".claude/CLAUDE.md" "$shingle_bare"
+
 # coordinates and hedges
 check refuse $ui "Edit src/Form.tsx:42 to add the field." "coordinates"
 check refuse $ui "The cursor math in \`donor.ts ~:54-59\` drops the last page." "coordinates"
