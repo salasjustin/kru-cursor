@@ -1050,7 +1050,7 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "every rule an always-loaded AGENTS.md carries — the working repo's, or the user's own `~/.claude/CLAUDE.md`: its machine budget, its comment standard, its dependency policy, whatever it states). Point at it or say nothing — and an AGENTS.md section, repo or user, loads into every seat on its own",
+  "every rule an always-loaded AGENTS.md carries — the working repo's, or the user's own `~/.claude/CLAUDE.md`: its machine budget, its comment standard, its dependency policy, whatever it states). Point at it or say nothing — and an AGENTS.md section, repo or user, loads into every seat on its own, so there saying nothing is the whole move",
   "every rule root `AGENTS.md` or a `.cursor/rules` file with `alwaysApply: true` carries: its machine budget, its comment standard, its dependency policy, whatever it states). Point at it or say nothing — those load into every seat on their own ([rules](https://cursor.com/docs/rules)), so there saying nothing is the whole move. Any other rule does not, and the brief carries the constraint",
   "cursor: ambient rules are .cursor/rules and AGENTS.md",
 ))
