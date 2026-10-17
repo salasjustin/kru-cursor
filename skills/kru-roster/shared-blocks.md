@@ -171,7 +171,7 @@ And it does not stretch: **where the eye can't tell, there is no exemption.** Th
 
 ## Block S — `## Test credentials`
 
-Required on the same seats as Block D (21 behavior seats) plus `test-writer` — anyone who runs or writes tests that may touch secrets or a database. Sits **immediately after** Block D in each seat.
+Required on the same seats as Block D (21 behavior seats) plus `test-writer` — anyone who runs or writes tests that may touch secrets or a database. Sits **immediately after** Block D in each behavior seat, or **immediately after** `## The craft (shared skill)` in `test-writer` — matching `scripts/port.mjs` injection.
 
 ```
 ## Test credentials

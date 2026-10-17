@@ -772,7 +772,6 @@ const skillDirs = () => {
 const seatNames = () => readdirSync(join(ROOT, "agents")).filter((f) => f.endsWith(".md")).map((f) => basename(f, ".md"))
 
 // --- step 2: agents ---------------------------------------------------------------
-// returns the seats hooks/seat-guard.sh refuses the Write and Delete tools
 const TEST_CREDENTIALS_BLOCK = `## Test credentials
 Before the first test run in a slice that needs secrets or a database, read \`\${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md\` and follow it — the lead runs the same guards before a scoped test-count check or a \`kru-test-writer\` dispatch.
 `
@@ -797,6 +796,7 @@ function injectTestCredentialsBlock(body, seat) {
   return `${body.slice(0, insertAt)}${injection}${body.slice(insertAt)}`
 }
 
+// returns the seats hooks/seat-guard.sh refuses the Write and Delete tools
 function portAgents() {
   const noEdit = []
   for (const seat of seatNames()) {
