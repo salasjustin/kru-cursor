@@ -163,6 +163,7 @@ const FORK_OWNED = new Set([
   "scripts/cursor/mcp-outbound-classify.mjs",
   "scripts/cursor/hooks.repo.mcp-guard.json",
   ".cursor/hooks.json",
+  ".cursor/hooks/hook-trace.sh",
   "skills/kru-design/SKILL.md",
 ])
 const FORK_OWNED_DIRS = /^(scripts\/cursor\/|\.cursor-plugin\/|rules\/|commands\/|\.github\/)/

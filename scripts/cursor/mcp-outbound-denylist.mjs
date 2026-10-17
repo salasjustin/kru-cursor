@@ -16,11 +16,19 @@ export function extractMcpToolId(payload) {
     if (!input || typeof input !== "object") return null
     const ns = input.namespace
     const tool = input.toolName
+    if (typeof ns === "string" && ns.toLowerCase() === "cursor") return null
     if (typeof ns === "string" && typeof tool === "string" && ns && tool) {
       const id = `${ns}/${tool}`
       return { id: id.toLowerCase(), stem: tool.toLowerCase() }
     }
     return null
+  }
+  if (payload.mcp_server_name && payload.tool_name && !/^MCP:/i.test(raw)) {
+    const server = String(payload.mcp_server_name)
+    if (server.toLowerCase() === "cursor") return null
+    const tool = String(payload.tool_name)
+    const id = `${server}/${tool}`
+    return { id: id.toLowerCase(), stem: tool.toLowerCase() }
   }
   if (/^MCP:/i.test(raw)) {
     const rest = raw.replace(/^MCP:/i, "")
@@ -34,7 +42,12 @@ export function extractMcpToolId(payload) {
 // --- allow (checked before deny) -------------------------------------------------
 
 /** Exact stems always allowed (drafts). */
-export const ALLOW_STEMS = new Set(["create_draft", "update_draft", "slack_send_message_draft"])
+export const ALLOW_STEMS = new Set([
+  "create_draft",
+  "update_draft",
+  "slack_send_message_draft",
+  "save_issue",
+])
 
 /** Stem prefixes for read-only connector tools. */
 export const ALLOW_STEM_PREFIXES = ["get_", "list_", "search_", "read_", "query_", "find_", "fetch_"]
@@ -75,7 +88,8 @@ export const DENY_RULES = [
   },
   {
     label: "Linear / tracker writes (save_*, submit_*)",
-    test: (s) => /(?:^|[_:/-])(save|submit)(?:_|$)/.test(s) && !/^prepare_/.test(s),
+    test: (s) =>
+      /(?:^|[_:/-])(save|submit)(?:_|$)/.test(s) && !/^prepare_/.test(s) && s !== "save_issue",
   },
   {
     label: "Google Docs mutations",

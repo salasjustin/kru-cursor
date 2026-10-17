@@ -46,7 +46,8 @@ run 0 "Slack send draft" "$(payload_mcp 'MCP:Slack:slack_send_message_draft')"
 # denies — destructive / outbound
 run 2 "Linear delete_comment" "$(payload_dyn Linear delete_comment)"
 run 2 "Linear save_comment" "$(payload_dyn Linear save_comment)"
-run 2 "Linear save_issue" "$(payload_dyn Linear save_issue)"
+run 0 "Linear save_issue" "$(payload_dyn Linear save_issue)"
+run 0 "cursor namespace CallDynamicTool" "$(payload_dyn cursor Delete)"
 run 2 "Gmail send_message" "$(payload_mcp 'MCP:Gmail:send_message')"
 run 2 "Gmail delete_draft" "$(payload_mcp 'MCP:Gmail:delete_draft')"
 run 2 "Slack slack_send_message" "$(payload_mcp 'MCP:Slack:slack_send_message')"
@@ -56,6 +57,7 @@ run 2 "Google Docs insert_text" "$(payload_mcp 'MCP:Google-docs:insert_text')"
 run 2 "GitHub create_pr" "$(payload_mcp 'MCP:GitHub:create_pr')"
 run 2 "GitHub post_comment" "$(payload_mcp 'MCP:GitHub:post_comment')"
 run 2 "legacy MCP deploy" "$(payload_mcp 'MCP:deploy')"
+run 2 "beforeMCPExecution delete_comment" "$(jq -nc '{tool_name:"delete_comment",mcp_server_name:"Linear",hook_event_name:"beforeMCPExecution"}')"
 
 # module-level stem checks
 (cd "$root" && node --input-type=module -e "
@@ -71,6 +73,24 @@ process.exit(bad);
 ") && pass=$((pass + 1)) || { fail=$((fail + 1)); echo "FAIL: classifyMcpTool direct checks"; }
 
 KRU_NO_MCP_OUTBOUND_GUARD=1 run 0 "kill switch" "$(payload_dyn Linear delete_comment)"
+
+# project-hook path: must emit cursor permission JSON (not only exit codes)
+resp=$(printf '%s' "$(payload_dyn Linear list_teams)" | bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null)
+if printf '%s' "$resp" | jq -e '.permission == "allow"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: guard project allow JSON"; echo "  resp: $resp"
+fi
+resp=$(printf '%s' "$(payload_dyn Linear delete_comment)" | bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "deny"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: guard project deny JSON"; echo "  resp: $resp"
+fi
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpdir"' EXIT
+resp=$(printf '%s' "$(payload_dyn Linear delete_comment)" | bash "$here/mcp-outbound-guard.sh" "$tmpdir" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "deny" and (.agent_message | test("misconfigured"))' >/dev/null 2>&1; then
+  pass=$((pass + 1))
+else
+  fail=$((fail + 1)); echo "FAIL: missing classifier should fail closed for MCP"; echo "  resp: $resp"
+fi
 
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

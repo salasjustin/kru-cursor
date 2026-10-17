@@ -222,7 +222,7 @@ fire preToolUse "$(tool sa-plan Shell '{"command":"mkdir -p /tmp/x"}' '{"parent_
 check "seat-guard: planner keeps the shell" has '.permission == "allow"'
 fire preToolUse "$(tool sa-plan WriteShellStdin '{"shellId":"s1","chars":"y"}' '{"parent_tool_call_id":"tc-plan"}')"
 check "seat-guard: WriteShellStdin is not the Write tool" has '.permission == "allow"'
-check "every tool matcher is anchored (or *)" jq -e '[.hooks[][] | select(has("matcher")) | .matcher | . == "*" or . == "^MCP:.*$" or test("^\\^([A-Za-z][A-Za-z0-9:_-]*|\\([A-Za-z][A-Za-z0-9:_-]*(\\|[A-Za-z][A-Za-z0-9:_-]*)*\\))\\$$")] | all' "$hooks_json"
+check "every tool matcher is anchored (or *)" jq -e '[.hooks[][] | select(has("matcher")) | .matcher | . == "*" or . == "^MCP:.*$" or . == "^(CallDynamicTool|MCP:.*)$" or test("^\\^([A-Za-z][A-Za-z0-9:_-]*|\\([A-Za-z][A-Za-z0-9:_-]*(\\|[A-Za-z][A-Za-z0-9:_-]*)*\\))\\$$")] | all' "$hooks_json"
 # verify-tree's anchoring check: a name list is exact only as ^Name$ or
 # ^(A|B)$, and a matcher that doesn't compile matches every tool in cursor
 for m in '*' '^Task$' '^(Shell|Write|Delete)$' '^MCP:acme$'; do

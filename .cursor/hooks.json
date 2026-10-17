@@ -3,14 +3,26 @@
   "hooks": {
     "preToolUse": [
       {
-        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/mcp-outbound-guard.sh\" \"${CURSOR_PLUGIN_ROOT}\"",
-        "matcher": "^CallDynamicTool$",
-        "timeout": 10,
-        "failClosed": true
+        "command": "bash .cursor/hooks/hook-trace.sh preToolUse",
+        "matcher": "*",
+        "timeout": 5
       },
       {
-        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/mcp-outbound-guard.sh\" \"${CURSOR_PLUGIN_ROOT}\"",
-        "matcher": "^MCP:.*$",
+        "command": "bash hooks/mcp-outbound-guard.sh",
+        "matcher": "^(CallDynamicTool|MCP:.*)$",
+        "timeout": 10,
+        "failClosed": true
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": "bash .cursor/hooks/hook-trace.sh beforeMCPExecution",
+        "matcher": "*",
+        "timeout": 5
+      },
+      {
+        "command": "bash hooks/mcp-outbound-guard.sh",
+        "matcher": "*",
         "timeout": 10,
         "failClosed": true
       }
