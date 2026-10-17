@@ -157,6 +157,12 @@ const FORK_OWNED = new Set([
   "hooks/seat-guard.sh",
   "hooks/first-turn.sh",
   "hooks/cursor-state.sh",
+  "hooks/mcp-outbound-guard.sh",
+  "hooks/mcp-outbound-guard.test.sh",
+  "scripts/cursor/mcp-outbound-denylist.mjs",
+  "scripts/cursor/mcp-outbound-classify.mjs",
+  "scripts/cursor/hooks.repo.mcp-guard.json",
+  ".cursor/hooks.json",
   "skills/kru-design/SKILL.md",
 ])
 const FORK_OWNED_DIRS = /^(scripts\/cursor\/|\.cursor-plugin\/|rules\/|commands\/|\.github\/)/
@@ -1177,6 +1183,11 @@ function portHooks(noEdit) {
         h("preToolUse", "check-handoff.sh", { matcher: "^Task$", timeout: 10 }),
         h("preToolUse", "brainstorm-guard.sh", { matcher: "^(Shell|Write|Delete)$", timeout: 10 }),
         h("preToolUse", "seat-guard.sh", { matcher: "^(Write|Delete)$", timeout: 10 }, noEdit),
+        // cloud agents skip plugin hooks; product repos wire the same script from
+        // .cursor/hooks.json (scripts/cursor/hooks.repo.mcp-guard.json). local runs
+        // get the guard here too.
+        h("preToolUse", "mcp-outbound-guard.sh", { matcher: "^CallDynamicTool$", timeout: 10 }),
+        h("preToolUse", "mcp-outbound-guard.sh", { matcher: "^MCP:.*$", timeout: 10 }),
       ],
       subagentStart: [h("subagentStart", "seat-guard.sh", { timeout: 10 }, noEdit)],
       postToolUse: [h("postToolUse", "log-dispatch.sh", { matcher: "^Task$", timeout: 10 })],

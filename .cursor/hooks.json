@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/mcp-outbound-guard.sh\" \"${CURSOR_PLUGIN_ROOT}\"",
+        "matcher": "^CallDynamicTool$",
+        "timeout": 10,
+        "failClosed": true
+      },
+      {
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/mcp-outbound-guard.sh\" \"${CURSOR_PLUGIN_ROOT}\"",
+        "matcher": "^MCP:.*$",
+        "timeout": 10,
+        "failClosed": true
+      }
+    ]
+  }
+}

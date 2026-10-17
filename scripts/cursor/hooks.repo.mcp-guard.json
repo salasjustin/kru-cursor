@@ -1,0 +1,17 @@
+{
+  "_comment": "Merge the preToolUse entries below into the repo's .cursor/hooks.json. Cloud agents load project hooks only (not the plugin's hooks/hooks.json). /kru-setup step 1d installs this block.",
+  "preToolUse": [
+    {
+      "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/mcp-outbound-guard.sh\" \"${CURSOR_PLUGIN_ROOT}\"",
+      "matcher": "^CallDynamicTool$",
+      "timeout": 10,
+      "failClosed": true
+    },
+    {
+      "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/mcp-outbound-guard.sh\" \"${CURSOR_PLUGIN_ROOT}\"",
+      "matcher": "^MCP:.*$",
+      "timeout": 10,
+      "failClosed": true
+    }
+  ]
+}

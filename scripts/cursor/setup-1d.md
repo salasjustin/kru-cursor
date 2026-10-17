@@ -77,6 +77,13 @@ it — an `AGENTS.md` line would be the cache bar 3 rejects.
 own before a commit, so nothing is written for it: the lead runs the line before each commit it
 makes, and a repo that wants it unconditional wires it into its own git hooks.
 
+**Cloud agents: block outbound MCP.** Plugin hooks do not run on cloud agents; only this repo's
+`.cursor/hooks.json` does. Merge the `preToolUse` entries from
+`${CURSOR_PLUGIN_ROOT}/scripts/cursor/hooks.repo.mcp-guard.json` into `.cursor/hooks.json` (create the
+file when the repo has none). They call `hooks/mcp-outbound-guard.sh`, which denies send/post/share/delete
+and similar connector tools while allowing reads and drafts — the denylist lives in
+`scripts/cursor/mcp-outbound-denylist.mjs`. Skip when the repo already carries the same matchers.
+
 **The seats' repo memory, ignored.** The seats carrying Block Q write what they learn about this
 repo to `.claude/agent-memory-local/<seat>/` — the path both forks of this team share, kept out of
 version control by the repo's `.gitignore`. Add `.claude/agent-memory-local/` to it when no line

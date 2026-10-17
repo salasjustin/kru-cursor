@@ -222,7 +222,7 @@ fire preToolUse "$(tool sa-plan Shell '{"command":"mkdir -p /tmp/x"}' '{"parent_
 check "seat-guard: planner keeps the shell" has '.permission == "allow"'
 fire preToolUse "$(tool sa-plan WriteShellStdin '{"shellId":"s1","chars":"y"}' '{"parent_tool_call_id":"tc-plan"}')"
 check "seat-guard: WriteShellStdin is not the Write tool" has '.permission == "allow"'
-check "every tool matcher is anchored (or *)" jq -e '[.hooks[][] | select(has("matcher")) | .matcher | . == "*" or test("^\\^([A-Za-z][A-Za-z0-9:_-]*|\\([A-Za-z][A-Za-z0-9:_-]*(\\|[A-Za-z][A-Za-z0-9:_-]*)*\\))\\$$")] | all' "$hooks_json"
+check "every tool matcher is anchored (or *)" jq -e '[.hooks[][] | select(has("matcher")) | .matcher | . == "*" or . == "^MCP:.*$" or test("^\\^([A-Za-z][A-Za-z0-9:_-]*|\\([A-Za-z][A-Za-z0-9:_-]*(\\|[A-Za-z][A-Za-z0-9:_-]*)*\\))\\$$")] | all' "$hooks_json"
 # verify-tree's anchoring check: a name list is exact only as ^Name$ or
 # ^(A|B)$, and a matcher that doesn't compile matches every tool in cursor
 for m in '*' '^Task$' '^(Shell|Write|Delete)$' '^MCP:acme$'; do
@@ -233,6 +233,16 @@ for m in 'Write' 'Write$' '^Write' '^Write|Delete$' '^(Write$' '^Write)$' '^(Wri
 done
 fire preToolUse "$(tool sa-node Write '{"path":"src/a.ts"}' '{"parent_tool_call_id":"tc-node"}')"
 check "seat-guard: a builder writes" has '.permission == "allow"'
+
+# --- mcp-outbound-guard (preToolUse on CallDynamicTool / MCP:*) ---------------------------------
+fire preToolUse "$(tool mcp-g1 Read "{\"path\":\"$plugin/skills/kru-lead/SKILL.md\"}")"
+fire preToolUse "$(tool mcp-g1 CallDynamicTool '{"namespace":"Linear","toolName":"list_teams"}')"
+check "mcp-outbound-guard: Linear list_teams is allowed" has '.permission == "allow"'
+fire preToolUse "$(tool mcp-g1 CallDynamicTool '{"namespace":"Linear","toolName":"delete_comment"}')"
+check "mcp-outbound-guard: Linear delete_comment is denied" has '.permission == "deny" and (.agent_message | test("PM bot"))'
+fire preToolUse "$(tool mcp-g2 Read "{\"path\":\"$plugin/skills/kru-lead/SKILL.md\"}")"
+fire preToolUse "$(tool mcp-g2 MCP:deploy '{"x":"y"}')"
+check "mcp-outbound-guard: MCP:deploy is denied" has '.permission == "deny"'
 
 # --- store-sync on a hung remote ------------------------------------------------------------------
 # the first preToolUse waits on the store's clone; a remote that never answers
