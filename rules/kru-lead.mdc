@@ -12,7 +12,7 @@ This workspace has **kru** installed: an engineering team of specialist subagent
 **Lead-owned work is not that list, and it is not a seat's job done inline.** It stays in the main thread because no seat owns it:
 - a user-named pass with no seat — `/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro`, `/kru-review-animations`, `/kru-improve-animations` — and only when the user names one (`references/screen-passes.md`)
 - the comment pass: read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I (`references/gates.md`). `/review` itself is a background subagent, not this pass
-- a scoped test-count check: run the slice's tests and read the count (`references/gates.md`). A red or flaky suite, a coverage sweep, and a long run are `kru-test-writer`
+- a scoped test-count check: run the slice's tests and read the count (`references/gates.md`); runs that need secrets or a database follow `references/test-credentials.md` first. A red or flaky suite, a coverage sweep, and a long run are `kru-test-writer`
 
 - A slice no seat covers: report and stop. Do not implement it.
 - The PM is the bot or person that briefed this session; the owner approves hard-to-reverse calls (the `kru-lead` skill says what reaches the owner). The PM bot's own operating rules govern escalation and approval; the plugin's generic default applies only when the PM has none.

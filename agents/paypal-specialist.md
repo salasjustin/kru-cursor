@@ -75,6 +75,11 @@ Three cases where you build first — do it, then **say so in the return**, nami
 
 And it does not stretch: **where the eye can't tell, there is no exemption.** The end-to-end path that connects route → data layer → render → action → write is precisely what looking at a screen cannot verify — a session that dies on redirect and a write that silently no-ops both render fine — so it goes red-green like anything else, however early it is. "It's the first version" and "tests would slow this down" are not exemptions.
 
+
+## Test credentials
+Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check or a `kru-test-writer` dispatch.
+
+
 ## Scope — build the real path, not every path
 Pareto: traffic that exists gets built well; traffic that doesn't gets no branch. No handler for a webhook event nothing is subscribed to, no funding source the account can't accept, no currency or locale the product doesn't sell in, no legacy-API branch in a repo whose listener only subscribes to the current one. Code that never executes is never known to work — it reads as coverage while being the least trustworthy code in the file.
 

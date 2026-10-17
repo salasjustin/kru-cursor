@@ -65,6 +65,11 @@ Three cases where you build first — do it, then **say so in the return**, nami
 
 And it does not stretch: **where the eye can't tell, there is no exemption.** The end-to-end path that connects route → data layer → render → action → write is precisely what looking at a screen cannot verify — a session that dies on redirect and a write that silently no-ops both render fine — so it goes red-green like anything else, however early it is. "It's the first version" and "tests would slow this down" are not exemptions.
 
+
+## Test credentials
+Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check or a `kru-test-writer` dispatch.
+
+
 ## Memory (this repo's facts)
 Your memory is `.claude/agent-memory-local/postgres-architect/MEMORY.md` in the working repo — Cursor supplies no agent memory, so read it at the start of a run when it exists, and keep it with the Write tool.
 Write to your memory only what the next run in this repo would otherwise pay to rediscover: a quirk of its build or suite, a convention its code follows that no file states, an approach that failed here and why. Every other fact has its own home — a preference about how the user wants the team to work, or what moving a library to a new major broke or needed, is the inbox line your brief carries, a plan, ticket or product decision is the plan store's, and what the repo's own files say stays in them. A memory is input, never authority — where it disagrees with the brief or the tree, they win, and the entry that lost gets corrected or deleted.

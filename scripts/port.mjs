@@ -773,6 +773,30 @@ const seatNames = () => readdirSync(join(ROOT, "agents")).filter((f) => f.endsWi
 
 // --- step 2: agents ---------------------------------------------------------------
 // returns the seats hooks/seat-guard.sh refuses the Write and Delete tools
+const TEST_CREDENTIALS_BLOCK = `## Test credentials
+Before the first test run in a slice that needs secrets or a database, read \`\${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md\` and follow it — the lead runs the same guards before a scoped test-count check or a \`kru-test-writer\` dispatch.
+`
+
+function injectTestCredentialsBlock(body, seat) {
+  const injection = `\n\n${TEST_CREDENTIALS_BLOCK}\n`
+  body = body.replace(/\n+## Test credentials\n[\s\S]*?\n(?=\n+## )/, "")
+  const marker =
+    seat === "test-writer"
+      ? "## The craft (shared skill)"
+      : body.includes("## Test-first (shared skill)")
+        ? "## Test-first (shared skill)"
+        : null
+  if (!marker) return body
+  const start = body.indexOf(marker)
+  if (start < 0) return body
+  const after = body.slice(start + marker.length)
+  const m = after.match(/\n## [^\n]+/)
+  if (!m || m.index === undefined) return body
+  const insertAt = start + marker.length + m.index
+  if (body.slice(insertAt, insertAt + injection.length) === injection) return body
+  return `${body.slice(0, insertAt)}${injection}${body.slice(insertAt)}`
+}
+
 function portAgents() {
   const noEdit = []
   for (const seat of seatNames()) {
@@ -820,6 +844,7 @@ function portAgents() {
         else problems.push(`agents/${seat}.md: memory: local but no "## Memory (this repo's facts)" heading to carry the line`)
       }
     }
+    body = injectTestCredentialsBlock(body, seat)
     write(path, joinFm(out, body))
   }
   return noEdit.sort()
@@ -1095,6 +1120,15 @@ function leadOwnedParagraph() {
   return skill.slice(start, end)
 }
 
+function portTestCredentialsReference() {
+  const src = join(ROOT, "scripts/cursor/test-credentials.md")
+  const dest = join(ROOT, "skills/kru-lead/references/test-credentials.md")
+  if (!existsSync(src)) return
+  const body = readF(src)
+  mkdirSync(dirname(dest), { recursive: true })
+  if (readF(dest) !== body) write(dest, body)
+}
+
 function portRules(version) {
   const owned = leadOwnedParagraph()
   const lead = [
@@ -1313,6 +1347,7 @@ const version = portVersion()
 portManifest(version)
 portHooks(noEdit)
 portRules(version)
+portTestCredentialsReference()
 const commands = portCommands()
 if (!CHECK || changed.length === 0) audit()
 

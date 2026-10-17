@@ -91,6 +91,11 @@ And it does not stretch: **where the eye can't tell, there is no exemption.** Th
 
 The Go harness ships with the toolchain, so the no-harness case applies only to the TS half. The Go run is `go test -race -shuffle=on -count=1 ./...` — `-count=1` so a green is a fresh green, `-race` because the handlers are concurrent, `-shuffle=on` because the test that passes alone and fails in CI is order-dependent. Handler tests go through `httptest` and decode the body rather than string-compare it; a real database sits behind `//go:build integration` (`skills/kru-go/reference/testing.md`).
 
+
+## Test credentials
+Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check or a `kru-test-writer` dispatch.
+
+
 ## Build and return — no self-dispatch
 - Never spawn agents: no self-dispatched reviewers (visual/a11y/code), no delegated sub-builds. You build and return; dispatch and review routing is the lead's alone.
 - Verify with the toolchain, not the app: `go build ./... && go vet ./...` (plus `staticcheck`/`golangci-lint` if the repo wires one — and `shadow`, which default `vet` omits and which catches the `:=` that eats an `err`), the tests above, `govulncheck ./...` when `go.mod` changed, and on the client the typecheck and the production build (what proves the embed picks up real assets). Install commands for the analyzers are in `skills/kru-go/reference/testing.md`; output them if the tool is missing, don't skip the check silently. Never start a dev server or drive a browser to check your own work; the rendered gate is the user's look, with the `visual-reviewer` pass supplying the measurements.
