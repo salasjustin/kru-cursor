@@ -219,11 +219,17 @@ build is made and again when a branch changes the dependencies, so the repo's de
 goes there — read off step 1's findings and the repo's own setup doc (`CONTRIBUTING*`, `README*`),
 each tool pinned to the version the repo pins. Write it when the repo has none; an existing one is
 the repo's, and a missing install step is a line in the report rather than an edit. **Put the
-repo's pinned pnpm first on `PATH` in that install script** — the image's node/pnpm can shadow the
-pin and fail in turbo with `Exec format error`. Where the installer lays down a binary under
-`.tools/pnpm-exe/<ver>/`, link only that binary into a directory holding nothing else; pnpm 12 lays
-down none, and its `$PNPM_HOME/bin` wrapper resolves relative to its own path, so put that directory
-on `PATH` whole. The team itself
+repo's pinned pnpm on the default `PATH` agent shells inherit** — the image's node/pnpm can shadow
+the pin and fail in turbo with `Exec format error`. An `export PATH=…` in `install` does not reach
+later agent shells: Cursor documents that a Build keeps disk state only, not exported shell
+variables ([Cloud agent setup](https://cursor.com/docs/cloud-agent/setup) → *How Builds use the
+install script*). Symlink the pinned binary into `/usr/local/bin` during `install` (passwordless
+`sudo` on Cursor's default image), or set `PATH` in a custom `build.dockerfile` when the repo uses
+one. Where the installer lays down a binary under `.tools/pnpm-exe/<ver>/`, link that binary into
+`/usr/local/bin` (not a repo-local directory only `export` would reach). pnpm 12 lays down none,
+and its `$PNPM_HOME/bin` wrapper resolves relative to its own path, so symlink `pnpm` from that
+directory into `/usr/local/bin`. Do not append `PATH` to `~/.bashrc` or `~/.profile` and expect
+agent shells to pick it up. The team itself
 needs no install line: a cloud agent loads kru-cursor from the marketplace or the team marketplace
 it was installed from, never from a local copy. Context7 reaches a cloud agent only as a server the
 team configured at `cursor.com/agents` — name it in the report when step 1c wired it locally.

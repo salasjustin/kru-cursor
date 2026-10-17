@@ -5,12 +5,13 @@ here. Bringing upstream in is `fork-sync.md`; this file starts once `main` holds
 
 ## Who acts
 
-The roles below are the ones defined in `skills/kru-lead/SKILL.md` (first paragraph and *Who acts at the door*). The PM is the bot or person that briefs a session. The owner approves hard-to-reverse calls. The plugin maintainer merges and tags this plugin's releases. Ops sets up an account once the owner has approved it. The PM bot's own operating rules govern escalation and approval; the plugin's generic default applies only when the PM has none.
+The roles below are the ones defined in `skills/kru-lead/SKILL.md` (first paragraph and *Who acts at the door*). The PM is the bot or person that briefs a session. The owner approves hard-to-reverse calls. The PM bot pushes and opens pull requests for this plugin. The plugin maintainer merges and tags this plugin's releases. Ops sets up an account once the owner has approved it. The PM bot's own operating rules govern escalation and approval; the plugin's generic default applies only when the PM has none.
 
 | step | who |
 |---|---|
 | the version bump commit, local, with `bash scripts/verify.sh` green | the lead, in Cursor, on the PM's ask |
-| push, pull request, merge, tag | the plugin maintainer — pushes and opens the pull request, and merges and tags this plugin's releases |
+| push, open pull request | the PM bot — reviews the lead's proof, pushes the branch, opens the pull request |
+| merge, tag | the plugin maintainer — merges after CI (`verify`) passes and tags this plugin's releases |
 | resubmitting to Cursor's marketplace, or making the repo public for it | the owner: anything public or live goes to the owner. The lead reports to the PM, which carries this to the owner |
 | a Teams marketplace, the Cursor GitHub App, any new outside account | the owner decides (money, outside services); ops sets the account up |
 
@@ -34,7 +35,7 @@ disagree.
    manifests from `VERSION`, and the fresh-port check reads the fork half back from
    `.cursor-plugin/plugin.json`. Commit `release: v<VERSION>` with a short list of what changed
    for someone using the plugin since the last tag (`git log v<last>..HEAD --oneline`).
-2. **Merge.** The plugin maintainer pushes, opens the pull request, checks CI (`verify`), and merges.
+2. **Merge.** The PM bot pushes and opens the pull request. The plugin maintainer checks CI (`verify`) and merges.
 3. **Tag** the merge commit on `main` with `v` + `VERSION`
    (`git tag -a "v$(cat VERSION)" -m "kru-cursor $(cat VERSION)"`) and push the tag. Upstream's own tags (`v0.150.0`) live in the same repo; the `+kru` suffix keeps
    the fork's apart.
