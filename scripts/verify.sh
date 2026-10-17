@@ -1,8 +1,7 @@
 #!/bin/bash
 # every static check this fork has, in one run — what CI runs on each pull
-# request and push to main, and what to run before a commit. no model and no
-# cursor login: scripts/cursor-smoke.sh is the live half. runs every check, then
-# exits non-zero when any failed.
+# request and push to main, and what to run before a commit. runs every check,
+# then exits non-zero when any failed.
 # run: bash scripts/verify.sh
 set -u
 repo=$(cd "$(dirname "$0")/.." && pwd)

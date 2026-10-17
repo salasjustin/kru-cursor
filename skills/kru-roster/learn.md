@@ -33,7 +33,7 @@ Every surviving line gets one of five verdicts, and the sweep makes the call. **
 - **Drop it** — one counted clause in the report ("7 dropped"), each reason kept for when the user asks — when it is already covered, is an agent-sourced line contradicting a rule the plugin states (the standing rule wins), is too narrow to recur, is a catch showing the gate working (the refusal log's usual case), or is a false positive whose cause is already known.
 - **Put it to the source** when an `owner`-sourced line contradicts a rule the plugin states — the conflict is resolved at its source, not won by the standing text. It becomes a numbered question in the report for the plugin maintainer to carry to the owner (keep the rule, or change it to the line) and stays in the inbox, deferred, until the owner answers. A `pm` line contradicting a stated rule or an `owner` line is a proposal that lost: drop it with the reason.
 
-A request for a new seat or skill goes to `hire` or `author`: leave the line in the inbox and name the verb in the report.
+A request for a new seat or skill is [`request.md`](request.md): leave the line in the inbox and name that path in the report.
 
 ## 4. Apply + drain
 - Write the edits (`agents/<seat>.md` insertions, skill edits, kept artifacts).

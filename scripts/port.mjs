@@ -106,7 +106,7 @@ const DROP = [
   ".claude", //        upstream's own release tooling for claude code
   "evals", //          `claude plugin eval` suites
   "TESTING.md", //     upstream's claude-plugin test guide; PORTING.md → Verify carries ours
-  "scripts/smoke.sh", // a live `claude -p` run; scripts/cursor-smoke.sh is ours
+  "scripts/smoke.sh", // a live `claude -p` run; dropped like upstream v0.153.0
   "hooks/check-task-tools.sh", // cursor's todo list is always on
   "hooks/check-task-tools.test.sh",
   "skills/setup/cloud-install.sh", // a claude cloud sessionstart template; cursor installs from .cursor/environment.json
@@ -124,17 +124,11 @@ const FORK_OWNED = new Set([
   "scripts/verify-tree.mjs",
   "scripts/asset/xai.mjs",
   "scripts/asset/xai.test.mjs",
-  // sharp 0.35.5 (libvips 1.3.4) for GHSA-2464-fhr4-w9xw. upstream still pins
-  // 0.35.3, and a re-port would put that pin back; drop both once upstream's
-  // scripts/asset/package.json pins sharp at 0.35.5 or newer (PORTING.md).
-  "scripts/asset/package.json",
-  "scripts/asset/package-lock.json",
   "scripts/privacy-scan.mjs",
   "scripts/privacy-scan.test.sh",
   "scripts/leak-patterns.mjs",
   "scripts/guard-text.mjs",
   "scripts/cursor-hooks.test.sh",
-  "scripts/cursor-smoke.sh",
   "scripts/sync-upstream.sh",
   "scripts/sync-upstream.test.sh",
   "scripts/workflows.test.sh",

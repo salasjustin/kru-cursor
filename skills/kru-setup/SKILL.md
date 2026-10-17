@@ -141,7 +141,10 @@ Three that fail with no error:
   `query-docs` in their own tool lists, so Context7 has to be registered under the bare name
   `context7` (user scope, http `https://mcp.context7.com/mcp`). The official plugin namespaces it to
   `*` (`plugin_context7_context7` MCP) —
-  that leaves those seats holding entries that resolve to nothing. The claude.ai connector (`MCP claude_ai_Context7__*`) is Claude-only and is not a Cursor failure mode.
+  that leaves those seats holding entries that resolve to nothing. The claude.ai connector (`MCP claude_ai_Context7__*`) is Claude-only and is not a Cursor failure mode. The Svelte seats name
+  `svelte` MCP tools the same way, and the `svelte@svelte` plugin namespaces its server to
+  `plugin_svelte_svelte` — a Svelte repo registers a bare `svelte` entry in its `.cursor/mcp.json`
+  (http `https://mcp.svelte.dev/mcp`).
 - **A permission allowlist entry is coupled to that same prefix.** Moving a server between plugin,
   connector and local scope dead-letters every rule naming it: the rule stops matching, nothing
   errors, and the user is re-prompted forever. Re-point the allowlist in the same change that moves
@@ -218,7 +221,12 @@ Unset, and GitHub stays the tracker.
 build is made and again when a branch changes the dependencies, so the repo's dependency install
 goes there — read off step 1's findings and the repo's own setup doc (`CONTRIBUTING*`, `README*`),
 each tool pinned to the version the repo pins. Write it when the repo has none; an existing one is
-the repo's, and a missing install step is a line in the report rather than an edit. The team itself
+the repo's, and a missing install step is a line in the report rather than an edit. **Put the
+repo's pinned pnpm first on `PATH` in that install script** — the image's node/pnpm can shadow the
+pin and fail in turbo with `Exec format error`. Where the installer lays down a binary under
+`.tools/pnpm-exe/<ver>/`, link only that binary into a directory holding nothing else; pnpm 12 lays
+down none, and its `$PNPM_HOME/bin` wrapper resolves relative to its own path, so put that directory
+on `PATH` whole. The team itself
 needs no install line: a cloud agent loads kru-cursor from the marketplace or the team marketplace
 it was installed from, never from a local copy. Context7 reaches a cloud agent only as a server the
 team configured at `cursor.com/agents` — name it in the report when step 1c wired it locally.

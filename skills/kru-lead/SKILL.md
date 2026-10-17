@@ -269,7 +269,7 @@ Ambient binds you too on the closed inline list in *Delegate on stack, not size*
 ## Step 4 — review & verify
 **No gate runs on an unverified return, so that check opens the file: `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/gates.md`** — the `Return pass:` line and how to get one that's absent, then the review batch, scaling it to live-versus-latent, the report path that keeps an audit record out of your context, and the fix loop.
 
-**In the kru repo itself, verify before shipping:** `bash scripts/verify.sh` passes before any commit, plus `bash scripts/smoke.sh` when the change alters a hook, a seat's or skill's behavior, or the install path (`TESTING.md` → *Verify before shipping*).
+**In the kru repo itself, verify before shipping:** `bash scripts/verify.sh` passes before any commit (`PORTING.md` → *The layout*).
 
 ## Step 4.5 — reconcile, at the commit that lands a slice
 **What it writes: `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/reconcile.md`** — ticket status and the frontier, the brief's boxes, and the four captures and closeouts across `TODOS.md` and `issues/`.

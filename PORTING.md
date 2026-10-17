@@ -7,7 +7,6 @@ place by one script, plus a small set of fork-owned files.
 ```
 bash scripts/sync-upstream.sh    # merge upstream/main and regenerate the tree (or: git merge upstream/main && node scripts/port.mjs)
 bash scripts/verify.sh           # every static check (CI runs it on each pull request and push to main)
-bash scripts/cursor-smoke.sh     # local, spends a request: a signed-in cursor-agent loads the plugin
 ```
 
 `.github/workflows/sync-upstream.yml` runs the first two weekly and opens the result as a pull
@@ -128,7 +127,6 @@ one is overwritten by the next port, and `scripts/verify.sh`'s fresh-port check 
 | `scripts/cursor/setup-1d.md` | `/kru-setup` §1d (grants, store repo, cloud environment), pulled in by a port rule |
 | `scripts/cursor/gates-report-path.md` | the review-report paragraph of `gates.md` |
 | `scripts/asset/xai.mjs`, `xai.test.mjs` | the asset generator's xAI backend and its tests; port rules hook it into upstream's `gen-asset.ts` and copy it in `run.sh` (`MODELS.md`) |
-| `scripts/asset/package.json`, `scripts/asset/package-lock.json` | the asset seats' `sharp` pin, exact `0.35.5` (sharp-libvips 1.3.4). [GHSA-2464-fhr4-w9xw](https://github.com/vercel/next.js/security/advisories/GHSA-2464-fhr4-w9xw) is a memory bug in the libvips that sharp 0.35.3 bundles (1.3.2): rasterizing SVG on glibc Linux can lead to remote code execution, and brand-designer / graphic-designer do that through `scripts/asset/run.sh`. Fork-owned so a re-port keeps the pin while upstream still ships `0.35.3`. Once upstream's `scripts/asset/package.json` pins `sharp` at `0.35.5` or newer, drop both from `FORK_OWNED` — the weekly sync then carries that pin and later dependency updates |
 | `scripts/cursor/sources-harness-row.md` | `SOURCES.md` → *Orchestration / harness mechanics* |
 | `scripts/cursor/ui-canvas.md` | `references/ui-practice.md` → *The canvas*, pulled in by a port rule |
 | `scripts/cursor/update-sweep.md` | `skills/kru-update/claude.md`, the Cursor changelog sweep, pulled in by a port rule (the file keeps the name `claude.md`) |
@@ -217,9 +215,7 @@ first, or set CURSOR_API_KEY environment variable.`), so no headless turn ran. I
 and runs every `hooks.json` command the way the CLI does — `${CURSOR_PLUGIN_ROOT}` substituted and
 exported, the install dir as cwd (the workspace for `stop`/`subagentStop`), Cursor-shaped payloads,
 matchers tested as unanchored regexes, responses merged deny-first — and asserts every permission
-answer is valid JSON. `scripts/cursor-smoke.sh` is the signed-in version: one headless turn in a
-throwaway repo, passing when a kru hook fired (`KRU_HOOK_LOG`) and the agent names the kru rule,
-skill and seat.
+answer is valid JSON.
 
 `KRU_HOOK_LOG=<file>` makes `hooks/cursor-hook.sh` append one JSON line per hook call (event, script,
-exit, conversation) — the marker both scripts read, and a way to watch the hooks in a live session.
+exit, conversation) — the marker the harness reads, and a way to watch the hooks in a live session.
