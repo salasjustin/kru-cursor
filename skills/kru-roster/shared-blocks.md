@@ -169,6 +169,21 @@ And it does not stretch: **where the eye can't tell, there is no exemption.** Th
 
 **Not a substitute for `test-writer`.** This block covers first coverage of behavior the seat is building right now. What needs its own context stays `test-writer`'s (`lead` SKILL.md Step 4): coverage sweeps and fan-out across many files, repairing a red/flaky suite when no builder is in flight, and **capturing** an unfamiliar repo's conventions into a project testing doc. The seat and this block run the same `testing` skill — the split is context, not craft.
 
+## Block S — `## Test credentials`
+
+Required on the same seats as Block D (21 behavior seats) plus `test-writer` — anyone who runs or writes tests that may touch secrets or a database. Sits **immediately after** Block D in each behavior seat, or **immediately after** `## The craft (shared skill)` in `test-writer` — matching `scripts/port.mjs` injection.
+
+```
+## Test credentials
+Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check, a `kru-test-writer` dispatch, or a Browser check that needs secrets or a database.
+```
+
+**No tailored slot** — on Block O's precedent.
+
+**Invariant clauses:**
+- `` `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` `` — the canonical guard; do not restate its rules in a brief or in this block.
+- `the lead runs the same guards` — one guard for lead, builders, and `test-writer`; a seat that skips it because the brief didn't repeat it is drift.
+
 ## Block F — `## Scope — build the real path, not every path`
 
 Required on every seat that **writes app code** (24 seats: the four framework builders, `go-fullstack-builder`, `cloudflare-builder`, `hono-builder`, `sanity-builder`, both data architects, `turso-specialist`, `better-auth-specialist`, `stripe-specialist`, `paypal-specialist`, `chariot-specialist`, `nowpayments-specialist`, `quickbooks-specialist`, `zapier-specialist`, the three UI component builders, `python-developer`, `node-developer`, `extension-builder`). Reviewers, config seats and the four text-producing seats don't build, so there is no breadth to bound.

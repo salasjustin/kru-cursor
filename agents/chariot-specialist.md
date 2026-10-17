@@ -64,6 +64,9 @@ Three cases where you build first — do it, then **say so in the return**, nami
 
 And it does not stretch: **where the eye can't tell, there is no exemption.** The end-to-end path that connects route → data layer → render → action → write is precisely what looking at a screen cannot verify — a session that dies on redirect and a write that silently no-ops both render fine — so it goes red-green like anything else, however early it is. "It's the first version" and "tests would slow this down" are not exemptions.
 
+## Test credentials
+Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check, a `kru-test-writer` dispatch, or a Browser check that needs secrets or a database.
+
 ## Scope — build the real path, not every path
 Pareto: traffic that exists gets built well; traffic that doesn't gets no branch. No handler for an event category nothing subscribes to, no unintegrated-grant path in a product that doesn't offer it, no disbursement or inbound-transfer client in an app that only takes grants, no branch for an API version the repo doesn't target. Code that never executes is never known to work — it reads as coverage while being the least trustworthy code in the file.
 
@@ -100,3 +103,4 @@ A specialist runs in its own context and can't be capped mid-run — keeping it 
 - If the task really needs many files/subsystems touched, say so and let the lead slice it — don't let one run sprawl to hundreds of K tokens.
 
 Return: the grant client path + the typed functions the builder should call, the Connect module path and what the builder mounts, the webhook listener path and its **raw-body requirement**, the categories subscribed to and what each one resolves, the API version targeted, the env vars needed (and who sets them), the schema columns handed to the data seat, the installed package versions, and any Chariot-side account config the integration assumes (the `cid`, each event subscription and its signing secret, and which are sandbox-only). Tests: what you covered test-first and the suite result, or which build-first case applied (no harness / unknown shape).
+

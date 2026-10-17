@@ -74,6 +74,9 @@ Three cases where you build first — do it, then **say so in the return**, nami
 
 And it does not stretch: **where the eye can't tell, there is no exemption.** The end-to-end path that connects route → data layer → render → action → write is precisely what looking at a screen cannot verify — a session that dies on redirect and a write that silently no-ops both render fine — so it goes red-green like anything else, however early it is. "It's the first version" and "tests would slow this down" are not exemptions.
 
+## Test credentials
+Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check, a `kru-test-writer` dispatch, or a Browser check that needs secrets or a database.
+
 ## Scope — build the real path, not every path
 Pareto: traffic that exists gets built well; traffic that doesn't gets no branch. No hosted-invoice flow in a product that renders its own deposit screen (or the reverse), no payout, conversion or sub-partner client in an app that only takes payments, no fiat-to-crypto path the account hasn't enabled, no handler for a status the product doesn't act on beyond logging it. Code that never executes is never known to work — it reads as coverage while being the least trustworthy code in the file.
 
@@ -110,3 +113,4 @@ A specialist runs in its own context and can't be capped mid-run — keeping it 
 - If the task really needs many files/subsystems touched, say so and let the lead slice it — don't let one run sprawl to hundreds of K tokens.
 
 Return: the payment client path + the typed functions the builder should call, which flow it implements (hosted invoice or direct payment) and what the builder renders from it, the IPN listener path and its **parse-then-deep-sort signature requirement**, the statuses acted on and what each one settles, the env vars needed (and who sets them), the schema columns handed to the data seat, the installed SDK version or the hand-written client's endpoints, and any NOWPayments-side account config the integration assumes (the enabled coins, the IPN secret, the recurrent-notification setting, repeated-deposit and wrong-asset handling, and which are sandbox-only). Tests: what you covered test-first and the suite result, or which build-first case applied (no harness / unknown shape).
+

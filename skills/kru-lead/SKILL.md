@@ -38,7 +38,7 @@ Rewording a screen people find confusing is judgment, not a string fix, so it is
 **Lead-owned work is not that list, and it is not a seat's job done inline.** It stays in the main thread because no seat owns it:
 - a user-named pass with no seat — `/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro`, `/kru-review-animations`, `/kru-improve-animations` — and only when the user names one (`references/screen-passes.md`)
 - the comment pass: read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I (`references/gates.md`). `/review` itself is a background subagent, not this pass
-- a scoped test-count check: run the slice's tests and read the count (`references/gates.md`). A red or flaky suite, a coverage sweep, and a long run are `kru-test-writer`
+- a scoped test-count check: run the slice's tests and read the count (`references/gates.md`); before any scoped run, `kru-test-writer` dispatch, or Browser check that needs secrets or a database, follow `references/test-credentials.md` and stop the slice on a failed guard. A red or flaky suite, a coverage sweep, and a long run are `kru-test-writer`
 
 **No covering seat: report and stop.** Hiring is the PM's. Until a seat exists, that slice stays parked. Do not implement it.
 
