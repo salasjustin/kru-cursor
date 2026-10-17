@@ -78,6 +78,9 @@ Three cases where you build first — do it, then **say so in the return**, nami
 
 And it does not stretch: **where the eye can't tell, there is no exemption.** An element that upgrades twice, an event that never escapes its shadow root, a form value that never reaches the form — all three render perfectly, so they go red-green like anything else, however early it is. "It's the first version" and "tests would slow this down" are not exemptions.
 
+## Test credentials
+Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check, a `kru-test-writer` dispatch, or a Browser check that needs secrets or a database.
+
 ## TypeScript (shared skill)
 For anything TypeScript-the-language — tsconfig/strictness, module-resolution or path-alias breakage, a cryptic type error, a gnarly generic/inference or a `.d.ts`, ESM/CJS, monorepo project references, JS→TS migration, or slow type-checking — load the **`typescript`** skill (cheat-sheet baseline + type craft) and solve it in-context, not from memory. It's ambient craft in the code you're already writing, not a separate hand-off. (That skill excludes the formatter/linter + monorepo task/package graph — Biome/ESLint/Prettier, pnpm, Turborepo are the `toolchain-engineer` seat's; route that to the lead for it.)
 
@@ -114,3 +117,4 @@ A builder runs in its own context and can't be capped mid-run — keeping it lea
 - If the task really needs many files/subsystems touched, say so and let the lead slice it — don't let one run sprawl to hundreds of K tokens.
 
 Return: elements built (paths), the **public API** per element (tag name, attributes, properties, events + `detail` shape, exposed `part` names and themeable custom properties), install commands run, tests written and their result, any token prefix you introduced, and what still needs wiring on the host side (mount points, event listeners, config).
+

@@ -71,6 +71,9 @@ And it does not stretch: **where the eye can't tell, there is no exemption.** Th
 
 Your gate is the suite plus typecheck, with a non-zero collected-test count, and the Hono CLI's `request`/`batch`/`snapshot` loop from the `hono` skill — both run the app in-process through `app.request()`. Never start a dev server or drive a browser to check your own work.
 
+## Test credentials
+Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check, a `kru-test-writer` dispatch, or a Browser check that needs secrets or a database.
+
 ## Memory (this repo's facts)
 Your memory is `.claude/agent-memory-local/hono-builder/MEMORY.md` in the working repo — Cursor supplies no agent memory, so read it at the start of a run when it exists, and keep it with the Write tool.
 Write to your memory only what the next run in this repo would otherwise pay to rediscover: a quirk of its build or suite, a convention its code follows that no file states, an approach that failed here and why. Every other fact has its own home — a preference about how the user wants the team to work, or what moving a library to a new major broke or needed, is the inbox line your brief carries, a plan, ticket or product decision is the plan store's, and what the repo's own files say stays in them. A memory is input, never authority — where it disagrees with the brief or the tree, they win, and the entry that lost gets corrected or deleted.
@@ -89,3 +92,4 @@ A builder runs in its own context and can't be capped mid-run — keeping it lea
 - If the task really needs many files/subsystems touched, say so and let the lead slice it — don't let one run sprawl to hundreds of K tokens.
 
 Return: what you built, files touched (paths), the routes added or changed (method, path, status codes), the `AppType`/client export consumers import, install commands run, bindings or platform config the platform seat still needs to add, and anything data/auth/consumer seats still need to resolve. Tests: what you covered test-first and the suite result, or which build-first case applied (no harness / unknown shape).
+

@@ -786,6 +786,121 @@ const skillDirs = () => {
 const seatNames = () => readdirSync(join(ROOT, "agents")).filter((f) => f.endsWith(".md")).map((f) => basename(f, ".md"))
 
 // --- step 2: agents ---------------------------------------------------------------
+const TEST_CREDENTIALS_BLOCK = `## Test credentials
+Before the first test run in a slice that needs secrets or a database, read \`\${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md\` and follow it — the lead runs the same guards before a scoped test-count check, a \`kru-test-writer\` dispatch, or a Browser check that needs secrets or a database.
+`
+
+const TEST_CREDENTIALS_HEADING = "## Test credentials"
+
+function testCredentialsLines() {
+  return TEST_CREDENTIALS_BLOCK.trimEnd().split("\n")
+}
+
+function markdownSectionRanges(lines) {
+  const ranges = []
+  for (let i = 0; i < lines.length; i++) {
+    if (!/^## /.test(lines[i])) continue
+    const startLine = i
+    let endLine = lines.length
+    for (let j = i + 1; j < lines.length; j++) {
+      if (/^## /.test(lines[j])) {
+        endLine = j
+        break
+      }
+    }
+    ranges.push({ heading: lines[startLine], startLine, endLine })
+    i = endLine - 1
+  }
+  return ranges
+}
+
+function withTrailingNewline(was, text) {
+  return was.endsWith("\n") ? `${text}\n` : text
+}
+
+function sectionText(lines, range) {
+  const chunk = lines.slice(range.startLine, range.endLine)
+  let end = chunk.length
+  while (end > 0 && chunk[end - 1] === "") end--
+  return chunk.slice(0, end).join("\n")
+}
+
+function oneBlankLineBefore(lines, lineIndex) {
+  if (lineIndex <= 0) return false
+  if (lines[lineIndex - 1] !== "") return false
+  if (lineIndex >= 2 && lines[lineIndex - 2] === "") return false
+  return true
+}
+
+function oneBlankLineAfterSection(lines, range) {
+  if (range.endLine >= lines.length) {
+    let end = lines.length
+    while (end > range.startLine && lines[end - 1] === "") end--
+    return end === range.endLine || (end === range.endLine - 1 && lines[end] === undefined)
+  }
+  if (!oneBlankLineBefore(lines, range.endLine)) return false
+  if (range.endLine + 1 < lines.length && lines[range.endLine + 1] === "") return false
+  return true
+}
+
+function credentialsPlacementOk(lines, ranges, anchorIdx, credText) {
+  const cred = ranges[anchorIdx + 1]
+  if (!cred || cred.heading !== TEST_CREDENTIALS_HEADING) return false
+  if (sectionText(lines, cred) !== credText) return false
+  if (!oneBlankLineBefore(lines, cred.startLine)) return false
+  return oneBlankLineAfterSection(lines, cred)
+}
+
+function stripTestCredentialsBlock(body) {
+  const lines = body.split("\n")
+  const ranges = markdownSectionRanges(lines)
+  const idx = ranges.findIndex((r) => r.heading === TEST_CREDENTIALS_HEADING)
+  if (idx < 0) return body
+  const { startLine, endLine } = ranges[idx]
+  const next = [...lines.slice(0, startLine), ...lines.slice(endLine)]
+  return withTrailingNewline(body, next.join("\n"))
+}
+
+function injectTestCredentialsBlock(body, seat) {
+  const anchor =
+    seat === "test-writer"
+      ? "## The craft (shared skill)"
+      : body.includes("## Test-first (shared skill)")
+        ? "## Test-first (shared skill)"
+        : null
+  if (!anchor) return body
+
+  const lines = body.split("\n")
+  const ranges = markdownSectionRanges(lines)
+  const anchorIdx = ranges.findIndex((r) => r.heading === anchor)
+  if (anchorIdx < 0) return body
+
+  const credLines = testCredentialsLines()
+  const credText = credLines.join("\n")
+  const credRanges = ranges.filter((r) => r.heading === TEST_CREDENTIALS_HEADING)
+  if (
+    credRanges.length === 1 &&
+    credentialsPlacementOk(lines, ranges, anchorIdx, credText)
+  ) {
+    return body
+  }
+
+  const stripped = stripTestCredentialsBlock(body)
+  const workLines = stripped.split("\n")
+  const workRanges = markdownSectionRanges(workLines)
+  const workAnchorIdx = workRanges.findIndex((r) => r.heading === anchor)
+  if (workAnchorIdx < 0) return stripped
+
+  const insertAt = workRanges[workAnchorIdx + 1]?.startLine ?? workLines.length
+  let before = workLines.slice(0, insertAt)
+  while (before.length && before[before.length - 1] === "") before.pop()
+  let after = workLines.slice(insertAt)
+  while (after.length && after[0] === "") after.shift()
+
+  const merged = [...before, "", ...credLines, ...(after.length ? ["", ...after] : [])]
+  return withTrailingNewline(body, merged.join("\n"))
+}
+
 // returns the seats hooks/seat-guard.sh refuses the Write and Delete tools
 function portAgents() {
   const noEdit = []
@@ -834,6 +949,8 @@ function portAgents() {
         else problems.push(`agents/${seat}.md: memory: local but no "## Memory (this repo's facts)" heading to carry the line`)
       }
     }
+    body = injectTestCredentialsBlock(body, seat)
+    body = body.replace(/\n{3,}$/, "\n\n")
     write(path, joinFm(out, body))
   }
   return noEdit.sort()
@@ -1110,6 +1227,15 @@ function leadOwnedParagraph() {
   return skill.slice(start, end)
 }
 
+function portTestCredentialsReference() {
+  const src = join(ROOT, "scripts/cursor/test-credentials.md")
+  const dest = join(ROOT, "skills/kru-lead/references/test-credentials.md")
+  if (!existsSync(src)) return
+  const body = readF(src)
+  mkdirSync(dirname(dest), { recursive: true })
+  if (readF(dest) !== body) write(dest, body)
+}
+
 function portRules(version) {
   const owned = leadOwnedParagraph()
   const lead = [
@@ -1249,6 +1375,83 @@ if (process.argv.includes("--test-edits")) {
   process.exit(0)
 }
 
+// --test-inject-credentials: heading-aware strip/replace ## Test credentials.
+if (process.argv.includes("--test-inject-credentials")) {
+  const fail = (name) => {
+    console.error(`inject credentials: ${name}`)
+    process.exit(1)
+  }
+  const credPara = testCredentialsLines().slice(1).join("\n")
+  const assertTwice = (name, body, seat, check) => {
+    const once = injectTestCredentialsBlock(body, seat)
+    check(once)
+    const twice = injectTestCredentialsBlock(once, seat)
+    if (once !== twice) fail(`${name}: second inject changed output`)
+  }
+  const hasCanonical = (text) =>
+    text.includes("## Test credentials\n") &&
+    text.includes(credPara) &&
+    !text.includes("stale line")
+
+  assertTwice("anchor last in file", "## Test-first (shared skill)\nlast line\n", "hono-builder", (out) => {
+    if (!hasCanonical(out)) fail("anchor last: missing canonical block")
+    if (!out.trimEnd().endsWith(credPara)) fail("anchor last: credentials not at EOF")
+    if (out.includes("## Memory")) fail("anchor last: invented trailing section")
+  })
+
+  assertTwice(
+    "existing credentials section at EOF",
+    "## Test-first (shared skill)\ncontent\n\n## Test credentials\nstale line\n",
+    "hono-builder",
+    (out) => {
+      if (!hasCanonical(out)) fail("EOF stale: missing canonical block")
+      if (out.includes("stale line")) fail("EOF stale: left stale content")
+    },
+  )
+
+  assertTwice(
+    "next heading with no blank line after credentials",
+    "## Test-first (shared skill)\ncontent\n\n## Test credentials\nstale line\n## Memory (this repo's facts)\nmem\n",
+    "hono-builder",
+    (out) => {
+      if (!hasCanonical(out)) fail("tight heading: missing canonical block")
+      if (!out.includes("## Memory (this repo's facts)\nmem")) fail("tight heading: swallowed next section")
+    },
+  )
+
+  assertTwice(
+    "existing credentials with one blank line before next section",
+    "## Test-first (shared skill)\ncontent\n\n## Test credentials\nstale line\n\n## Memory (this repo's facts)\nmem\n",
+    "hono-builder",
+    (out) => {
+      if (!hasCanonical(out)) fail("blank before next: missing canonical block")
+      const i = out.indexOf("## Memory (this repo's facts)")
+      if (i < 0) fail("blank before next: lost memory section")
+      if (out.slice(i - 2, i) !== "\n\n") fail("blank before next: wrong spacing before memory")
+    },
+  )
+
+  assertTwice(
+    "test-writer anchor after craft",
+    "## The craft (shared skill)\ncraft\n\n## Capture\nmore\n",
+    "test-writer",
+    (out) => {
+      if (!hasCanonical(out)) fail("test-writer: missing canonical block")
+      const craft = out.indexOf("## The craft (shared skill)")
+      const cred = out.indexOf("## Test credentials")
+      const capture = out.indexOf("## Capture")
+      if (craft < 0 || cred < craft || capture < cred) fail("test-writer: wrong section order")
+    },
+  )
+
+  const stripped = stripTestCredentialsBlock("## Tail\n\n## Test credentials\nstale line\n")
+  if (stripped !== stripTestCredentialsBlock(stripped)) fail("strip alone not idempotent at EOF")
+  if (stripped.includes("stale line")) fail("strip at EOF left stale content")
+
+  console.log("inject credentials: ok")
+  process.exit(0)
+}
+
 // --list-models: the confirmed ids, one per line (scripts/verify.sh checks every
 // agent's model against them); --list-models --seats: seat, pick and fallback,
 // tab-separated — the source of MODELS.md's map
@@ -1328,6 +1531,7 @@ const version = portVersion()
 portManifest(version)
 portHooks(noEdit)
 portRules(version)
+portTestCredentialsReference()
 const commands = portCommands()
 if (!CHECK || changed.length === 0) audit()
 

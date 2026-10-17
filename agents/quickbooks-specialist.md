@@ -62,6 +62,9 @@ Three cases where you build first — do it, then **say so in the return**, nami
 
 And it does not stretch: **where the eye can't tell, there is no exemption.** The end-to-end path that connects route → data layer → render → action → write is precisely what looking at a screen cannot verify — a session that dies on redirect and a write that silently no-ops both render fine — so it goes red-green like anything else, however early it is. "It's the first version" and "tests would slow this down" are not exemptions.
 
+## Test credentials
+Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check, a `kru-test-writer` dispatch, or a Browser check that needs secrets or a database.
+
 ## Scope — build the real path, not every path
 Pareto: traffic that exists gets built well; traffic that doesn't gets no branch. No webhook listener in a sync that only writes, no mapping for an entity nothing sends, no class, location or multicurrency handling the product doesn't offer, no second accounting provider's branch inside this adapter. Code that never executes is never known to work — it reads as coverage while being the least trustworthy code in the file.
 
@@ -98,3 +101,4 @@ A specialist runs in its own context and can't be capped mid-run — keeping it 
 - If the task really needs many files/subsystems touched, say so and let the lead slice it — don't let one run sprawl to hundreds of K tokens.
 
 Return: the adapter path + the typed functions the delivery layer and routes should call, the result classes each call returns and what each asks the caller to do, the entity each app record maps to and the accounts it reads from config, the minor version pinned, the OAuth redirect and scopes the Intuit app must register, the env vars needed (and who sets them), the persisted fields handed to the data seat, the installed package versions, and any Intuit-side app config the integration assumes (redirect uris, webhook endpoint and verifier token, which keys are sandbox-only). Tests: what you covered test-first and the suite result, or which build-first case applied (no harness / unknown shape).
+
