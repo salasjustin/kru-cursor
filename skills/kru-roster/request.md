@@ -20,6 +20,8 @@ Done when [`audit`](audit.md) passes on the branch.
 
 ## 3. Ship
 
-Leave `commit`+`tag` to the user unless they asked (git rule). A release happens only when the user runs `/kru-roster release` per `release.md`. Tell the requester the version, the name of the seat or skill, and to update the plugin and then run `/kru-setup`.
+The requester's branch is what they ship: commit, push, and open a pull request (`audit` already passed in step 2). Merging, version bumps, and `tag vX.Y.Z` are the plugin maintainer's — see [`release.md`](release.md) and the wiring map's git row in [`SKILL.md`](SKILL.md) (step 9). Do not run the release steps from this path unless the PM explicitly asked for a release.
 
-Done when the requester has the version, the name, and those two steps.
+Tell the requester the name of the seat or skill, that their work lands through a pull request, and — once the maintainer has merged and tagged — the version to update the plugin to and then run `/kru-setup`.
+
+Done when the requester knows the name, the pull-request path, and the post-merge update steps.

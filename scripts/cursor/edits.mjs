@@ -1345,3 +1345,9 @@ EDITS.push(E(
   "`reliable-work`, `/kru-roster`",
   "cursor: skills list drops claude-code-delegation",
 ))
+EDITS.push(E(
+  "skills/kru-setup/SKILL.md",
+  "The Svelte seats name\n  `*` (`svelte` MCP) the same way",
+  "The Svelte seats name `list-sections`, `get-documentation`, and `svelte-autofixer` (`svelte` MCP) the same way",
+  "review PR21: Svelte seats name real MCP tools, not a wildcard",
+))
