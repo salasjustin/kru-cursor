@@ -161,8 +161,8 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-roster/SKILL.md",
   "| 9 | git | `commit` + `tag vX.Y.Z` — **only when the user asks** (team git rule) |",
-  "| 9 | git | `commit` locally when the PM asks; the PM bot pushes and opens the pull request; merging and `tag vX.Y.Z` are the plugin maintainer's — the plugin maintainer owns this plugin's releases (`skills/kru-lead/SKILL.md` → *Who acts at the door*) |",
-  "t2: this plugin's releases are the plugin maintainer's",
+  "| 9 | git | the lead `commit`s locally on a branch when the PM asks (version bump included for a release); the plugin maintainer pushes, opens the pull request, merges after checks and review pass, and `tag vX.Y.Z` — the plugin maintainer owns this plugin's releases (`skills/kru-lead/SKILL.md` → *Who acts at the door*) |",
+  "t2: this plugin's releases are the plugin maintainer's; git row matches release.md",
 ))
 EDITS.push(E(
   "skills/kru-setup/SKILL.md",
@@ -1344,6 +1344,12 @@ EDITS.push(E(
   "`reliable-work`, `claude-code-delegation`, `/kru-roster`",
   "`reliable-work`, `/kru-roster`",
   "cursor: skills list drops claude-code-delegation",
+))
+EDITS.push(E(
+  "ROSTER.md",
+  "5. `bash scripts/verify.sh` passes (`PORTING.md` — the verify gate at the top), then `git add -A && git commit && git tag vX.Y.Z`.",
+  "5. `bash scripts/verify.sh` passes (`PORTING.md` — the verify gate at the top), then `git add -A && git commit` on the branch (the lead, when the PM asks); push, pull request, merge, and `tag vX.Y.Z` are the plugin maintainer's — `skills/kru-roster/release.md`.",
+  "review PR21: git row matches release.md (lead commits; maintainer ships and tags)",
 ))
 EDITS.push(E(
   "skills/kru-setup/SKILL.md",

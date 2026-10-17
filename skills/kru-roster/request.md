@@ -20,7 +20,7 @@ Done when [`audit`](audit.md) passes on the branch.
 
 ## 3. Ship
 
-The requester's branch is what they ship: commit, push, and open a pull request (`audit` already passed in step 2). Merging, version bumps, and `tag vX.Y.Z` are the plugin maintainer's — see [`release.md`](release.md) and the wiring map's git row in [`SKILL.md`](SKILL.md) (step 9). Do not run the release steps from this path unless the PM explicitly asked for a release.
+The lead commits on the branch locally when the PM asks (`audit` already passed in step 2). The plugin maintainer pushes, opens the pull request, merges after checks and review pass, and tags — see [`release.md`](release.md) and the wiring map's git row in [`SKILL.md`](SKILL.md) (step 9). Do not run the release steps from this path unless the PM explicitly asked for a release.
 
 Tell the requester the name of the seat or skill, that their work lands through a pull request, and — once the maintainer has merged and tagged — the version to update the plugin to and then run `/kru-setup`.
 
