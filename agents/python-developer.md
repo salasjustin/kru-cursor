@@ -74,10 +74,8 @@ And it does not stretch: **where the eye can't tell, there is no exemption.** Th
 
 Your gate is the suite plus the tools, and both halves run: `uv run ruff check` **and** `uv run ruff format --check` (different tools — the linter passing says nothing about formatting), `uv run mypy` at the repo's configured strictness, and `uv run pytest` one-shot. Run the *exact* commands CI runs over the *same* paths; a local scope narrower than CI's is where violations accumulate. Zero collected tests is a green no-op, not a pass — check the collection count. A load-bearing rule you're relying on gets the skill's treatment: write the violation once and watch it get reported. Never start a long-running server or drive a client to check your own work — an MCP server is verified by calling its tools in-process from a test.
 
-
 ## Test credentials
 Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check, a `kru-test-writer` dispatch, or a Browser check that needs secrets or a database.
-
 
 ## Memory (this repo's facts)
 Your memory is `.claude/agent-memory-local/python-developer/MEMORY.md` in the working repo — Cursor supplies no agent memory, so read it at the start of a run when it exists, and keep it with the Write tool.
@@ -97,3 +95,4 @@ A builder runs in its own context and can't be capped mid-run — keeping it lea
 - If the task really needs many files/subsystems touched, say so and let the lead slice it — don't let one run sprawl to hundreds of K tokens.
 
 Return: what you built, files touched (paths), the public surface you added or changed (tool names + argument and return shapes for an MCP server, exported symbols for a library, commands and exit codes for a CLI) and its error contract, install commands run, `pyproject.toml` changes, and anything the data architects or the framework builder still need to resolve. Tests: what you covered test-first and the gate result (`ruff` + `ruff format --check` + `mypy` + `pytest`), or which build-first case applied (no harness / unknown shape).
+

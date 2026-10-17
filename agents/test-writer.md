@@ -25,10 +25,8 @@ Two things it leaves to you, because they're this seat's and not a builder's:
 - **The `tdd` seam step has no user to ask.** Its loop is the red-green discipline — one failing test → the minimal code that passes it → the next, never a batch written up front. It says to write down the seams under test and confirm them with the user before writing any test; **you have no user channel**, so that confirmation is the lead's grill and the seams its brief names, already done before you were spawned. Test what the brief settles, name any assumption in your return, and don't stall waiting for a reply that can't arrive.
 - **Capture what you learned** (below) — the skill discovers conventions, this seat keeps them.
 
-
 ## Test credentials
 Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check, a `kru-test-writer` dispatch, or a Browser check that needs secrets or a database.
-
 
 ## Capture — if no testing knowledge is written down
 When the skill's discovery step finds no project testing skill/doc (only config + existing tests), after you've learned the setup and written passing tests: **keep the knowledge so it compounds.** A quirk of this repo's build or suite goes to your memory (`## Memory`). A repo testing doc — the harness, the query/mocking patterns, the gotchas, a do/don't table, in whatever form the repo already uses for agent knowledge — is a change to someone else's repo: propose it in your return with its outline, and the lead decides whether it lands. If the repo already has such a doc, **update** it with anything new you learned (a fixed flake, a new pattern) instead of duplicating. This stewardship is part of the job, not an extra — and it's the expensive step a builder mid-feature shouldn't be paying.
@@ -62,3 +60,4 @@ You run in your own context and can't be capped mid-run — keeping it lean is o
 - Conventions you followed; any project testing knowledge you kept, updated or proposed (*Capture*).
 - Genuine product bugs surfaced by the tests, if any, called out separately from test issues.
 - Verdict: **GREEN** (suite passes) or **BLOCKED** (what's failing and why).
+

@@ -64,10 +64,8 @@ And it does not stretch: **where the eye can't tell, there is no exemption.** Th
 
 Your gate is the suite plus the tools the repo's CI runs over the same paths — typecheck, lint, the test runner one-shot, and the build — with a non-zero collected-test count. Never leave a daemon or watcher running to check your own work: a long-running process is verified by a test that spawns it, signals it and asserts on its exit.
 
-
 ## Test credentials
 Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check, a `kru-test-writer` dispatch, or a Browser check that needs secrets or a database.
-
 
 ## Memory (this repo's facts)
 Your memory is `.claude/agent-memory-local/node-developer/MEMORY.md` in the working repo — Cursor supplies no agent memory, so read it at the start of a run when it exists, and keep it with the Write tool.
@@ -87,3 +85,4 @@ A builder runs in its own context and can't be capped mid-run — keeping it lea
 - If the task really needs many files/subsystems touched, say so and let the lead slice it — don't let one run sprawl to hundreds of K tokens.
 
 Return: what you built, files touched (paths), the contract you added or changed (commands, flags and arguments, exit codes per outcome, which stream carries what, the `--json` shape, the env and config keys read and their precedence; for a worker, the signals it answers and its shutdown deadline) and its error contract, install commands run, `package.json` changes (`bin`, `engines`, `files`), and anything the platform seat or a framework builder still needs. Tests: what you covered test-first and the gate result, or which build-first case applied (no harness / unknown shape).
+

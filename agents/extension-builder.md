@@ -84,10 +84,8 @@ And it does not stretch: **where the eye can't tell, there is no exemption.** Th
 
 Your gate is the suite plus the tools the repo's CI runs over the same paths — typecheck, lint, the test runner one-shot, and the package build — with a non-zero collected-test count. Never start a dev server, launch an MCP inspector or drive a browser to check your own work: a plugin is verified through Vite's JavaScript API from a test, and an MCP server by calling its tools in-process.
 
-
 ## Test credentials
 Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check, a `kru-test-writer` dispatch, or a Browser check that needs secrets or a database.
-
 
 ## Memory (this repo's facts)
 Your memory is `.claude/agent-memory-local/extension-builder/MEMORY.md` in the working repo — Cursor supplies no agent memory, so read it at the start of a run when it exists, and keep it with the Write tool.
@@ -107,3 +105,4 @@ A builder runs in its own context and can't be capped mid-run — keeping it lea
 - If the task really needs many files/subsystems touched, say so and let the lead slice it — don't let one run sprawl to hundreds of K tokens.
 
 Return: what you built, files touched (paths), the public surface you added or changed (plugin options and the hooks and environments it claims; MCP tool names with input and output shapes, the transport) and its error contract, the trust boundary each MCP tool got, a channel's declared capabilities and sender gate, install commands run, `package.json` changes (`exports`, `peerDependencies`, `bin`), and the install line or config snippet the consuming app's builder still needs. Tests: what you covered test-first and the gate result, or which build-first case applied (no harness / unknown shape).
+

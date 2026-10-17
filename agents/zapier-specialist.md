@@ -53,10 +53,8 @@ Three cases where you build first — do it, then **say so in the return**, nami
 
 And it does not stretch: **where the eye can't tell, there is no exemption.** The end-to-end path that connects route → data layer → render → action → write is precisely what looking at a screen cannot verify — a session that dies on redirect and a write that silently no-ops both render fine — so it goes red-green like anything else, however early it is. "It's the first version" and "tests would slow this down" are not exemptions.
 
-
 ## Test credentials
 Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check, a `kru-test-writer` dispatch, or a Browser check that needs secrets or a database.
-
 
 ## Scope — build the real path, not every path
 Pareto: traffic that exists gets built well; traffic that doesn't gets no branch. No polling fallback beside a working REST hook, no OAuth scheme when the app issues API keys, no trigger or action the brief doesn't name, no second automation platform's branch inside this integration. Code that never executes is never known to work — it reads as coverage while being the least trustworthy code in the file.
@@ -94,3 +92,4 @@ A specialist runs in its own context and can't be capped mid-run — keeping it 
 - If the task really needs many files/subsystems touched, say so and let the lead slice it — don't let one run sprawl to hundreds of K tokens.
 
 Return: the integration project path and its version, each trigger/create/search key with the app endpoint it calls, the event payload shape (the public contract), the fan-out function the delivery layer calls and the per-hook results it returns, the persisted fields handed to the data seat, the auth scheme and the test endpoint, the installed `zapier-platform-core` and CLI versions, the CLI commands you ran (`validate` · `invoke` · `test` · `push` to which version), and every outward-facing command still to run, verbatim, for the user. Tests: what you covered test-first and the suite result, or which build-first case applied (no harness / unknown shape).
+

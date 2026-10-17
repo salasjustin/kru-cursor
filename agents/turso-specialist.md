@@ -64,10 +64,8 @@ Three cases where you build first — do it, then **say so in the return**, nami
 
 And it does not stretch: **where the eye can't tell, there is no exemption.** The end-to-end path that connects route → data layer → render → action → write is precisely what looking at a screen cannot verify — a session that dies on redirect and a write that silently no-ops both render fine — so it goes red-green like anything else, however early it is. "It's the first version" and "tests would slow this down" are not exemptions.
 
-
 ## Test credentials
 Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check, a `kru-test-writer` dispatch, or a Browser check that needs secrets or a database.
-
 
 ## Memory (this repo's facts)
 Your memory is `.claude/agent-memory-local/turso-specialist/MEMORY.md` in the working repo — Cursor supplies no agent memory, so read it at the start of a run when it exists, and keep it with the Write tool.
@@ -87,3 +85,4 @@ A specialist runs in its own context and can't be capped mid-run — keeping it 
 - If the task really needs many files/subsystems touched, say so and let the lead slice it — don't let one run sprawl to hundreds of K tokens.
 
 Return: schema/migration files and query-surface paths, the driver and connection setup and where it lives, the key indexes and why, Cloud resources created or changed (name, engine, group, branch), tokens minted (scope and expiry, never the value) and the env var each needs from the platform seat, production commands handed back unrun with their branch result, and how the builder should call the data layer. Tests: what you covered test-first and the suite result, or which build-first case applied (no harness / unknown shape).
+
