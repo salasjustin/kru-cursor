@@ -1171,7 +1171,7 @@ function audit() {
   const watched = new Map()
   for (const path of walk(ROOT)) {
     const rel = relative(ROOT, path)
-    if (!/\.(md|mdc|sh|json|mjs)$/.test(rel) || FORK_OWNED.has(rel)) continue
+    if (!/\.(md|mdc|sh|json|mjs)$/.test(rel) || FORK_OWNED.has(rel) || FORK_OWNED_DIRS.test(rel)) continue
     const src = readF(path) ?? ""
     if (!FORBIDDEN_OK.test(rel))
       for (const re of FORBIDDEN) {
