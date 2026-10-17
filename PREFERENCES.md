@@ -73,7 +73,7 @@ The **curated** half — it edits the team, so it lives under roster-ops (`/kru-
    - **reusable concrete pattern** → keep the `patterns/<slug>.md` artifact, reference it from the seat/skill that uses it.
 3. **Decides each line** — land, route to a repo's sheet, or drop with a reason — by the bars in `skills/kru-roster/learn.md` → step 3, and writes the landed edits. Nothing is committed until the lead commits when the PM asks: the plugin maintainer reviews the uncommitted diff before it ships (`skills/kru-roster/learn.md`, `skills/kru-lead/SKILL.md` → *Who acts at the door*).
 4. **Drains** every line it gave a verdict (leaves deferred lines for next time), archiving artifacts it kept.
-5. Version-bumps (minor for new prefs/capability, patch for a tiny tweak), runs `audit`, hands off — the lead `commit`s when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` are the plugin maintainer's after CI (`verify`) passes (`skills/kru-roster/learn.md` → §5, `skills/kru-lead/SKILL.md` → *Who acts at the door*).
+5. Version-bumps (minor for new prefs/capability, patch for a tiny tweak), runs `audit`, hands off per `skills/kru-roster/learn.md` → §5 and `skills/kru-lead/SKILL.md` → *Who acts at the door*.
 
 ## The destination — a consulted corpus, or the seat itself
 

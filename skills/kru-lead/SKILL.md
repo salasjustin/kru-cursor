@@ -99,18 +99,7 @@ PM** in your final return, each with your recommendation. An explicit `go` line 
 a `/kru-brainstorm` lock. `/kru-setup`, `/kru-brief` and `/kru-remember` are the PM bot's to run
 itself, so a headless run never stops to hand one over.
 
-**Who acts at the door.** You commit locally and return proof; the push is not yours. The PM bot
-reviews the proof, pushes the branch and opens the pull request. Merging, tagging, releasing,
-deploying, publishing and any message outside the team wait for the owner — except this plugin's own releases,
-which the plugin maintainer merges and tags. A bug or want on the work tracker (GitHub issues, or Linear when the repo has opted in) is internal
-tracking, not a message outside the team (first section). Pull requests stay on GitHub either way: the body
-carries the line `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh" link --id <id>` prints. Most product repos are public, so the PM bot reads the
-repo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local
-until the owner OKs it, then ships through a GitHub security advisory's temporary private fork,
-published on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays
-in `issues/`, off the PR and off Linear. A cloud session pushes branches but gets a 403 on a tag push, so a release
-runs as a `workflow_dispatch` started through the GitHub API, the workflow creating the tag on its
-job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.
+**Who acts at the door.** **Ordinary work** — review fixes, hire, author, retire, requester ships, ports: the lead `commit`s on the branch and returns proof; the lead never pushes and never waits for a PM ask (headless runs do not wait). The PM bot reviews the proof, pushes the branch and opens the pull request. **`/kru-roster learn` only:** the sweep leaves the diff uncommitted; the plugin maintainer reviews it; then the lead `commit`s when the PM asks; then the PM bot pushes and opens the pull request — "when the PM asks" appears only in learn contexts. **Merge:** in this plugin repo, the plugin maintainer merges after CI (`verify`) passes; in product repos, the owner merges. **Tag:** only when the PM asked for a release, per `skills/kru-roster/release.md`. The maintainer creates and pushes the tag from a checkout that has push rights (`git tag` + `git push origin <tag>`, or `gh release create`). A cloud session that cannot push a tag (403) stops and hands the tag step back to the PM bot with the exact commands. Deploying, publishing and any message outside the team wait for the owner. A bug or want on the work tracker (GitHub issues, or Linear when the repo has opted in) is internal tracking, not a message outside the team (first section). Pull requests stay on GitHub either way: the body carries the line `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh" link --id <id>` prints. Most product repos are public, so the PM bot reads the repo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local until the owner OKs it, then ships through a GitHub security advisory's temporary private fork, published on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays in `issues/`, off the PR and off Linear.
 
 **PR babysit loop.** The loop is the always-on rule in `rules/kru-lead.mdc`.
 

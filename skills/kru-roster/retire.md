@@ -15,4 +15,4 @@ The inverse of `hire`: strip the seat from **every** point of the wiring map in 
 ## 3. Version (map #6–#8)
 Version bump: **minor** normally; **major** if removing the seat changes the orchestration contract others depend on (a stack now has no route). `VERSION` · `.cursor-plugin/plugin.json` · `.cursor-plugin/marketplace.json` plugin entry · `ROSTER.md` header, all equal.
 
-Completion: **`audit` passes** and `grep -rn "<name>"` returns nothing. The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` wait on the plugin maintainer after CI (`verify`) passes (`skills/kru-lead/SKILL.md` → *Who acts at the door*).
+Completion: **`audit` passes** and `grep -rn "<name>"` returns nothing. Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*.

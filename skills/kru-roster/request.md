@@ -20,8 +20,8 @@ Done when [`audit`](audit.md) passes on the branch.
 
 ## 3. Ship
 
-The lead commits on the branch locally when the PM asks (`audit` already passed in step 2). The PM bot pushes and opens the pull request; the plugin maintainer merges after CI (`verify`) passes and tags — see [`release.md`](release.md) and the wiring map's git row in [`SKILL.md`](SKILL.md) (step 9). Do not run the release steps from this path unless the PM explicitly asked for a release.
+The lead `commit`s on the branch locally (`audit` already passed in step 2); the PM bot pushes and opens the pull request (`skills/kru-lead/SKILL.md` → *Who acts at the door*).
 
-Tell the requester the name of the seat or skill, that their work lands through a pull request, and — once the maintainer has merged and tagged — the version to update the plugin to and then run `/kru-setup`.
+Tell the requester the name of the seat or skill, that their work lands through a pull request, and — once the maintainer has merged (and tagged only when the PM asked for a release) — the version to update the plugin to and then run `/kru-setup`.
 
 Done when the requester knows the name, the pull-request path, and the post-merge update steps.

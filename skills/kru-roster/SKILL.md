@@ -5,7 +5,7 @@ disable-model-invocation: true
 argument-hint: "<hire|author|learn|retire|audit> [name]"
 ---
 
-You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own; the lead `commit`s locally on a branch when the PM asks; the PM bot pushes and opens the pull request; the plugin maintainer merges after CI (`verify`) passes and `tag`s on release (`release.md`, `skills/kru-lead/SKILL.md` → *Who acts at the door*). This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.
+You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own. Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*. This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.
 
 **Roster-ops, not the excluded "ops/HR."** `ROSTER.md` → *Scope* excludes ops/HR as a *product-org* seat that serves end users. This skill mints the team's **own members** — self-authoring/governance, a different thing. It adds seats and skills; it never adds a business function.
 
@@ -27,7 +27,7 @@ Every place a **seat (agent)** is registered. `hire` writes all of them, `retire
 | 6 | `.cursor-plugin/plugin.json` | `version` bump |
 | 7 | `.cursor-plugin/marketplace.json` | the plugin entry's `version`, equal to `VERSION` |
 | 8 | `VERSION` · `ROSTER.md` header | version — minor for a new seat: `VERSION` and the `# Roster — vX.Y.Z` header, equal |
-| 9 | git | the lead `commit`s locally on a branch when the PM asks (version bump included for a release); the PM bot pushes and opens the pull request; the plugin maintainer merges after CI (`verify`) passes and `tag vX.Y.Z` — the plugin maintainer owns this plugin's releases (`skills/kru-lead/SKILL.md` → *Who acts at the door*) |
+| 9 | git | the lead `commit`s on the branch; the PM bot pushes and opens the pull request; merge and `tag` per `skills/kru-lead/SKILL.md` → *Who acts at the door* and `release.md` |
 
 A **skill** touches a smaller map: `skills/<name>/SKILL.md` (+ any disclosed sibling files), a note in `ROSTER.md` → *Reused, not owned* (and `SOURCES.md` if it backs a seat), `VERSION`/header, git. A skill gated on a **library the repo may or may not have** takes one more row — `references/routing.md` → *Conditional skills*, which is what puts it into a repo's sheet and is the whole of its wiring — the brief and the sheet both carry the answer down, so the seat files hold still; a skill its seats load unconditionally stays out of that table. **No agent-count bump** (#6–#7 count is agents only). A *vendored* skill also needs the provenance HTML comment + a `SOURCES.md` → *Vendored resources* note — copy the shape at the top of `skills/kru-writing-for-agents/SKILL.md`.
 

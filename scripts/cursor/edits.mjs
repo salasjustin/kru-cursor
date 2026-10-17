@@ -137,7 +137,7 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "**A push is a one-way door, and most of the user's repos are public.** Read the repo's visibility\n(`gh repo view --json visibility`) before any push. A security fix stays local\nuntil the user OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` the session starts through the GitHub API, the workflow creating the tag\non its job token — the release is the session's to run end to end.",
-  "**Who acts at the door.** You commit locally and return proof; the push is not yours. The PM bot\nreviews the proof, pushes the branch and opens the pull request. Merging, tagging, releasing,\ndeploying, publishing and any message outside the team wait for the owner — except this plugin's own releases,\nwhich the plugin maintainer merges and tags. A bug or want on the work tracker (GitHub issues, or Linear when the repo has opted in) is internal\ntracking, not a message outside the team (first section). Pull requests stay on GitHub either way: the body\ncarries the line `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` prints. Most product repos are public, so the PM bot reads the\nrepo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local\nuntil the owner OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR and off Linear. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` started through the GitHub API, the workflow creating the tag on its\njob token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.",
+  "**Who acts at the door.** **Ordinary work** — review fixes, hire, author, retire, requester ships, ports: the lead `commit`s on the branch and returns proof; the lead never pushes and never waits for a PM ask (headless runs do not wait). The PM bot reviews the proof, pushes the branch and opens the pull request. **`/kru-roster learn` only:** the sweep leaves the diff uncommitted; the plugin maintainer reviews it; then the lead `commit`s when the PM asks; then the PM bot pushes and opens the pull request — \"when the PM asks\" appears only in learn contexts. **Merge:** in this plugin repo, the plugin maintainer merges after CI (`verify`) passes; in product repos, the owner merges. **Tag:** only when the PM asked for a release, per `skills/kru-roster/release.md`. The maintainer creates and pushes the tag from a checkout that has push rights (`git tag` + `git push origin <tag>`, or `gh release create`). A cloud session that cannot push a tag (403) stops and hands the tag step back to the PM bot with the exact commands. Deploying, publishing and any message outside the team wait for the owner. A bug or want on the work tracker (GitHub issues, or Linear when the repo has opted in) is internal tracking, not a message outside the team (first section). Pull requests stay on GitHub either way: the body carries the line `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` prints. Most product repos are public, so the PM bot reads the repo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local until the owner OKs it, then ships through a GitHub security advisory's temporary private fork, published on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays in `issues/`, off the PR and off Linear.",
   "t2: the lead commits, the PM pushes and opens the PR, the owner merges (the plugin maintainer for this plugin)",
 ))
 EDITS.push(E(
@@ -148,8 +148,8 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.",
-  "job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.\n\n**PR babysit loop.** The loop is the always-on rule in `rules/kru-lead.mdc`.",
+  "in `issues/`, off the PR and off Linear.",
+  "in `issues/`, off the PR and off Linear.\n\n**PR babysit loop.** The loop is the always-on rule in `rules/kru-lead.mdc`.",
   "pr-babysit: one loop, in the lead contract cloud-skills.sh installs",
 ))
 EDITS.push(E(
@@ -161,7 +161,7 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-roster/SKILL.md",
   "| 9 | git | `commit` + `tag vX.Y.Z` — **only when the user asks** (team git rule) |",
-  "| 9 | git | the lead `commit`s locally on a branch when the PM asks (version bump included for a release); the PM bot pushes and opens the pull request; the plugin maintainer merges after CI (`verify`) passes and `tag vX.Y.Z` — the plugin maintainer owns this plugin's releases (`skills/kru-lead/SKILL.md` → *Who acts at the door*) |",
+  "| 9 | git | the lead `commit`s on the branch; the PM bot pushes and opens the pull request; merge and `tag` per `skills/kru-lead/SKILL.md` → *Who acts at the door* and `release.md` |",
   "t2: git row matches release.md and kru-lead Who acts at the door",
 ))
 EDITS.push(E(
@@ -237,13 +237,13 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-roster/SKILL.md",
   "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps + tags a version, which a subagent can't own. This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
-  "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own; the lead `commit`s locally on a branch when the PM asks; the PM bot pushes and opens the pull request; the plugin maintainer merges after CI (`verify`) passes and `tag`s on release (`release.md`, `skills/kru-lead/SKILL.md` → *Who acts at the door*). This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
+  "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own. Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*. This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
   "t2: roster main thread bumps version; full door split in opener",
 ))
 EDITS.push(E(
   "skills/kru-roster/SKILL.md",
   "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own; the lead `commit`s locally, and the plugin maintainer `tag`s on release (`release.md`). This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
-  "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own; the lead `commit`s locally on a branch when the PM asks; the PM bot pushes and opens the pull request; the plugin maintainer merges after CI (`verify`) passes and `tag`s on release (`release.md`, `skills/kru-lead/SKILL.md` → *Who acts at the door*). This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
+  "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own. Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*. This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
   "review PR21: roster opener full door split",
 ))
 EDITS.push(E(
@@ -425,7 +425,7 @@ EDITS.push(E(
 EDITS.push(E(
   "PREFERENCES.md",
   "5. Version-bumps (minor for new prefs/capability, patch for a tiny tweak), runs `audit`, hands off. Commit/tag left to the user (git rule).",
-  "5. Version-bumps (minor for new prefs/capability, patch for a tiny tweak), runs `audit`, hands off — the lead `commit`s when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` are the plugin maintainer's after CI (`verify`) passes (`skills/kru-roster/learn.md` → §5, `skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "5. Version-bumps (minor for new prefs/capability, patch for a tiny tweak), runs `audit`, hands off per `skills/kru-roster/learn.md` → §5 and `skills/kru-lead/SKILL.md` → *Who acts at the door*.",
   "t6: learn tier-2 step 5 door roles",
 ))
 EDITS.push(E(
@@ -470,16 +470,18 @@ EDITS.push(E(
   "- Don't promote it now — capture is lossless and untriaged; the sweep is the gated step that edits the team.\n- How a PM bot itself operates is not a team preference: it stays in that PM bot's own operating rules, never here. This inbox takes what the seats should carry.",
   "t6: two channels",
 ))
+const LEARN_INTRO_AFTER =
+  "The review is the uncommitted diff — the plugin maintainer reviews it before it ships, so an edit they disagree with is reverted first.\n\nRun this **from the plugin maintainer's checkout of this plugin** (it changes the plugin), not a product repo. The sweep leaves the diff uncommitted through review; hand off per `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door* (`/kru-roster learn`). The owner's words (`owner`) outrank a PM's (`pm`) in every verdict below. The inbox is user-global, so it's the same source wherever you run it."
 EDITS.push(E(
   "skills/kru-roster/learn.md",
-  "The review is the uncommitted diff — commit stays the user's, so an edit they disagree with is reverted before it ships.\n\nRun this **from the plugin source repo** (it commits the plugin), not a product repo.",
-  "The review is the uncommitted diff — the plugin maintainer reviews it before it ships, so an edit they disagree with is reverted first.\n\nRun this **from the plugin maintainer's checkout of this plugin** (it changes the plugin), not a product repo. The lead `commit`s locally on the branch; the PM bot reviews the proof, pushes and opens the pull request; the plugin maintainer merges after CI (`verify`) passes and `tag`s this plugin's releases (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*). The owner's words (`owner`) outrank a PM's (`pm`) in every verdict below.",
+  "The review is the uncommitted diff — commit stays the user's, so an edit they disagree with is reverted before it ships.\n\nRun this **from the plugin source repo** (it commits the plugin), not a product repo. The inbox is user-global, so it's the same source wherever you run it.",
+  LEARN_INTRO_AFTER,
   "t6: learn runs from the plugin maintainer's checkout; the owner outranks",
 ))
 EDITS.push(E(
   "skills/kru-roster/learn.md",
   "The review is the uncommitted diff — the plugin maintainer's, so an edit they disagree with is reverted before it ships.\n\nRun this **from the plugin maintainer's checkout of this plugin** (it changes the plugin), not a product repo. The plugin maintainer reviews the diff, commits, pushes, opens the pull request, merges and tags — the plugin maintainer owns this plugin's releases. The owner's words (`owner`) outrank a PM's (`pm`) in every verdict below.",
-  "The review is the uncommitted diff — the plugin maintainer reviews it before it ships, so an edit they disagree with is reverted first.\n\nRun this **from the plugin maintainer's checkout of this plugin** (it changes the plugin), not a product repo. The lead `commit`s locally on the branch; the PM bot reviews the proof, pushes and opens the pull request; the plugin maintainer merges after CI (`verify`) passes and `tag`s this plugin's releases (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*). The owner's words (`owner`) outrank a PM's (`pm`) in every verdict below.",
+  LEARN_INTRO_AFTER,
   "review PR21: learn intro matches kru-lead Who acts at the door",
 ))
 EDITS.push(E(
@@ -491,13 +493,13 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-roster/learn.md",
   "Leave `commit`+`tag` to the user (git rule).",
-  "The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` are the plugin maintainer's after CI (`verify`) passes (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` per `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*.",
   "t6",
 ))
 EDITS.push(E(
   "skills/kru-roster/learn.md",
   "`commit`, push, pull request, merge and `tag` are the plugin maintainer's (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*).",
-  "The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` are the plugin maintainer's after CI (`verify`) passes (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` per `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*.",
   "review PR21: learn §5 hand-off matches kru-lead Who acts at the door",
 ))
 EDITS.push(E(
@@ -1444,7 +1446,7 @@ EDITS.push(E(
 EDITS.push(E(
   "ROSTER.md",
   "5. `bash scripts/verify.sh` passes (`PORTING.md` — the verify gate at the top), then `git add -A && git commit && git tag vX.Y.Z`.",
-  "5. `bash scripts/verify.sh` passes (`PORTING.md` — the verify gate at the top), then `git add -A && git commit` on the branch (the lead, when the PM asks); the PM bot pushes and opens the pull request; merge and `tag vX.Y.Z` are the plugin maintainer's after CI (`verify`) — `skills/kru-roster/release.md`.",
+  "5. `bash scripts/verify.sh` passes (`PORTING.md` — the verify gate at the top), then `git add -A && git commit` on the branch (the lead); the PM bot pushes and opens the pull request; merge and `tag vX.Y.Z` per `skills/kru-lead/SKILL.md` → *Who acts at the door* and `skills/kru-roster/release.md`.",
   "review PR21: git row matches release.md and kru-lead Who acts at the door",
 ))
 EDITS.push(E(
@@ -1456,18 +1458,26 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-roster/hire.md",
   "Report the new seat + its boundary. Leave `commit`+`tag` to the user unless they asked (git rule). Then route work to the seat.",
-  "Report the new seat + its boundary. The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` wait on the plugin maintainer after CI (`verify`) passes (`skills/kru-lead/SKILL.md` → *Who acts at the door*). Then route work to the seat.",
+  "Report the new seat + its boundary. Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*. Then route work to the seat.",
   "review PR21: hire hand-off matches kru-lead Who acts at the door",
 ))
 EDITS.push(E(
   "skills/kru-roster/author.md",
   "Leave commit/tag to the user (git rule).",
-  "The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` wait on the plugin maintainer after CI (`verify`) passes (`skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*.",
   "review PR21: author hand-off matches kru-lead Who acts at the door",
 ))
 EDITS.push(E(
   "skills/kru-roster/retire.md",
   "Leave commit/tag to the user (git rule).",
-  "The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` wait on the plugin maintainer after CI (`verify`) passes (`skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*.",
   "review PR21: retire hand-off matches kru-lead Who acts at the door",
+))
+
+// --- review PR21: canonical door spec (skills/kru-lead/SKILL.md → Who acts at the door) ---
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "**Who acts at the door.** You commit locally and return proof; the push is not yours. The PM bot\nreviews the proof, pushes the branch and opens the pull request. Merging, tagging, releasing,\ndeploying, publishing and any message outside the team wait for the owner — except this plugin's own releases,\nwhich the plugin maintainer merges and tags. A bug or want on the work tracker (GitHub issues, or Linear when the repo has opted in) is internal\ntracking, not a message outside the team (first section). Pull requests stay on GitHub either way: the body\ncarries the line `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` prints. Most product repos are public, so the PM bot reads the\nrepo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local\nuntil the owner OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR and off Linear. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` started through the GitHub API, the workflow creating the tag on its\njob token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.",
+  '**Who acts at the door.** **Ordinary work** — review fixes, hire, author, retire, requester ships, ports: the lead `commit`s on the branch and returns proof; the lead never pushes and never waits for a PM ask (headless runs do not wait). The PM bot reviews the proof, pushes the branch and opens the pull request. **`/kru-roster learn` only:** the sweep leaves the diff uncommitted; the plugin maintainer reviews it; then the lead `commit`s when the PM asks; then the PM bot pushes and opens the pull request — "when the PM asks" appears only in learn contexts. **Merge:** in this plugin repo, the plugin maintainer merges after CI (`verify`) passes; in product repos, the owner merges. **Tag:** only when the PM asked for a release, per `skills/kru-roster/release.md`. The maintainer creates and pushes the tag from a checkout that has push rights (`git tag` + `git push origin <tag>`, or `gh release create`). A cloud session that cannot push a tag (403) stops and hands the tag step back to the PM bot with the exact commands. Deploying, publishing and any message outside the team wait for the owner. A bug or want on the work tracker (GitHub issues, or Linear when the repo has opted in) is internal tracking, not a message outside the team (first section). Pull requests stay on GitHub either way: the body carries the line `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh" link --id <id>` prints. Most product repos are public, so the PM bot reads the repo\'s visibility (`gh repo view --json visibility`) before a push. A security fix stays local until the owner OKs it, then ships through a GitHub security advisory\'s temporary private fork, published on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays in `issues/`, off the PR and off Linear.',
+  "review PR21: canonical Who acts at the door (migration)",
 ))

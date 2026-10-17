@@ -9,9 +9,10 @@ The roles below are the ones defined in `skills/kru-lead/SKILL.md` (first paragr
 
 | step | who |
 |---|---|
-| the version bump commit, local, with `bash scripts/verify.sh` green | the lead, in Cursor, on the PM's ask |
+| the version bump commit, local, with `bash scripts/verify.sh` green | the lead, in Cursor (`skills/kru-lead/SKILL.md` → *Who acts at the door*) |
 | push, open pull request | the PM bot — reviews the lead's proof, pushes the branch, opens the pull request |
-| merge, tag | the plugin maintainer — merges after CI (`verify`) passes and tags this plugin's releases |
+| merge | the plugin maintainer in this plugin repo after CI (`verify`) passes; the owner in product repos (`skills/kru-lead/SKILL.md` → *Who acts at the door*) |
+| tag | the plugin maintainer — only when the PM asked for a release; `git tag` + `git push origin <tag>` or `gh release create` from a checkout with push rights; a cloud session that gets 403 on tag push stops and hands the exact commands to the PM bot |
 | resubmitting to Cursor's marketplace, or making the repo public for it | the owner: anything public or live goes to the owner. The lead reports to the PM, which carries this to the owner |
 | a Teams marketplace, the Cursor GitHub App, any new outside account | the owner decides (money, outside services); ops sets the account up |
 
@@ -36,8 +37,8 @@ disagree.
    `.cursor-plugin/plugin.json`. Commit `release: v<VERSION>` with a short list of what changed
    for someone using the plugin since the last tag (`git log v<last>..HEAD --oneline`).
 2. **Merge.** The PM bot pushes and opens the pull request. The plugin maintainer checks CI (`verify`) and merges.
-3. **Tag** the merge commit on `main` with `v` + `VERSION`
-   (`git tag -a "v$(cat VERSION)" -m "kru-cursor $(cat VERSION)"`) and push the tag. Upstream's own tags (`v0.150.0`) live in the same repo; the `+kru` suffix keeps
+3. **Tag** (only when the PM asked for a release) the merge commit on `main` with `v` + `VERSION`
+   (`git tag -a "v$(cat VERSION)" -m "kru-cursor $(cat VERSION)"` then `git push origin "v$(cat VERSION)"`, or `gh release create`). No workflow creates the tag — the maintainer pushes it from a checkout with push rights; a cloud session that cannot push a tag (403) stops and hands the exact commands to the PM bot. Upstream's own tags (`v0.150.0`) live in the same repo; the `+kru` suffix keeps
    the fork's apart.
 4. **Ship it to Cursor** — one of the two channels below. Pushing to `main` alone changes nothing
    for anyone who installed from a marketplace.
