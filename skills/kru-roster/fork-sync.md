@@ -59,6 +59,12 @@ The plugin maintainer reviews this pull request, and merges and tags this plugin
   decide whether the change applies to Cursor and mirror it in the fork's copy on the same branch.
 - **Known gaps.** A new upstream feature that names a Claude Code surface Cursor lacks shows in the
   port's *surfaces cursor lacks* count; record it in `PORTING.md` → *Known gaps*.
+- **Merge with a merge commit** (`gh pr merge --merge`), never squash or rebase. Squash drops
+  upstream as a parent while `VERSION` still names the new kru release; `verify.sh` then fails
+  (fresh port, sync tests, and the tree version check). The weekly sync script already records
+  upstream with `git merge -s ours`; a hand port pull request needs the same shape — either run
+  `bash scripts/sync-upstream.sh` on a branch, or finish with `git merge -s ours --no-ff
+  <upstream-sha>` so history carries upstream's commit without changing the ported tree.
 - Merge, then cut a release when it should reach users (`release.md`).
 
 ## When the port fails (the issue)
