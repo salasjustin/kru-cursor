@@ -40,7 +40,7 @@ mkdir -p "$plugins/pstack/skills/pstack-beta" "$plugins/pstack/skills/shared" \
 printf 'kru alpha\n' > "$kru/skills/kru-alpha/SKILL.md"
 printf 'kru shared\n' > "$kru/skills/shared/SKILL.md"
 printf 'not a skill\n' > "$kru/skills/not-a-skill/README.md"
-printf 'kru lead\n' > "$kru/agents/lead.md"
+printf '%s\n' '---' 'name: kru-lead' '---' 'kru lead' > "$kru/agents/lead.md"
 printf 'notes\n' > "$kru/agents/notes.txt"
 printf 'pstack beta\n' > "$plugins/pstack/skills/pstack-beta/SKILL.md"
 printf 'pstack shared\n' > "$plugins/pstack/skills/shared/SKILL.md"
@@ -65,12 +65,16 @@ printf '# keep me\n*.tmp\n' > "$target/.git/info/exclude"
 gitignore_before=$(sha256sum "$target/.gitignore" | awk '{print $1}')
 
 cache="$sandbox/cache"
+mkdir -p "$sandbox/home/.cursor/agents"
+printf '%s\n' '---' 'name: kru-lead' '---' 'stale lead' > "$sandbox/home/.cursor/agents/lead.md"
+printf '%s\n' '---' 'name: local-helper' '---' 'user helper stays' > "$sandbox/home/.cursor/agents/helper.md"
 run_install() {
   local dir=$1
   shift
   (
     cd "$dir"
     cat "$script" | env \
+      HOME="$sandbox/home" \
       KRU_CLOUD_SKILLS_CACHE="$cache" \
       KRU_CLOUD_SKILLS_KRU_URL="$kru" \
       KRU_CLOUD_SKILLS_PLUGINS_URL="$plugins" \
@@ -82,10 +86,16 @@ out=$(run_install "$sandbox" "$target" 2>"$sandbox/err1")
 code=$?
 report "piped run exits 0" "$([ "$code" = 0 ] && echo yes || echo no)" "exit $code; $(cat "$sandbox/err1")"
 report "summary names the target" "$(printf '%s' "$out" | grep -q "cloud-skills: 3 skills, 2 agents -> $target" && echo yes || echo no)" "$out"
+report "lists the kru seat" "$(printf '%s\n' "$out" | grep -qx 'registered subagents: kru-lead' && echo yes || echo no)" "$out"
 report "kru skill copied" "$([ "$(cat "$target/.claude/skills/kru-alpha/SKILL.md")" = "kru alpha" ] && echo yes || echo no)" "missing kru-alpha"
 report "pstack skill copied" "$([ "$(cat "$target/.claude/skills/pstack-beta/SKILL.md")" = "pstack beta" ] && echo yes || echo no)" "missing pstack-beta"
 report "kru wins the shared skill" "$([ "$(cat "$target/.claude/skills/shared/SKILL.md")" = "kru shared" ] && echo yes || echo no)" "$(cat "$target/.claude/skills/shared/SKILL.md" 2>/dev/null)"
-report "kru wins the shared agent" "$([ "$(cat "$target/.claude/agents/lead.md")" = "kru lead" ] && echo yes || echo no)" "$(cat "$target/.claude/agents/lead.md" 2>/dev/null)"
+report "kru wins the shared agent" "$([ "$(cat "$target/.claude/agents/lead.md")" = "$(cat "$kru/agents/lead.md")" ] && echo yes || echo no)" "$(cat "$target/.claude/agents/lead.md" 2>/dev/null)"
+report "home agent installed" "$([ "$(cat "$sandbox/home/.cursor/agents/lead.md")" = "$(cat "$kru/agents/lead.md")" ] && echo yes || echo no)" "$(cat "$sandbox/home/.cursor/agents/lead.md" 2>/dev/null)"
+report "home kru-* agent is replaced" "$(grep -q 'kru lead' "$sandbox/home/.cursor/agents/lead.md" && ! grep -q 'stale lead' "$sandbox/home/.cursor/agents/lead.md" && echo yes || echo no)" "$(cat "$sandbox/home/.cursor/agents/lead.md" 2>/dev/null)"
+report "home agent whose name is not kru-* is left untouched" "$([ "$(cat "$sandbox/home/.cursor/agents/helper.md")" = "$(printf '%s\n' '---' 'name: local-helper' '---' 'user helper stays')" ] && echo yes || echo no)" "$(cat "$sandbox/home/.cursor/agents/helper.md" 2>/dev/null)"
+report "home skip warns" "$(grep -q 'leaving home agent helper.md (name is not kru-\*)' "$sandbox/err1" && echo yes || echo no)" "$(cat "$sandbox/err1")"
+report "home copy includes a tracked repo agent" "$([ "$(cat "$sandbox/home/.cursor/agents/kept.md")" = "pstack kept" ] && echo yes || echo no)" "$(cat "$sandbox/home/.cursor/agents/kept.md" 2>/dev/null)"
 report "pstack agent copied" "$([ "$(cat "$target/.claude/agents/helper.md")" = "pstack helper" ] && echo yes || echo no)" "missing helper"
 report "tracked skill skipped" "$([ "$(cat "$target/.claude/skills/foo/SKILL.md")" = "tracked foo" ] && echo yes || echo no)" "$(cat "$target/.claude/skills/foo/SKILL.md")"
 report "tracked agent skipped" "$([ "$(cat "$target/.claude/agents/kept.md")" = "tracked kept" ] && echo yes || echo no)" "$(cat "$target/.claude/agents/kept.md")"
@@ -120,6 +130,7 @@ status2=$(git -C "$target" status --porcelain)
 report "second run exits 0" "$([ "$code2" = 0 ] && echo yes || echo no)" "exit $code2; $(cat "$sandbox/err2")"
 report "second run is idempotent" "$([ "$before" = "$after" ] && echo yes || echo no)" "tree hash $before -> $after"
 report "second run leaves git status clean" "$([ -z "$status2" ] && echo yes || echo no)" "$status2"
+report "second run still leaves the non-kru home agent" "$([ "$(cat "$sandbox/home/.cursor/agents/helper.md")" = "$(printf '%s\n' '---' 'name: local-helper' '---' 'user helper stays')" ] && echo yes || echo no)" "$(cat "$sandbox/home/.cursor/agents/helper.md" 2>/dev/null)"
 report "no-arg run from a subdir uses the toplevel" "$(printf '%s' "$out2" | grep -F -q -- "-> $target " && echo yes || echo no)" "$out2"
 
 printf 'kru shared v2\n' > "$kru/skills/shared/SKILL.md"
@@ -140,13 +151,14 @@ commit_repo "$offline_target" "init"
 offline_out=$(
   cd "$sandbox"
   cat "$script" | env \
+    HOME="$sandbox/offline-home" \
     KRU_CLOUD_SKILLS_CACHE="$offline_cache" \
     KRU_CLOUD_SKILLS_KRU_URL="https://127.0.0.1:9/kru.git" \
     KRU_CLOUD_SKILLS_PLUGINS_URL="https://127.0.0.1:9/plugins.git" \
     bash -s -- "$offline_target" 2>"$sandbox/offline.err"
 )
 offline_code=$?
-report "offline run exits 0" "$([ "$offline_code" = 0 ] && echo yes || echo no)" "exit $offline_code; $offline_out"
+report "offline kru clone exits non-zero" "$([ "$offline_code" != 0 ] && echo yes || echo no)" "exit $offline_code; $offline_out"
 report "offline run warns" "$(grep -q 'cloud-skills:' "$sandbox/offline.err" && echo yes || echo no)" "$(cat "$sandbox/offline.err")"
 report "offline run leaves the checkout alone" \
   "$([ "$(cat "$offline_target/.claude/skills/foo/SKILL.md")" = "tracked foo" ] && [ ! -e "$offline_target/.claude/skills/shared" ] && echo yes || echo no)" \
@@ -159,6 +171,7 @@ git -C "$shell_repo" commit -q --allow-empty -m init
 shell_out=$(
   cd /tmp
   cat "$script" | env SHELLOPTS=errexit:pipefail:nounset \
+    HOME="$sandbox/home" \
     KRU_CLOUD_SKILLS_CACHE="$cache" \
     KRU_CLOUD_SKILLS_KRU_URL="$kru" \
     KRU_CLOUD_SKILLS_PLUGINS_URL="$plugins" \
@@ -172,6 +185,57 @@ report "piped SHELLOPTS run exits 0" \
 report "piped SHELLOPTS run copies a skill and stays clean" \
   "$([ "$(cat "$shell_repo/.claude/skills/shared/SKILL.md" 2>/dev/null)" = "kru shared v2" ] && [ -z "$shell_status" ] && echo yes || echo no)" \
   "status [$shell_status]; $shell_out"
+
+# kru checkout is good and the plugins clone fails. seats from kru still land,
+# and the run is green only because a kru-* agent is on disk.
+mkdir -p "$sandbox/not-a-git"
+pf_target="$sandbox/pf-repo"
+pf_home="$sandbox/pf-home"
+mkdir -p "$pf_target"
+init_repo "$pf_target"
+git -C "$pf_target" commit -q --allow-empty -m init
+pf_out=$(
+  cd "$sandbox"
+  cat "$script" | env \
+    HOME="$pf_home" \
+    KRU_CLOUD_SKILLS_CACHE="$sandbox/pf-cache" \
+    KRU_CLOUD_SKILLS_KRU_URL="$kru" \
+    KRU_CLOUD_SKILLS_PLUGINS_URL="$sandbox/not-a-git" \
+    bash -s -- "$pf_target" 2>"$sandbox/pf.err"
+)
+pf_code=$?
+report "kru ok + plugins fail exits 0" "$([ "$pf_code" = 0 ] && echo yes || echo no)" "exit $pf_code; $(cat "$sandbox/pf.err"); $pf_out"
+report "kru ok + plugins fail warns and continues" "$(grep -q 'installing kru seats without pstack' "$sandbox/pf.err" && echo yes || echo no)" "$(cat "$sandbox/pf.err")"
+report "kru ok + plugins fail copies the kru skill" "$([ "$(cat "$pf_target/.claude/skills/kru-alpha/SKILL.md" 2>/dev/null)" = "kru alpha" ] && echo yes || echo no)" "$(find "$pf_target/.claude" -type f -print 2>/dev/null)"
+report "kru ok + plugins fail copies the kru agent" "$([ "$(cat "$pf_target/.claude/agents/lead.md" 2>/dev/null)" = "$(cat "$kru/agents/lead.md")" ] && echo yes || echo no)" "$(cat "$pf_target/.claude/agents/lead.md" 2>/dev/null)"
+report "kru ok + plugins fail copies the home agent" "$([ "$(cat "$pf_home/.cursor/agents/lead.md" 2>/dev/null)" = "$(cat "$kru/agents/lead.md")" ] && echo yes || echo no)" "$(cat "$pf_home/.cursor/agents/lead.md" 2>/dev/null)"
+report "kru ok + plugins fail lists the kru seat" "$(printf '%s\n' "$pf_out" | grep -qx 'registered subagents: kru-lead' && echo yes || echo no)" "$pf_out"
+report "kru ok + plugins fail skips pstack" "$([ ! -e "$pf_target/.claude/skills/pstack-beta" ] && echo yes || echo no)" "$(find "$pf_target/.claude" -type f -print 2>/dev/null)"
+
+printf '%s\n' '---' 'name: helper' '---' 'not a kru seat' > "$kru/agents/lead.md"
+commit_repo "$kru" "no kru seat"
+missing_out=$(run_install "$target" 2>"$sandbox/err-missing")
+missing_code=$?
+report "missing kru seat exits non-zero" "$([ "$missing_code" != 0 ] && echo yes || echo no)" "exit $missing_code; $missing_out"
+report "missing kru seat names the failure" "$(grep -q 'no kru seat' "$sandbox/err-missing" && echo yes || echo no)" "$(cat "$sandbox/err-missing")"
+
+# plugins failed and the kru checkout has no kru-* name. that must not exit 0.
+nk_target="$sandbox/nk-repo"
+mkdir -p "$nk_target"
+init_repo "$nk_target"
+git -C "$nk_target" commit -q --allow-empty -m init
+nk_out=$(
+  cd "$sandbox"
+  cat "$script" | env \
+    HOME="$sandbox/nk-home" \
+    KRU_CLOUD_SKILLS_CACHE="$sandbox/nk-cache" \
+    KRU_CLOUD_SKILLS_KRU_URL="$kru" \
+    KRU_CLOUD_SKILLS_PLUGINS_URL="$sandbox/not-a-git" \
+    bash -s -- "$nk_target" 2>"$sandbox/nk.err"
+)
+nk_code=$?
+report "plugins fail with no kru seat exits non-zero" "$([ "$nk_code" != 0 ] && echo yes || echo no)" "exit $nk_code; $nk_out; $(cat "$sandbox/nk.err")"
+report "plugins fail with no kru seat names the failure" "$(grep -q 'no kru seat' "$sandbox/nk.err" && echo yes || echo no)" "$(cat "$sandbox/nk.err")"
 
 printf 'cloud-skills tests: %d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

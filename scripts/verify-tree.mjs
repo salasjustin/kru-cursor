@@ -287,6 +287,91 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
   if (/\^tools:/.test(gate)) fail("seats", "hooks/check-handoff.sh still reads a tools: line, which no ported seat has")
 }
 
+// --- dispatch names -----------------------------------------------------------------------
+// agents/<seat>.md declares name: kru-<seat>. The lead, the gates, and the
+// roster have to send that string as the Task subagent_type. A bare seat name
+// there is how a cloud agent does the seat's work itself.
+{
+  const lead = read("skills/kru-lead/SKILL.md")
+  const need = [
+    "subagent_type",
+    "kru-<seat>",
+    "Try the call. If the Task tool rejects `kru-<seat>` or does not offer it, report the types it offered and stop.",
+    "do not decide that from a directory listing.",
+    "the list does not depend on file type",
+    "A typo or a comment in a CSS, component, route, or test file is still on this list.",
+    "Lead-owned work is not that list",
+    "No covering seat: report and stop.",
+    "Until that seat exists, report and stop on the slice.",
+    "a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement after the loop closed",
+    "only deeper nesting can't",
+  ]
+  for (const s of need) if (!lead.includes(s)) fail("dispatch", `skills/kru-lead/SKILL.md is missing: ${s}`)
+  if (lead.includes("subagents can't spawn subagents"))
+    fail("dispatch", "skills/kru-lead/SKILL.md still says subagents can't spawn subagents")
+  if (lead.includes("fully specified and checkable inline")) fail("dispatch", "the inline exception is still open")
+  if (lead.includes("on the seat's skills")) fail("dispatch", "inline work still offers the seat's skills")
+  if (lead.includes("any CSS/component/route/test change is dispatched")) fail("dispatch", "file type still overrides the closed inline list")
+  if (lead.includes("the general path")) fail("dispatch", "a slice with no seat still offers the general path")
+  if (lead.includes("config tweak")) fail("dispatch", "inline still names a config tweak")
+  if (lead.includes("If that list has no")) fail("dispatch", "the stop still keys off a directory list")
+  const rule = read("rules/kru-lead.mdc")
+  if (!rule.includes("report the types it offered and stop"))
+    fail("dispatch", "rules/kru-lead.mdc does not stop on Task rejection")
+  if (!rule.includes("does not depend on file type"))
+    fail("dispatch", "rules/kru-lead.mdc does not keep the closed list independent of file type")
+  if (!rule.includes("Lead-owned"))
+    fail("dispatch", "rules/kru-lead.mdc does not list lead-owned work")
+  if (!rule.includes("a reviewer's exact replacement after the loop closed"))
+    fail("dispatch", "rules/kru-lead.mdc lacks the loop-closed timing on a reviewer's exact replacement")
+  if (rule.includes("Anything not on that list is dispatched"))
+    fail("dispatch", "rules/kru-lead.mdc says anything off the inline list is dispatched, which includes lead-owned work")
+  const ownedStart = lead.indexOf("**Lead-owned work is not that list")
+  const ownedEnd = lead.indexOf("\n\n**No covering seat:")
+  const owned = ownedStart >= 0 && ownedEnd > ownedStart ? lead.slice(ownedStart, ownedEnd) : ""
+  if (!owned) fail("dispatch", "skills/kru-lead/SKILL.md has no lead-owned paragraph")
+  else if (!rule.includes(owned)) fail("dispatch", "rules/kru-lead.mdc does not match the skill's lead-owned paragraph")
+  if (!rule.includes("Do not implement it"))
+    fail("dispatch", "rules/kru-lead.mdc still lets a slice with no seat be implemented")
+  const passes = read("skills/kru-lead/references/screen-passes.md")
+  if (!passes.includes("They are lead-owned"))
+    fail("dispatch", "screen-passes.md does not list the user-named passes as lead-owned")
+  const gates = read("skills/kru-lead/references/gates.md")
+  if (!gates.includes("the comment pass stays lead-owned"))
+    fail("dispatch", "gates.md does not list the comment pass as lead-owned")
+  if (!gates.includes("a scoped test-count check is lead-owned"))
+    fail("dispatch", "gates.md does not list the scoped test-count check as lead-owned")
+  if (read("references/routing.md").includes("the general path only on their say-so"))
+    fail("dispatch", "routing.md still sends an uncovered slice down the general path")
+  if (read("SOURCES.md").includes("use the general path"))
+    fail("dispatch", "SOURCES.md still sends an uncovered stack down the general path")
+  // `spawn \`kru-<seat>\`` is one shape. The screen passes name the same seats
+  // as `— \`kru-accessibility-reviewer\`` and `and \`kru-visual-reviewer\``.
+  // Every backtick kru-* name in gates.md has to be a real agent, and a bare
+  // seat in backticks is the Task name with the prefix dropped.
+  const named = new Set()
+  for (const m of gates.matchAll(/`kru-([a-z0-9-]+)`/gi)) named.add(m[1])
+  for (const seat of ["accessibility-reviewer", "visual-reviewer"]) {
+    if (!named.has(seat)) fail("dispatch", `gates.md does not name kru-${seat}`)
+  }
+  for (const seat of named) {
+    if (!seats.includes(seat)) fail("dispatch", `gates.md names kru-${seat}, which has no agents/${seat}.md`)
+  }
+  for (const seat of seats) {
+    if (new RegExp("(?<!kru-)`" + seat + "`", "i").test(gates))
+      fail("dispatch", `gates.md names \`${seat}\`; the Task subagent_type is kru-${seat}`)
+  }
+  for (const seat of seats) {
+    const fm = agentFm.get(seat)
+    const description = String(fm?.description ?? "")
+    if (!description.includes("Use proactively")) fail("dispatch", `agents/${seat}.md description is missing "Use proactively"`)
+    if (!description.includes(`kru-${seat}`)) fail("dispatch", `agents/${seat}.md description does not name kru-${seat}`)
+  }
+  const roster = read("ROSTER.md")
+  if (!roster.includes("Task `subagent_type` is `kru-<seat>`"))
+    fail("dispatch", "ROSTER.md does not say the Task subagent_type is kru-<seat>")
+}
+
 // --- leftover claude-code vocabulary --------------------------------------------------------------------
 // files that name claude's surfaces on purpose: the fork's own docs and
 // checks, and the update skill's claude release ledger (PORTING.md → Known gaps)
@@ -312,7 +397,7 @@ for (const f of files) {
 // the plugin, which the adapter translates, so those lines are not leftovers
 
 // --- report -----------------------------------------------------------------------------------------------
-const CHECKS = ["manifest", "frontmatter", "json/yaml", "hooks", "version", "seats", "claude leftovers"]
+const CHECKS = ["manifest", "frontmatter", "json/yaml", "hooks", "version", "seats", "dispatch", "claude leftovers"]
 const detail = {
   manifest: `${manifest.name}@${manifest.version} · marketplace.json · logo ${manifest.logo}`,
   frontmatter: `${agentFiles.length} agents · ${skillFiles.length} skills · ${ruleFiles.length} rules · ${commandFiles.length} commands`,
@@ -320,6 +405,7 @@ const detail = {
   hooks: `${Object.values(hooks.hooks ?? {}).flat().length} hooks on ${Object.keys(hooks.hooks ?? {}).length} events`,
   version: read("VERSION").trim(),
   seats: `${seats.length} seats · ${READ_ONLY.length} readonly · ${STORE_WRITERS.length} store writers guarded`,
+  dispatch: "Task subagent_type kru-<seat> · closed inline list · Use proactively",
   "claude leftovers": `${SCANS.length} patterns`,
 }
 for (const n of notes) console.log(`note ${n}`)

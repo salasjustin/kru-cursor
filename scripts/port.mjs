@@ -782,8 +782,13 @@ function portAgents() {
       problems.push(`agents/${seat}.md: no frontmatter`)
       continue
     }
-    const description = unquote(value(get(fm, "description")))
+    // Cursor delegates from the description. "Use proactively" is the phrase the
+    // Task tool hints on (cursor.com/docs/subagents → Automatic delegation).
+    // Idempotent: a fresh upstream file gains it once; a second port leaves it.
+    let description = unquote(value(get(fm, "description")))
     if (!description) problems.push(`agents/${seat}.md: no description`)
+    else if (!description.includes("Use proactively"))
+      description = `${description.replace(/\s+$/, "")} Use proactively for this seat's stack; dispatch it with the Task tool as kru-${seat}.`
     // upstream spells the allowlist `tools:`; a ported tree spells the result as
     // `readonly`. upstream wins when a merge brings the tools line back.
     const tools = value(get(fm, "tools"))
@@ -1077,7 +1082,21 @@ function portHooks(noEdit) {
 // the second carries the setup nudge, which upstream sends from sessionStart
 // and a cloud agent never runs. the PR babysit loop is the one procedure this
 // rule carries: a cloud agent follows it on every wake, and the skill only points.
+// the skill's lead-owned paragraph, copied after the fork edits have applied,
+// so the always-on rule cannot paraphrase it into "anything else is dispatched".
+function leadOwnedParagraph() {
+  const skill = readF(join(ROOT, "skills", "kru-lead", "SKILL.md")) ?? ""
+  const start = skill.indexOf("**Lead-owned work is not that list")
+  const end = skill.indexOf("\n\n**No covering seat:")
+  if (start < 0 || end <= start) {
+    problems.push("skills/kru-lead/SKILL.md has no lead-owned paragraph for rules/kru-lead.mdc")
+    return ""
+  }
+  return skill.slice(start, end)
+}
+
 function portRules(version) {
+  const owned = leadOwnedParagraph()
   const lead = [
     "---",
     "description: kru — load the kru-lead skill before building, reviewing or dispatching a seat; how seats and commands are named",
@@ -1088,7 +1107,11 @@ function portRules(version) {
     "This workspace has **kru** installed: an engineering team of specialist subagents run by a lead.",
     "",
     "- **Before building, reviewing or dispatching any seat, load the `kru-lead` skill** (`/kru-lead`) and follow it — it is the contract the whole team runs on. A triage or config turn that only reads needs nothing.",
-    "- Seats are custom subagents: dispatch one with the Task tool as `kru-<seat>` (`kru-code-reviewer`, `kru-react-ui-builder`). Prose names them bare (`code-reviewer`).",
+    "- Seats are custom subagents. Dispatch is a Task tool call with `subagent_type` `kru-<seat>` (`kru-code-reviewer`, `kru-react-ui-builder`), the `name:` in `agents/<seat>.md`. Never do that seat's work in the main thread. Try the call. If the Task tool rejects `kru-<seat>` or does not offer it, report the types it offered and stop. Do not do the seat's work inline, and do not decide that from a directory listing. The closed inline list does not depend on file type. Only these edits run in the main thread: a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement after the loop closed. A typo or a comment in a CSS, component, route, or test file is still on this list. A behavior, CSS, component, route, or test change that is not on this list is dispatched.",
+    "",
+    owned,
+    "",
+    "- A slice no seat covers: report and stop. Do not implement it.",
     "- The PM is the bot or person that briefed this session; the owner approves hard-to-reverse calls (the `kru-lead` skill says what reaches the owner). The PM bot's own operating rules govern escalation and approval; the plugin's generic default applies only when the PM has none.",
     "- Team skills are `kru-<name>` (`kru-testing`), and the PM's commands are `/kru-<name>` (`/kru-brief`, `/kru-setup`).",
     "- The install dir is `${CURSOR_PLUGIN_ROOT}`; the store resolver is `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\"`.",

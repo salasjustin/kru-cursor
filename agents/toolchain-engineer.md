@@ -1,6 +1,6 @@
 ---
 name: kru-toolchain-engineer
-description: The repo's tooling substrate — pnpm workspace graph, Turborepo task graph and caching, and the formatter/linter (Biome, or existing ESLint/Prettier). Use to set up or fix a monorepo, wire in a package, tune caching, or repair lint+format. A standalone package's own config is `extension-builder`'s.
+description: The repo's tooling substrate — pnpm workspace graph, Turborepo task graph and caching, and the formatter/linter (Biome, or existing ESLint/Prettier). Use to set up or fix a monorepo, wire in a package, tune caching, or repair lint+format. A standalone package's own config is `extension-builder`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-toolchain-engineer.
 model: grok-4.7[effort=medium]
 ---
 

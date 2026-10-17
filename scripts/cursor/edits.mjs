@@ -30,6 +30,12 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
+  "in the main thread — you are the orchestrator, not a subagent (subagents can't spawn subagents).",
+  "in the main thread — you are the orchestrator, not a subagent (since Cursor 2.5 a direct subagent can launch children; only deeper nesting can't, [subagents](https://cursor.com/docs/subagents)).",
+  "harness: a direct subagent can launch children; only deeper nesting can't",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
   "You scope, route, delegate, integrate, verify, and report.\n\n**Capture, listing,",
   "You scope, route, delegate, integrate, verify, and report.\n\n**The PM decides; the owner hears only a hard-to-reverse call.** The PM is the bot or person that briefed this session. A PM makes the calls it is handed by default, records why, and keeps going. The PM bot's own operating rules govern escalation and approval. The plugin's generic default applies only when the PM has none: escalate to the owner only a call that is hard to reverse or reaches outside the team — money (billing, pricing, spend), legal or compliance (terms, privacy, licensing), user impact (a change customers, clients or users need a heads-up about), security or data exposure, anything public or live, product direction (a change of direction or strategy), and any new outside account or service, free trials included. The owner decides that last one, and the account setup itself goes through ops. A call that fits none of these but would be costly to guess wrong goes to the owner too. Everything else the PM answers, including your grill. **Not an escalation:** a bug or want on the work tracker is internal tracking — GitHub issues on the product repo, or Linear when `KRU_TRACKER=linear` (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`) — public repo or not. The lead files it itself at Step 4.5, the PM bot through `/kru-issue` and `/kru-todo` (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*). A security finding goes to Linear when the tracker is Linear, internal to the team. bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand. It never goes to a public GitHub issue; on GitHub it stays in the store's `issues/` or a GitHub private security advisory.\n\n**Capture, listing,",
   "t1: the escalation default, one source the other files point at",
@@ -281,7 +287,7 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
   "their findings merge into the same fix list as `code-reviewer`'s, and the user's eye above remains the gate.",
-  "their findings merge into the same fix list as `code-reviewer`'s, and the PM bot's eye above remains the gate.",
+  "their findings merge into the same fix list as `kru-code-reviewer`'s, and the PM bot's eye above remains the gate.",
   "t4",
 ))
 EDITS.push(E(
@@ -1009,6 +1015,165 @@ EDITS.push(E(
   "## Non-goals\n- explicitly out of scope, so a builder doesn't drift into it\n\n## Open questions\n- only when the user cut the grill short: the product calls still unanswered\n\n## Done when\n- [ ] the end-to-end behaviour that must work\n```",
   "## Non-goals\n- explicitly out of scope, so a builder doesn't drift into it\n\n## Tracker\n- <planned item> — <#12 or TEAM-123 when filed>\n- <planned item with no issue yet>\n\n## Open questions\n- only when the user cut the grill short: the product calls still unanswered\n\n## Done when\n- [ ] the end-to-end behaviour that must work\n```\n\n**Issue ids live in the brief; status lives on the tracker.** `## Tracker` is one bullet per planned item, the id at the end (`#12`, or a Linear identifier such as `BG-41`) when an issue exists, and no status. The issue links back: its body contains `Brief: plan/<effort>/brief.md`. A re-run of `/kru-brief` lists that effort's issues — `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" list-effort --brief plan/<effort>/brief.md`, or Linear MCP `list_issues` with that path as `query`, `limit` 250, following `cursor` until the pages end, completed and canceled included — then `node \"${CURSOR_PLUGIN_ROOT}/scripts/brief-drift.mjs\"` flags drift: an id that does not exist or does not link back, an issue that links here and is not listed, including a canceled one, a done issue the brief never planned (a canceled issue is never that), a planned bullet with no id. `show` exit 1 with the text `no such issue` is an id that does not exist; exit 5 or any other failure stops the re-run instead of calling the id missing. The report stays local. A later file or update still follows *Tracker text*.",
   "brief drift: the brief template stores ids and the contract",
+))
+
+// --- dispatch: Task subagent_type is kru-<seat> ------------------------
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "## Delegate on stack, not size\nA specialist's value is its official-source discipline \u2014 Svelte MCP and its autofixer, Better Auth's\nCLI schema, Next's cache semantics, parameterized SQL \u2014 not lines of code. A change routes to its\nstack's seat whenever getting it right needs that seat's source chain \u2014 its MCP, autofixer, CLI \u2014\nhowever small it is; a change fully specified and checkable inline (a reviewer's exact replacement\nafter the loop closed, a version pin) runs inline, on the seat's skills (below). A stack's own config file is that stack (`turbo.json`,\n`wrangler.jsonc`, `fly.toml` go to their seats), and a red or flaky suite no build is running is\n`test-writer`'s, however small the fix looks. A question with no code to write routes too when a\nseat owns the answer: where a seam goes is `architecture-reviewer`'s, even answered in prose.\nImplement inline for the genuinely stack-agnostic: a typo, a rename, a string the user dictates, a\ncomment, docs. Rewording a screen people find confusing is judgment, not a string fix, so it is\n`ux-designer`'s. When in doubt, route.\n\nInline work runs on the seat's sources: before the edit, load every skill the definition of the seat\nthat would have taken the job names (`agents/<seat>.md` lists them), so inline work runs on the\nsources the seat would have. Inline work spawns no reviewer, so you are both halves of the gate.\n\n",
+  "## Delegate on stack, not size\nA specialist's value is its official-source discipline \u2014 Svelte MCP and its autofixer, Better Auth's\nCLI schema, Next's cache semantics, parameterized SQL \u2014 not lines of code. A change routes to its\nstack's seat whenever getting it right needs that seat's source chain \u2014 its MCP, autofixer, CLI \u2014\nhowever small it is. A stack's own config file is that stack (`turbo.json`,\n`wrangler.jsonc`, `fly.toml` go to their seats), and a red or flaky suite no build is running is\n`test-writer`'s, however small the fix looks. A question with no code to write routes too when a\nseat owns the answer: where a seam goes is `architecture-reviewer`'s, even answered in prose.\nRewording a screen people find confusing is judgment, not a string fix, so it is\n`ux-designer`'s. When in doubt, route.\n\n**Dispatch is a Task tool call with `subagent_type` `kru-<seat>`.** That string is the seat's `name:` in `agents/<seat>.md` (`kru-code-reviewer`, `kru-react-ui-builder`). Prose may say the bare seat; the Task call uses `kru-<seat>`. Never do that seat's work in the main thread. Try the call. If the Task tool rejects `kru-<seat>` or does not offer it, report the types it offered and stop. Do not do the seat's work inline, and do not decide that from a directory listing.\n\n**Inline is a closed list, and the list does not depend on file type.** Only these edits run in the main thread: a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement after the loop closed. A typo or a comment in a CSS, component, route, or test file is still on this list. A behavior, CSS, component, route, or test change that is not on this list is dispatched. A detailed brief is not fully specified. Before that edit, load every skill the definition of the seat that would have taken the job names (`agents/<seat>.md` lists them), so the closed list still runs on the sources the seat would have. Inline work spawns no reviewer, so you are both halves of the gate.\n\n**Lead-owned work is not that list, and it is not a seat's job done inline.** It stays in the main thread because no seat owns it:\n- a user-named pass with no seat — `/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro`, `/kru-review-animations`, `/kru-improve-animations` — and only when the user names one (`references/screen-passes.md`)\n- the comment pass: read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I (`references/gates.md`). `/review` itself is a background subagent, not this pass\n- a scoped test-count check: run the slice's tests and read the count (`references/gates.md`). A red or flaky suite, a coverage sweep, and a long run are `kru-test-writer`\n\n**No covering seat: report and stop.** Hiring is the PM's. Until a seat exists, that slice stays parked. Do not implement it.\n\n",
+  "dispatch: inline is a closed list; seat work is a Task call",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "each independent unit of work is a **fresh `Task` call** with its own scoped context.",
+  "each independent unit of work is a **fresh `Task` call** with `subagent_type` `kru-<seat>` and its own scoped context. Never do that seat's work in the main thread.",
+  "dispatch: a fresh unit of work names the Task subagent_type",
+))
+EDITS.push(E(
+  "ROSTER.md",
+  "Every specialist follows **official sources first** (`SOURCES.md`).",
+  "Every specialist follows **official sources first** (`SOURCES.md`). Each specialist's Task `subagent_type` is `kru-<seat>`, the `name:` in `agents/<seat>.md`. The bare name in the table is the file stem.",
+  "dispatch: the roster names the Task subagent_type beside the file stem",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "(e.g. `code-reviewer` + `architecture-reviewer`)",
+  "(e.g. `kru-code-reviewer` + `kru-architecture-reviewer`)",
+  "dispatch: the batch example uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "The three seats Block O exempts (`test-writer`, `brand-designer`, `ui-designer`)",
+  "The three seats Block O exempts (`kru-test-writer`, `kru-brand-designer`, `kru-ui-designer`)",
+  "dispatch: Block O names the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "spawn `architecture-reviewer`",
+  "spawn `kru-architecture-reviewer`",
+  "dispatch: spawn uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "spawn `code-reviewer`",
+  "spawn `kru-code-reviewer`",
+  "dispatch: spawn uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "\u2014 `accessibility-reviewer`",
+  "\u2014 `kru-accessibility-reviewer`",
+  "dispatch: the screen pass uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  ") and `visual-reviewer`",
+  ") and `kru-visual-reviewer`",
+  "dispatch: the screen pass uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "as `code-reviewer`'s",
+  "as `kru-code-reviewer`'s",
+  "dispatch: the screen pass uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "or `test-writer`)",
+  "or `kru-test-writer`)",
+  "dispatch: the covering run uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "Spawn `test-writer`",
+  "Spawn `kru-test-writer`",
+  "dispatch: spawn uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "spawn `ux-auditor`",
+  "spawn `kru-ux-auditor`",
+  "dispatch: spawn uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "and `ux-auditor` is the only one",
+  "and `kru-ux-auditor` is the only one",
+  "dispatch: the journey seat uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "every review seat — `code-reviewer`, `architecture-reviewer`, `accessibility-reviewer`, `visual-reviewer`, `ux-auditor` —",
+  "every review seat — `kru-code-reviewer`, `kru-architecture-reviewer`, `kru-accessibility-reviewer`, `kru-visual-reviewer`, `kru-ux-auditor` —",
+  "dispatch: the review-seat list uses the Task name",
+))
+
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "Ambient binds you too on the edits you make inline (a rename, a copy fix, a config tweak): the same comment bar applies, canonical text at `skills/kru-roster/shared-blocks.md` → Block I.",
+  "Ambient binds you too on the closed inline list in *Delegate on stack, not size* (a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement): the same comment bar applies, canonical text at `skills/kru-roster/shared-blocks.md` → Block I.",
+  "dispatch: ambient names the closed inline list",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "**The two screen passes have seats you dispatch, and a set of passes that stay the user's.** `visual-reviewer` and `accessibility-reviewer` are review-only seats you spawn at Step 4; `/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro` and the two animation passes run inline only when the user names one, because each edits work that already exists and each carries taste rather than a rule.",
+  "**The two screen passes have seats you dispatch, and a set of passes that are lead-owned.** `visual-reviewer` and `accessibility-reviewer` are review-only seats you spawn at Step 4; `/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro` and the two animation passes are lead-owned, the list in *Delegate on stack, not size*, and they run in the main thread only when the user names one, because each edits work that already exists and each carries taste rather than a rule. They are not an opening of the closed inline list.",
+  "dispatch: user-named passes are lead-owned",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "Ask it in outcomes — a specialist hired for the phone app, or the team builds it without one this time — and on the answer: mint it (`/kru-roster hire <name>` for a seat, `/kru-roster author <name>` for a skill; roster does the wiring, then route to it), or the general path (Explore conventions + implement, backed by Context7) for this slice, on their say-so.",
+  "Ask it in outcomes — a specialist hired for the phone app — and on the answer mint it (`/kru-roster hire <name>` for a seat, `/kru-roster author <name>` for a skill; roster does the wiring, then route to it). Until that seat exists, report and stop on the slice. Do not implement it, on the PM's say-so or otherwise. That is the same stop as *Delegate on stack, not size*.",
+  "dispatch: no covering seat reports and stops",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/screen-passes.md",
+  "These have no seat and you never dispatch them — they run inline in the main thread when the user names one, on the target they name:",
+  "These have no seat and you never dispatch them. They are lead-owned, the list in `SKILL.md` → *Delegate on stack, not size*: they run in the main thread when the user names one, on the target they name, and that does not open the closed inline list:",
+  "dispatch: user-named passes are lead-owned",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "so **that fork keeps the comment pass yours**: read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I before you call the slice reviewed.",
+  "so **the comment pass stays lead-owned**, the list in `SKILL.md` → *Delegate on stack, not size*: read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I before you call the slice reviewed. `/review` itself is a background subagent, not this pass.",
+  "dispatch: the comment pass is lead-owned",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "Either way, see the counts yourself, from a run scoped to the slice's changes — a builder's \"tests pass\" is a narrative until you have; a full suite runs only when the user asks, and a long run is dispatched, not run inline.",
+  "Either way, a scoped test-count check is lead-owned, the list in `SKILL.md` → *Delegate on stack, not size*: see the counts yourself, from a run scoped to the slice's changes — a builder's \"tests pass\" is a narrative until you have. A full suite runs only when the user asks. A red or flaky suite, a coverage sweep, and a long run are `kru-test-writer`, not this check.",
+  "dispatch: the scoped test-count check is lead-owned",
+))
+EDITS.push(E(
+  "references/routing.md",
+  "| **no specialist matches** | the **user**, naming the seat it would need (*Handling gaps*); the general path only on their say-so |",
+  "| **no specialist matches** | the **PM**, naming the seat it would need (*Handling gaps*); report and stop until that seat exists. Do not implement it |",
+  "dispatch: an uncovered slice reports and stops",
+))
+EDITS.push(E(
+  "SOURCES.md",
+  "Until a dedicated `astro-builder` exists, use the general path + Context7.",
+  "Until a dedicated `astro-builder` exists, report and stop (`skills/kru-lead/SKILL.md` → *Handling gaps*). Context7 is the source that seat would use once hired.",
+  "dispatch: Astro does not take the general path",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "and the full user-owned list:",
+  "and the full lead-owned list:",
+  "dispatch: the screen-pass list is lead-owned",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/screen-passes.md",
+  "## The user's passes",
+  "## The lead-owned passes",
+  "dispatch: the screen-pass heading is lead-owned",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/screen-passes.md",
+  "which is exactly why they stayed the user's when the two screen passes didn't:",
+  "which is exactly why they are lead-owned, and named by the user, when the two screen passes are not:",
+  "dispatch: taste passes stay lead-owned",
 ))
 EDITS.push(E(
   "TRACKER.md",

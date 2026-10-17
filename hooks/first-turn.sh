@@ -35,12 +35,49 @@ fi
 sync=$(printf '%s' "$input" | bash "$plugin_root/hooks/store-sync.sh" start "$plugin_root" 2>/dev/null)
 nudge=$(printf '%s' "$input" | bash "$plugin_root/hooks/setup-nudge.sh" "$plugin_root" 2>/dev/null)
 
+# names on disk. Cursor's plugin loader reads $plugin_root/agents (MODELS.md);
+# project and user agents are the .cursor/.claude/.codex dirs. the list is
+# informational. the stop is a Task call that rejects kru-<seat> or does not
+# offer it (skills/kru-lead/SKILL.md), not this scan, so a plugin install is
+# not told to stop because the three doc dirs are empty.
+front_name() {
+  local line
+  line=$(awk 'BEGIN{fm=0} /^---$/{fm++; if(fm==2) exit; next} fm==1 && /^name:/{sub(/^name:[[:space:]]*/,""); print; exit}' "$1")
+  line=${line#\"}; line=${line%\"}; line=${line#\'}; line=${line%\'}
+  printf '%s' "$line"
+}
+registered_names() {
+  local d f name
+  for d in "$@"; do
+    [ -d "$d" ] || continue
+    for f in "$d"/*.md; do
+      [ -f "$f" ] || continue
+      name=$(front_name "$f")
+      [ -n "$name" ] && printf '%s\n' "$name"
+    done
+  done
+}
+reg_dirs=("$plugin_root/agents" "$PWD/.cursor/agents" "$PWD/.claude/agents" "$PWD/.codex/agents")
+if [ -n "${HOME:-}" ]; then
+  reg_dirs+=("$HOME/.cursor/agents" "$HOME/.claude/agents" "$HOME/.codex/agents")
+fi
+names=$(registered_names "${reg_dirs[@]}" | sort -u)
+kru=$(printf '%s\n' "$names" | grep '^kru-' || true)
+if [ -n "$kru" ]; then
+  seats_msg="Registered subagents: $(printf '%s\n' "$kru" | paste -sd ', ' -)"
+else
+  shown=${names:-none}
+  seats_msg="Registered subagents: ${shown}"
+fi
+seats_sys=""
+
 # both speak claude's sessionStart shape; cursor-hook.sh maps the result
-jq -nc --arg a "$sync" --arg b "$nudge" '
+jq -nc --arg a "$sync" --arg b "$nudge" --arg c "$seats_msg" --arg m "$seats_sys" '
   def j: try fromjson catch {};
   ($a | j) as $s | ($b | j) as $n
-  | ([$s.hookSpecificOutput.additionalContext, $n.hookSpecificOutput.additionalContext] | map(select(. != null and . != "")) | join("\n\n")) as $ctx
+  | ([$s.hookSpecificOutput.additionalContext, $n.hookSpecificOutput.additionalContext, $c] | map(select(. != null and . != "")) | join("\n\n")) as $ctx
+  | ([$s.systemMessage, $m] | map(select(. != null and . != "")) | join("\n")) as $sys
   | {}
   + (if $ctx != "" then {hookSpecificOutput: {additionalContext: $ctx}} else {} end)
-  + (if ($s.systemMessage // "") != "" then {systemMessage: $s.systemMessage} else {} end)'
+  + (if $sys != "" then {systemMessage: $sys} else {} end)'
 exit 0

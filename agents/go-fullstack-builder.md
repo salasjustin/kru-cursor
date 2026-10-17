@@ -1,6 +1,6 @@
 ---
 name: kru-go-fullstack-builder
-description: Go-served React app, both ends of the wire — the Go `net/http` service (handlers, middleware, JSON contract, graceful shutdown, embedded SPA) and the React data layer (typed api client, query hooks, route glue). Use in a repo with a `go.mod` and a React app. Components are `react-ui-builder`'s.
+description: Go-served React app, both ends of the wire — the Go `net/http` service (handlers, middleware, JSON contract, graceful shutdown, embedded SPA) and the React data layer (typed api client, query hooks, route glue). Use in a repo with a `go.mod` and a React app. Components are `react-ui-builder`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-go-fullstack-builder.
 model: claude-opus-5-5
 ---
 

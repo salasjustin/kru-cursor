@@ -1,6 +1,6 @@
 ---
 name: kru-react-router-builder
-description: React Router 7 framework-mode (ex-Remix) network boundary — route modules, loaders, actions, fetchers, nested routing, typegen; maps server data to serializable props. Use to build or edit route modules in an RR7 codebase; v6 only if the repo confirms it. Components are `react-ui-builder`'s.
+description: React Router 7 framework-mode (ex-Remix) network boundary — route modules, loaders, actions, fetchers, nested routing, typegen; maps server data to serializable props. Use to build or edit route modules in an RR7 codebase; v6 only if the repo confirms it. Components are `react-ui-builder`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-react-router-builder.
 model: claude-opus-5-5
 ---
 

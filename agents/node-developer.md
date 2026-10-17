@@ -1,6 +1,6 @@
 ---
 name: kru-node-developer
-description: "Node.js programs a person, shell or scheduler runs — a CLI and its `bin`, a script, a worker, a cron job, a daemon: flags, stdout/stderr/exit codes, `--json`, stdin, env/config precedence, signals, shutdown. Use to build, fix or publish one. Code another program loads is `extension-builder`'s."
+description: "Node.js programs a person, shell or scheduler runs — a CLI and its `bin`, a script, a worker, a cron job, a daemon: flags, stdout/stderr/exit codes, `--json`, stdin, env/config precedence, signals, shutdown. Use to build, fix or publish one. Code another program loads is `extension-builder`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-node-developer."
 model: claude-opus-5-5
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: kru-turso-specialist
-description: "Turso data specialist — embedded engine, Turso Cloud, synced local databases: driver, schema, migrations, queries, tokens, Cloud databases and branches. Use with `@tursodatabase/*`, `@libsql/client`, `libsql`/`pyturso`/`tursogo`, or Turso Cloud. Plain SQLite is `sqlite-architect`'s."
+description: "Turso data specialist — embedded engine, Turso Cloud, synced local databases: driver, schema, migrations, queries, tokens, Cloud databases and branches. Use with `@tursodatabase/*`, `@libsql/client`, `libsql`/`pyturso`/`tursogo`, or Turso Cloud. Plain SQLite is `sqlite-architect`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-turso-specialist."
 model: claude-opus-5-5
 ---
 

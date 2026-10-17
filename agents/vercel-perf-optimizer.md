@@ -1,6 +1,6 @@
 ---
 name: kru-vercel-perf-optimizer
-description: Web performance for Vercel/Next.js apps — Core Web Vitals, rendering strategy (SSR/SSG/ISR/PPR), caching, bundle size, image/font loading, edge. Use after a feature ships to fix slow pages, Lighthouse/CWV or caching. Deploy and env are `vercel-platform-engineer`'s. Targeted fixes; no redesign.
+description: Web performance for Vercel/Next.js apps — Core Web Vitals, rendering strategy (SSR/SSG/ISR/PPR), caching, bundle size, image/font loading, edge. Use after a feature ships to fix slow pages, Lighthouse/CWV or caching. Deploy and env are `vercel-platform-engineer`'s. Targeted fixes; no redesign. Use proactively for this seat's stack; dispatch it with the Task tool as kru-vercel-perf-optimizer.
 model: grok-4.7[effort=medium]
 ---
 

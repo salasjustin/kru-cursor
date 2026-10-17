@@ -1,6 +1,6 @@
 ---
 name: kru-sveltekit-builder
-description: SvelteKit network-boundary implementer — routing, load functions, form actions, hooks, server endpoints, and thin +page.svelte mounts. Maps server data to serializable props and mounts the components svelte-ui-builder builds. Use to build or edit SvelteKit routes and server code.
+description: SvelteKit network-boundary implementer — routing, load functions, form actions, hooks, server endpoints, and thin +page.svelte mounts. Maps server data to serializable props and mounts the components svelte-ui-builder builds. Use to build or edit SvelteKit routes and server code. Use proactively for this seat's stack; dispatch it with the Task tool as kru-sveltekit-builder.
 model: claude-opus-5-5
 ---
 

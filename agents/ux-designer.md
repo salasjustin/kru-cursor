@@ -1,6 +1,6 @@
 ---
 name: kru-ux-designer
-description: The experience layer upstream of the look — user research, flows and IA, flow critique, UX copy and microcopy, the design conventions file, handoff specs. Use at the start of an experience, or to research, critique, spec or word an existing one. The look is `ui-designer`'s; writes no app code.
+description: The experience layer upstream of the look — user research, flows and IA, flow critique, UX copy and microcopy, the design conventions file, handoff specs. Use at the start of an experience, or to research, critique, spec or word an existing one. The look is `ui-designer`'s; writes no app code. Use proactively for this seat's stack; dispatch it with the Task tool as kru-ux-designer.
 model: kimi-k3
 readonly: true
 permissionMode: readonly

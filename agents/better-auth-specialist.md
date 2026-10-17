@@ -1,6 +1,6 @@
 ---
 name: kru-better-auth-specialist
-description: The auth layer via Better Auth — server instance and config, adapter and schema, plugins (2FA, passkey, organization, magic-link, OAuth, SSO), session and cookie policy, typed client. Use when a feature needs authentication, authorization, sessions or SSO. Billing is `stripe-specialist`'s.
+description: The auth layer via Better Auth — server instance and config, adapter and schema, plugins (2FA, passkey, organization, magic-link, OAuth, SSO), session and cookie policy, typed client. Use when a feature needs authentication, authorization, sessions or SSO. Billing is `stripe-specialist`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-better-auth-specialist.
 model: claude-opus-5-5
 ---
 

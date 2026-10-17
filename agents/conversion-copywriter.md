@@ -1,6 +1,6 @@
 ---
 name: kru-conversion-copywriter
-description: The argument a marketing page makes and its words — position, section order, headline/subhead/CTA, proof per claim — as a SECTION deck used verbatim. Use for a new landing, home, pricing, feature or about page, or one with placeholder copy. In-product strings are `ux-designer`'s.
+description: The argument a marketing page makes and its words — position, section order, headline/subhead/CTA, proof per claim — as a SECTION deck used verbatim. Use for a new landing, home, pricing, feature or about page, or one with placeholder copy. In-product strings are `ux-designer`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-conversion-copywriter.
 model: claude-opus-5-5
 readonly: true
 permissionMode: readonly

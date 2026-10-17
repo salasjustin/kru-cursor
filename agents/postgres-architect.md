@@ -1,6 +1,6 @@
 ---
 name: kru-postgres-architect
-description: Postgres data specialist — schema, indexing, constraints, migrations, performant SQL, and the managed-Postgres driver seam (Neon pooled vs direct, serverless transport). Use when a feature needs persistence, a data model, query tuning or a migration. Embedded SQLite is `sqlite-architect`'s.
+description: Postgres data specialist — schema, indexing, constraints, migrations, performant SQL, and the managed-Postgres driver seam (Neon pooled vs direct, serverless transport). Use when a feature needs persistence, a data model, query tuning or a migration. Embedded SQLite is `sqlite-architect`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-postgres-architect.
 model: claude-opus-5-5
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: kru-vercel-platform-engineer
-description: Vercel platform-ops — `vercel.json`, CI/CD, env/secrets, Functions/edge config, Cron, domains, Firewall/WAF, AI Gateway, storage provisioning, Routing Middleware. Use to deploy, wire env, add a cron or firewall rule, or provision a Vercel resource. Core Web Vitals are `vercel-perf-optimizer`'s.
+description: Vercel platform-ops — `vercel.json`, CI/CD, env/secrets, Functions/edge config, Cron, domains, Firewall/WAF, AI Gateway, storage provisioning, Routing Middleware. Use to deploy, wire env, add a cron or firewall rule, or provision a Vercel resource. Core Web Vitals are `vercel-perf-optimizer`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-vercel-platform-engineer.
 model: claude-opus-5-5
 ---
 

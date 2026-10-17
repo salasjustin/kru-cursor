@@ -1,6 +1,6 @@
 ---
 name: kru-react-ui-builder
-description: Framework-agnostic React UI — pages, sections and components as props-in/callbacks-out .tsx, mounted by RR7, Next.js, TanStack Start or a Go-served SPA. Use to build or edit React components from a design plan + props contract. Routes, loaders and server code are the framework builder's.
+description: Framework-agnostic React UI — pages, sections and components as props-in/callbacks-out .tsx, mounted by RR7, Next.js, TanStack Start or a Go-served SPA. Use to build or edit React components from a design plan + props contract. Routes, loaders and server code are the framework builder's. Use proactively for this seat's stack; dispatch it with the Task tool as kru-react-ui-builder.
 model: kimi-k3
 ---
 
