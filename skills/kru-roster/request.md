@@ -14,12 +14,12 @@ Done when the three lines are written, or the reply names the covering seat.
 
 A new seat is [`hire.md`](hire.md). A new skill, or a change to a skill that already exists, is [`author.md`](author.md). Read that file.
 
-Brief Cursor as a local headless run ([`claude-code-delegation`](../claude-code-delegation/SKILL.md) → *Where it runs*): the chosen recipe, and [`writing-for-agents`](../writing-for-agents/SKILL.md). The brief carries the goal, the constraints, the done-check and the proof ([`reliable-work`](../reliable-work/SKILL.md)).
+Run the chosen recipe from a local checkout of this plugin (or a Cursor cloud agent on a branch), following [`writing-for-agents`](../kru-writing-for-agents/SKILL.md). The brief carries the goal, the constraints, the done-check and the proof ([`reliable-work`](../kru-reliable-work/SKILL.md)).
 
 Done when [`audit`](audit.md) passes on the branch.
 
 ## 3. Ship
 
-Leave `commit`+`tag` to the user unless they asked (git rule). A release happens only when the user runs `/release`. Tell the requester the version, the name of the seat or skill, and to update the plugin and then run `/kru-setup`.
+Leave `commit`+`tag` to the user unless they asked (git rule). A release happens only when the user runs `/kru-roster release` per `release.md`. Tell the requester the version, the name of the seat or skill, and to update the plugin and then run `/kru-setup`.
 
 Done when the requester has the version, the name, and those two steps.

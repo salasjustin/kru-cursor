@@ -107,10 +107,25 @@ const DROP = [
   "evals", //          `claude plugin eval` suites
   "TESTING.md", //     upstream's claude-plugin test guide; PORTING.md → Verify carries ours
   "scripts/smoke.sh", // a live `claude -p` run; dropped like upstream v0.153.0
+  "scripts/cursor-smoke.sh", // fork's live token-spending check; verify.sh is the only gate (upstream v0.153.0 dropped smoke.sh)
   "hooks/check-task-tools.sh", // cursor's todo list is always on
   "hooks/check-task-tools.test.sh",
   "skills/setup/cloud-install.sh", // a claude cloud sessionstart template; cursor installs from .cursor/environment.json
+  "skills/claude-code-delegation", // cursor cloud agents; never claude code delegation
+  "skills/kru-claude-code-delegation", // same skill after layout prefix (merge can land either path)
+  "scripts/sync-bot-skills.sh", // upstream library sync; this fork syncs elsewhere (PORTING.md)
+  "scripts/sync-bot-skills.test.sh",
+  "scripts/bot-skills.txt",
+  "skills/roster/request.md", // fork-owned at skills/kru-roster/request.md (Cursor cloud path)
 ]
+const droppedSkillName = (name) =>
+  DROP.some((p) => {
+    if (!p.startsWith("skills/")) return false
+    const tail = p.slice("skills/".length)
+    if (tail.includes("/")) return false
+    const bare = tail.startsWith(PREFIX) ? tail.slice(PREFIX.length) : tail
+    return name === tail || name === PREFIX + bare || name === bare
+  })
 
 // fork-owned files: written for cursor by hand, never rewritten by rule. a merge
 // that touches one is a human read (PORTING.md → Hand-owned).
@@ -141,6 +156,7 @@ const FORK_OWNED = new Set([
   "scripts/cloud-skills.test.sh",
   "skills/kru-roster/release.md",
   "skills/kru-roster/fork-sync.md",
+  "skills/kru-roster/request.md",
   "hooks/cursor-hook.sh",
   "hooks/require-lead.sh",
   "hooks/require-lead.test.sh",
@@ -852,6 +868,7 @@ function portSkills() {
   for (const { name, path: dir } of skillDirs()) {
     const path = join(dir, "SKILL.md")
     if (!exists(path)) {
+      if (droppedSkillName(name)) continue
       problems.push(`skills/${name}: no SKILL.md`)
       continue
     }

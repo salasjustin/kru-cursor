@@ -31,7 +31,8 @@ this tree byte for byte — so no ported file carries a hand edit the next merge
 | — | `rules/kru-lead.mdc`, `rules/kru-setup-nudge.mdc` | always-on rules, generated: the lead precondition and the `/kru-setup` reminder (below) |
 | — | `commands/kru-<name>.md` | one per skill upstream marks user-invoked (`argument-hint` or `disable-model-invocation`), 36 today, generated |
 | `hooks/hooks.json` (claude format) | `hooks/hooks.json` (cursor format) | generated; every entry runs through `hooks/cursor-hook.sh` |
-| `.claude/`, `evals/`, `TESTING.md`, `scripts/smoke.sh`, `hooks/check-task-tools.*`, `skills/setup/cloud-install.sh` | — | dropped by the port: upstream's claude release tooling, `claude plugin eval` suites, a live `claude -p` run, a check for a claude setting, a claude cloud-session hook template |
+| `.claude/`, `evals/`, `TESTING.md`, `scripts/smoke.sh`, `hooks/check-task-tools.*`, `skills/setup/cloud-install.sh`, `skills/claude-code-delegation`, `scripts/sync-bot-skills.*`, `scripts/bot-skills.txt` | — | dropped by the port: upstream's claude release tooling, `claude plugin eval` suites, a live `claude -p` run, a check for a claude setting, a claude cloud-session hook template, claude-code delegation, upstream bot-library sync |
+| — | `scripts/cursor-smoke.sh` (never reintroduced) | dropped: the fork's live API smoke; `bash scripts/verify.sh` is the only release gate, mirroring upstream v0.153.0 |
 
 ## Every Claude Code construct, and what it became
 
