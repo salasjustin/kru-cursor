@@ -161,7 +161,7 @@ Adding a specialist is a versioned change — run **`/kru-roster hire <name>`**,
 2. Wire it to its official source: add a row to `SOURCES.md`.
 3. Add a row here in **Current specialists** + a **Model tiers** entry, and a routing row to the `lead` skill.
 4. Recompute the agent count (`ls agents/*.md | wc -l`) into `.cursor-plugin/plugin.json` + `.cursor-plugin/marketplace.json`; bump `VERSION`, `.cursor-plugin/plugin.json` `version`, and the header above (minor bump for a new agent).
-5. `bash scripts/verify.sh` passes (`TESTING.md` → *Verify before shipping*), then `git add -A && git commit && git tag vX.Y.Z`.
+5. `bash scripts/verify.sh` passes (`PORTING.md` — the verify gate at the top), then `git add -A && git commit && git tag vX.Y.Z`.
 
 Adding a **skill** is the smaller change (`/kru-roster author`) and carries its own entry bar: a skill is **recipes earned by working with the thing**, never a restatement of docs the stack's `SOURCES.md` row already serves — order that matters, defaults with the reason attached, traps, and what to leave out. Derivable-from-the-source-in-the-moment is a lookup, not a skill.
 

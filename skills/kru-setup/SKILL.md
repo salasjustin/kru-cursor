@@ -142,9 +142,7 @@ Three that fail with no error:
   `context7` (user scope, http `https://mcp.context7.com/mcp`). The official plugin namespaces it to
   `*` (`plugin_context7_context7` MCP) —
   that leaves those seats holding entries that resolve to nothing. The claude.ai connector (`MCP claude_ai_Context7__*`) is Claude-only and is not a Cursor failure mode. The Svelte seats name
-  `*` (`svelte` MCP) the same way, and the `svelte@svelte` plugin namespaces its server to
-  `*` (`plugin_svelte_svelte` MCP) — a Svelte repo registers a bare `svelte` entry in its `.mcp.json`
-  (http `https://mcp.svelte.dev/mcp`).
+  `*` (`svelte` MCP) the same way — a Svelte repo registers a bare `svelte` entry in `.cursor/mcp.json` (http `https://mcp.svelte.dev/mcp`) for local Cursor use. Cloud agents only get it once it is added as a team MCP server in the Cursor dashboard (they ignore the repo's `.cursor/mcp.json`).
 - **A permission allowlist entry is coupled to that same prefix.** Moving a server between plugin,
   connector and local scope dead-letters every rule naming it: the rule stops matching, nothing
   errors, and the user is re-prompted forever. Re-point the allowlist in the same change that moves
