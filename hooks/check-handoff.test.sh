@@ -95,6 +95,87 @@ check allow $ui "The R2 object cap is 5 GB."
 # a figure about the deployed resource is slice content, not the dev machine
 check allow kru-fly-platform-engineer "Resize the Machine to 8 GB in fly.toml."
 
+# root AGENTS.md and an alwaysApply rule are budget canon; a rule without it is not.
+# the legacy home file stays the fallback (the cases above). cwd is the repo, not /x.
+budget_repo=$sandbox/budget
+mkdir -p "$budget_repo/.cursor/rules/nested" "$budget_repo/pkg"
+git -C "$budget_repo" init -q
+printf '%s\n' 'The dev box has 16 GB.' > "$budget_repo/AGENTS.md"
+printf '%s\n' '---' 'alwaysApply: true' '---' 'One suite: 32 GB is the cap.' > "$budget_repo/.cursor/rules/nested/budget.mdc"
+printf '%s\n' '---' 'alwaysApply: false' '---' 'The laptop has 64 GB.' > "$budget_repo/.cursor/rules/optional.mdc"
+budget_check() {
+  local expect=$1 seat=$2 prompt=$3 needle=${4:-} cwd=${5:-$budget_repo}
+  local input out code
+  input=$(jq -nc --arg s "$seat" --arg p "$prompt inbox.md" --arg c "$cwd" \
+    '{session_id:"test", cwd:$c, tool_input:{subagent_type:$s, prompt:$p, description:"t"}}')
+  out=$(cd "$sandbox/cwd" && printf '%s' "$input" | env -u KRU_HOME -u KRU_PROJECT_STORE -u KRU_STORE_URL -u KRU_NO_GATE -u CURSOR_PLUGIN_ROOT HOME="$sandbox/home" bash "$hook" "$root" 2>&1)
+  code=$?
+  local ok=true
+  if [ "$expect" = refuse ]; then
+    [ "$code" -eq 2 ] || ok=false
+    [ -n "$needle" ] && ! printf '%s' "$out" | grep -qF "$needle" && ok=false
+  else
+    [ "$code" -eq 0 ] || ok=false
+  fi
+  if $ok; then pass=$((pass + 1)); else
+    fail=$((fail + 1))
+    printf 'FAIL (%s, exit %s): %s\n  %s\n' "$expect" "$code" "$prompt" "$out"
+  fi
+}
+budget_check refuse $ui "The box has 16 GB so be careful." "machine budget" "$budget_repo/pkg"
+budget_check refuse $ui "Stay under 32 GB." "machine budget"
+budget_check allow $ui "The laptop has 64 GB."
+# the home file is a fallback, not a second canon: its 8 GB must not refuse a
+# brief once the repo has an AGENTS.md or an alwaysApply rule.
+budget_check allow $ui "The box has 8 GB so be careful."
+rules_only=$sandbox/rules-only
+mkdir -p "$rules_only/.cursor/rules"
+git -C "$rules_only" init -q
+printf '%s\n' '---' 'alwaysApply: true' '---' 'One suite: 32 GB is the cap.' > "$rules_only/.cursor/rules/budget.mdc"
+budget_check allow $ui "The box has 8 GB so be careful." "" "$rules_only"
+budget_check refuse $ui "Stay under 32 GB." "machine budget" "$rules_only"
+bare=$sandbox/bare
+mkdir -p "$bare"
+git -C "$bare" init -q
+budget_check refuse $ui "The box has 8 GB so be careful." "machine budget" "$bare"
+# a space in the repo path, and in a rule's filename, still reaches the figure
+space_repo="$sandbox/budget box"
+mkdir -p "$space_repo/.cursor/rules"
+git -C "$space_repo" init -q
+printf '%s\n' 'The workstation has 24 GB.' > "$space_repo/AGENTS.md"
+printf '%s\n' '---' 'alwaysApply: true' '---' 'Cap the suite at 48 GB.' > "$space_repo/.cursor/rules/my budget.mdc"
+budget_check refuse $ui "The workstation has 24 GB." "machine budget" "$space_repo"
+budget_check refuse $ui "Cap the suite at 48 GB." "machine budget" "$space_repo"
+budget_check allow $ui "The box has 8 GB so be careful." "" "$space_repo"
+
+# verbatim shingle uses the same always-loaded set as the budget: a rule
+# without alwaysApply is not canon, a nested alwaysApply rule is, and
+# ~/.claude/CLAUDE.md is scanned only when the repo has neither.
+printf '%s\n' 'Purple kettles never boil on tuesdays in the annex.' >> "$sandbox/home/.claude/CLAUDE.md"
+shingle_repo=$sandbox/shingle
+mkdir -p "$shingle_repo/.cursor/rules/nested" "$shingle_repo/pkg"
+git -C "$shingle_repo" init -q
+printf '%s\n' 'Root agents prose stays the shingle canon for this repo.' > "$shingle_repo/AGENTS.md"
+printf '%s\n' '---' 'alwaysApply: true' '---' 'Nested amber rule text loads with every session.' > "$shingle_repo/.cursor/rules/nested/amber.mdc"
+printf '%s\n' '---' 'alwaysApply: false' '---' 'Optional crimson rule text stays out of the brief scan.' > "$shingle_repo/.cursor/rules/optional.mdc"
+printf '%s\n' 'Root claude file text must not count as shingle canon.' > "$shingle_repo/CLAUDE.md"
+budget_check refuse $ui "Root agents prose stays the shingle canon for this repo." "AGENTS.md" "$shingle_repo/pkg"
+budget_check refuse $ui "Nested amber rule text loads with every session." "nested/amber.mdc" "$shingle_repo"
+budget_check allow $ui "Optional crimson rule text stays out of the brief scan." "" "$shingle_repo"
+budget_check allow $ui "Root claude file text must not count as shingle canon." "" "$shingle_repo"
+budget_check allow $ui "Purple kettles never boil on tuesdays in the annex." "" "$shingle_repo"
+# a non-alwaysApply rule is not primary, so the home file is the fallback
+shingle_optional=$sandbox/shingle-optional
+mkdir -p "$shingle_optional/.cursor/rules"
+git -C "$shingle_optional" init -q
+printf '%s\n' '---' 'alwaysApply: false' '---' 'Optional crimson rule text stays out of the brief scan.' > "$shingle_optional/.cursor/rules/optional.mdc"
+budget_check allow $ui "Optional crimson rule text stays out of the brief scan." "" "$shingle_optional"
+budget_check refuse $ui "Purple kettles never boil on tuesdays in the annex." ".claude/CLAUDE.md" "$shingle_optional"
+shingle_bare=$sandbox/shingle-bare
+mkdir -p "$shingle_bare"
+git -C "$shingle_bare" init -q
+budget_check refuse $ui "Purple kettles never boil on tuesdays in the annex." ".claude/CLAUDE.md" "$shingle_bare"
+
 # coordinates and hedges
 check refuse $ui "Edit src/Form.tsx:42 to add the field." "coordinates"
 check refuse $ui "The cursor math in \`donor.ts ~:54-59\` drops the last page." "coordinates"

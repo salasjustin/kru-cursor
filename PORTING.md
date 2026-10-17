@@ -74,7 +74,7 @@ this tree byte for byte — so no ported file carries a hand edit the next merge
 | `mcp__<server>__<tool>` | `` `<tool>` (`<server>` MCP) `` | Cursor names a server and its tool (permissions write `Mcp(server:tool)`) |
 | `claude mcp add …`, `npx … --claude-code`, `mcp init --client claude`, `fly mcp server --claude` | an entry in `.cursor/mcp.json`; the vendors' `--cursor` flags | Cursor's MCP config |
 | the Turso claude plugin (`/plugin install turso@turso`) | the hosted Turso MCP server added in Cursor | the plugin is that server plus a skill kru vendors |
-| `.claude/CLAUDE.md` (the repo sheet), `CLAUDE.md` | `AGENTS.md` at the repo root | what Cursor reads at a repo root (the CLI also reads `CLAUDE.md`). The user's own `~/.claude/CLAUDE.md` is kept: it is a user file the handoff gate still reads when present |
+| `.claude/CLAUDE.md` (the repo sheet), `CLAUDE.md`, and `~/.claude/CLAUDE.md` in skill prose | root `AGENTS.md`, and `.cursor/rules` with `alwaysApply: true` | what loads every session ([rules](https://cursor.com/docs/rules)). A rule without `alwaysApply: true` does not. The handoff gate reads root `AGENTS.md` and those rules, and still reads `~/.claude/CLAUDE.md` as a fallback |
 | `.claude/skills/`, `.claude/agents/`, `.claude/rules/*.md` | `.cursor/skills/`, `.cursor/agents/`, `.cursor/rules/*.mdc` | Cursor's project locations |
 | `CLAUDE_CODE_REMOTE=true` (cloud) | `KRU_CLOUD=1` forces the cloud store. Unset, `CURSOR_AGENT_SOCKET` or `/run/cursor/api.sock` does. `KRU_CLOUD=0` forces the local store even when that socket exists — set it on a machine that has the socket but is not a cloud vm, and in tests (`references/store.md`) | Cursor's managed vms expose the agent metadata socket (`cursor.com/docs/cloud-agent/metadata`) |
 | bugs and product wants on the product repo's GitHub issues | `KRU_TRACKER` (`github` when unset or empty, `linear` when a repo opts in). Linear is a team key plus a project name, for example `KRU_LINEAR_TEAM=BG` and `KRU_LINEAR_PROJECT=Connector` — examples, not values this plugin hard-codes. Prefer the connected Linear MCP tools (`save_issue`, `list_issues`, `save_comment`). `LINEAR_API_KEY` is optional, only for `scripts/kru-tracker.sh` when MCP is not connected, and never a committed key. Pull requests stay on GitHub; `link` prints `Fixes #<n>` or `Linear: <id>`. On the GitHub tracker a security finding stays in the store's `issues/` or a GitHub private security advisory. On Linear it is filed, internal to the team, with label `security` on `KRU_LINEAR_SECURITY_TEAM`, or on the main team when that is unset. What is filed follows *Tracker text* (`TRACKER.md`). The agent's todo list, `TODOS.md` scratch, and `plan/<effort>/` tickets stay where they are | the fork's tracker. Upstream files those in the plan store; this fork's edits point every filing skill at the setting, so a fresh port keeps it |
@@ -134,7 +134,7 @@ one is overwritten by the next port, and `scripts/verify.sh`'s fresh-port check 
 | `scripts/cursor/update-sweep.md` | `skills/kru-update/claude.md`, the Cursor changelog sweep, pulled in by a port rule (the file keeps the name `claude.md`) |
 | `skills/kru-design/SKILL.md` | the design skill: `.dc.html` artboards plus Cursor's `/canvas`. Listed in `FORK_OWNED` so a new file inside `skills/` survives the port |
 | `skills/kru-update/claude.md`, `reviewed.md` | `claude.md` is the Cursor changelog sweep (the block above); `reviewed.md` keeps the closed Claude Code ledger and a Cursor mark. Layout rules only, plus that one edit |
-| `skills/kru-eval-review/SKILL.md` | audits a claude plugin eval suite; layout rules only |
+| `skills/kru-eval-review/SKILL.md` | grades an upstream suite already in the tree. Layout rules, plus fork edits: no default `evals/` directory, no `/claude-api` checklist |
 
 ## Known gaps
 
@@ -165,7 +165,7 @@ documented counterpart exists. The port still counts the leftovers (`WATCH` in `
 - ***You should know*.** A side agent that flags, mid-task, what the turn missed. No Cursor mode by
   that name ([skills](https://cursor.com/docs/skills)). `lead` still triages a card if one arrives.
   The closed ledger still records the mod.
-- **`/kru-eval-review`.** Still audits a `claude plugin eval` suite. Cursor has no eval runner.
+- **`/kru-eval-review`.** Grades an upstream plugin-eval suite already in the tree, and tells the reader not to install a runner. This repo has no default `evals/` directory and no checklist beside the traps in the skill. Cursor has no eval runner.
 - **wayfinder's `prototype` skill.** `skills/kru-wayfinder/SKILL.md` still says to call a skill named `prototype`. It is not vendored here and it is not a Cursor built-in ([skills](https://cursor.com/docs/skills)). `grilling` and `domain-modeling` are vendored. The sentence is left as written.
 - **Per-seat models in the CLI.** `cursor-agent` 2026.10.01 runs a plugin's agents on the parent's
   model (`MODELS.md`).

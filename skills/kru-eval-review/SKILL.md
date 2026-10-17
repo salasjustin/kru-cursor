@@ -1,19 +1,19 @@
 ---
 name: kru-eval-review
-description: Audit a `claude plugin eval` suite for checks that pass or fail for the wrong reason, and fix the eval files in place.
+description: Audit an upstream plugin-eval suite already in the tree for checks that pass or fail for the wrong reason, and fix the eval files in place. Cursor has no eval runner; do not install one.
 disable-model-invocation: true
-argument-hint: "[<eval dir> — omit for evals/]"
+argument-hint: "[<eval dir>]"
 ---
 
 A plugin eval is trustworthy when every grader can go **red** on the failure it names and stays green on every valid way of succeeding. A suite drifts off that by passing on the wrong evidence (the rule was read, not followed), crediting the wrong actor (the lead did what the seat was supposed to), or failing a correct answer written in a form the pattern didn't expect. This pass finds those and fixes them in the eval files; the plugin under test is out of scope.
 
-The format is `code.claude.com/docs/en/plugin-evals.md` (fetch it; grader types, `target` values and the two-arm exclusions change with the CLI). The model-agnostic checklist, the one for any eval, is `shared/evals/eval-audit.md` inside the `/claude-api` skill. Run both; this file carries only what those two don't: the traps specific to grading an agent plugin from its trace. Every trap below was reproduced on Claude Code 2.1.284, 2026-09-29.
+Cursor has no plugin-eval runner, and this repo ships no eval suite. Do not install a runner. When a suite is already in the tree, the argument names its directory; grade it in place. The traps below are the whole checklist. Every trap below was reproduced against harness traces from 2.1.284 on 2026-09-29.
 
 **Completion criterion:** every grader in the target has been shown red on a synthetic failing line and green on a synthetic passing one, and every finding is fixed or reported. Checkable: step 3's output names every grader that carries a pattern.
 
 ## Do
 
-1. **Resolve the target**: the argument, else `evals/`, else the manifest's `experimental.evals`. Read every case's `prompt.md`, `case.yaml` and `graders/*.md`, and the suite's README if it has one.
+1. **Resolve the target**: the argument, a directory already in the tree. This repo has no `evals/` directory. Read every case's `prompt.md`, `case.yaml` and `graders/*.md`, and the suite's README if it has one.
 
 2. **Read each grader against the traps.** Each is a class, not a phrasing:
    - **Read, not followed.** A `regex` over `target: trace` for a rule's own text passes when the seat merely loaded the skill, because the skill body lands in the trace. Grade the content of the seat's `Write`/`Edit` calls: anchor the pattern on `"name":"(?:Write|Edit)","input":\{[^\n]*` before the rule.
