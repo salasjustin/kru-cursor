@@ -66,7 +66,7 @@ And it does not stretch: **where the eye can't tell, there is no exemption.** Th
 
 
 ## Test credentials
-Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check or a `kru-test-writer` dispatch.
+Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check, a `kru-test-writer` dispatch, or a Browser check that needs secrets or a database.
 
 
 ## Scope — build the real path, not every path

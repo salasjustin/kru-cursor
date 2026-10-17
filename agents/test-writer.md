@@ -27,7 +27,7 @@ Two things it leaves to you, because they're this seat's and not a builder's:
 
 
 ## Test credentials
-Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check or a `kru-test-writer` dispatch.
+Before the first test run in a slice that needs secrets or a database, read `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` and follow it — the lead runs the same guards before a scoped test-count check, a `kru-test-writer` dispatch, or a Browser check that needs secrets or a database.
 
 
 ## Capture — if no testing knowledge is written down

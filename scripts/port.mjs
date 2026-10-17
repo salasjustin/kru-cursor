@@ -773,12 +773,18 @@ const seatNames = () => readdirSync(join(ROOT, "agents")).filter((f) => f.endsWi
 
 // --- step 2: agents ---------------------------------------------------------------
 const TEST_CREDENTIALS_BLOCK = `## Test credentials
-Before the first test run in a slice that needs secrets or a database, read \`\${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md\` and follow it — the lead runs the same guards before a scoped test-count check or a \`kru-test-writer\` dispatch.
+Before the first test run in a slice that needs secrets or a database, read \`\${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md\` and follow it — the lead runs the same guards before a scoped test-count check, a \`kru-test-writer\` dispatch, or a Browser check that needs secrets or a database.
 `
+
+function stripTestCredentialsBlock(body) {
+  return body
+    .replace(/\n+## Test credentials\n[\s\S]*?\n(?=\n+## )/, "")
+    .replace(/\n+## Test credentials\n[\s\S]*$/, "")
+}
 
 function injectTestCredentialsBlock(body, seat) {
   const injection = `\n\n${TEST_CREDENTIALS_BLOCK}\n`
-  body = body.replace(/\n+## Test credentials\n[\s\S]*?\n(?=\n+## )/, "")
+  body = stripTestCredentialsBlock(body)
   const marker =
     seat === "test-writer"
       ? "## The craft (shared skill)"
@@ -1265,6 +1271,21 @@ if (process.argv.includes("--test-edits")) {
     if (applied) fail("a missing passage counted as applied")
   }
   console.log("edit apply: ok")
+  process.exit(0)
+}
+
+// --test-inject-credentials: strip/replace ## Test credentials, including at EOF.
+if (process.argv.includes("--test-inject-credentials")) {
+  const fail = (name) => {
+    console.error(`inject credentials: ${name}`)
+    process.exit(1)
+  }
+  const atEof = "## Tail\n\n## Test credentials\nstale line\n"
+  const stripped = stripTestCredentialsBlock(atEof)
+  const strippedTwice = stripTestCredentialsBlock(stripped)
+  if (stripped !== strippedTwice) fail("second strip at EOF changed the body")
+  if (stripped.includes("stale line")) fail("strip at EOF left stale content")
+  console.log("inject credentials: ok")
   process.exit(0)
 }
 
