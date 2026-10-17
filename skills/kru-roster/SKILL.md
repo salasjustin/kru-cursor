@@ -5,7 +5,7 @@ disable-model-invocation: true
 argument-hint: "<hire|author|learn|retire|audit> [name]"
 ---
 
-You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own; the lead `commit`s locally, and the plugin maintainer `tag`s on release (`release.md`). This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.
+You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own; the lead `commit`s locally on a branch when the PM asks; the PM bot pushes and opens the pull request; the plugin maintainer merges after CI (`verify`) passes and `tag`s on release (`release.md`, `skills/kru-lead/SKILL.md` → *Who acts at the door*). This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.
 
 **Roster-ops, not the excluded "ops/HR."** `ROSTER.md` → *Scope* excludes ops/HR as a *product-org* seat that serves end users. This skill mints the team's **own members** — self-authoring/governance, a different thing. It adds seats and skills; it never adds a business function.
 

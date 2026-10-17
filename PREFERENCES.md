@@ -18,12 +18,12 @@ any project (cwd = someone's repo)         the cross-project root
                                               │        ◀─── /kru-setup files what a repo knows
                                               │            that a plugin skill lacks
                                      /kru-roster learn
-                                              │  (run from the plugin maintainer's checkout of this plugin; the plugin maintainer decides and reviews the diff)
+                                              │  (run from the plugin maintainer's checkout of this plugin; decides the promotion — the plugin maintainer reviews the uncommitted diff, and the lead commits when the PM asks)
                                               ▼
                               the plugin, versioned + shared
                                 agents/<seat>.md              (targeted prompt edits)
                                 skills/<owner>/SKILL.md       (incl. lead — orchestration-wide rules)
-                                → commit + tag  (minor bump)
+                                → lead commit (PM asks) · PM push/PR · maintainer merge+tag after verify
                                               │
                                      /kru-setup      (typed in a repo)
                                               ▼
@@ -71,9 +71,9 @@ The **curated** half — it edits the team, so it lives under roster-ops (`/kru-
    - **seat-specific** (a default only `graphic-designer`, or only the Svelte builder, should carry) → a **targeted prompt edit** to that `agents/<seat>.md`.
    - **cross-seat** (several seats should carry it) → the same targeted edit in each affected seat, or the owning skill (`lead` SKILL.md for orchestration-wide rules).
    - **reusable concrete pattern** → keep the `patterns/<slug>.md` artifact, reference it from the seat/skill that uses it.
-3. **Decides each line** — land, route to a repo's sheet, or drop with a reason — by the bars in `skills/kru-roster/learn.md` → step 3, and writes the landed edits. Nothing is committed: the plugin maintainer reviews the uncommitted diff from a checkout of this plugin, then commits, pushes, opens the pull request, merges and tags (the plugin maintainer owns this plugin's releases).
+3. **Decides each line** — land, route to a repo's sheet, or drop with a reason — by the bars in `skills/kru-roster/learn.md` → step 3, and writes the landed edits. Nothing is committed until the lead commits when the PM asks: the plugin maintainer reviews the uncommitted diff before it ships (`skills/kru-roster/learn.md`, `skills/kru-lead/SKILL.md` → *Who acts at the door*).
 4. **Drains** every line it gave a verdict (leaves deferred lines for next time), archiving artifacts it kept.
-5. Version-bumps (minor for new prefs/capability, patch for a tiny tweak), runs `audit`, hands off. Commit/tag left to the user (git rule).
+5. Version-bumps (minor for new prefs/capability, patch for a tiny tweak), runs `audit`, hands off — the lead `commit`s when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` are the plugin maintainer's after CI (`verify`) passes (`skills/kru-roster/learn.md` → §5, `skills/kru-lead/SKILL.md` → *Who acts at the door*).
 
 ## The destination — a consulted corpus, or the seat itself
 

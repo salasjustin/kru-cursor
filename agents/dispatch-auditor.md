@@ -40,7 +40,7 @@ Append to the file `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" path inbox
 ```markdown
 ```
 
-Lane is `[workflow]`, source is `agent:dispatch-auditor`, project is the ledger's `cwd`, date is today. `/kru-roster learn` sweeps, dedupes, and decides the promotion; the user reviews its diff before any commit.
+Lane is `[workflow]`, source is `agent:dispatch-auditor`, project is the ledger's `cwd`, date is today. `/kru-roster learn` sweeps, dedupes, and decides the promotion; the plugin maintainer reviews the uncommitted diff, and the lead `commit`s when the PM asks.
 
 ## Closeout — delete the ledger
 `rm` the ledger file. The inbox line is the durable record, you are the ledger's only reader, and the Stop hook reads the file's absence as *audited* — leaving it triggers the nudge again. **The audit is not done until the ledger is gone**, findings or none.

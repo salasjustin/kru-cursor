@@ -237,8 +237,14 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-roster/SKILL.md",
   "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps + tags a version, which a subagent can't own. This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
+  "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own; the lead `commit`s locally on a branch when the PM asks; the PM bot pushes and opens the pull request; the plugin maintainer merges after CI (`verify`) passes and `tag`s on release (`release.md`, `skills/kru-lead/SKILL.md` → *Who acts at the door*). This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
+  "t2: roster main thread bumps version; full door split in opener",
+))
+EDITS.push(E(
+  "skills/kru-roster/SKILL.md",
   "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own; the lead `commit`s locally, and the plugin maintainer `tag`s on release (`release.md`). This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
-  "t2: roster main thread bumps version; plugin maintainer tags",
+  "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own; the lead `commit`s locally on a branch when the PM asks; the PM bot pushes and opens the pull request; the plugin maintainer merges after CI (`verify`) passes and `tag`s on release (`release.md`, `skills/kru-lead/SKILL.md` → *Who acts at the door*). This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
+  "review PR21: roster opener full door split",
 ))
 EDITS.push(E(
   "skills/kru-roster/SKILL.md",
@@ -389,14 +395,50 @@ EDITS.push(E(
 EDITS.push(E(
   "PREFERENCES.md",
   "Nothing is committed, so the uncommitted diff is the user's review.",
+  "Nothing is committed until the lead commits when the PM asks: the plugin maintainer reviews the uncommitted diff before it ships (`skills/kru-roster/learn.md`, `skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "t6: learn review + lead commit when PM asks",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
   "Nothing is committed: the plugin maintainer reviews the uncommitted diff from a checkout of this plugin, then commits, pushes, opens the pull request, merges and tags (the plugin maintainer owns this plugin's releases).",
-  "t6: learn's review and release are the plugin maintainer's",
+  "Nothing is committed until the lead commits when the PM asks: the plugin maintainer reviews the uncommitted diff before it ships (`skills/kru-roster/learn.md`, `skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "review PR21: PREFERENCES tier-2 step 3 door roles",
 ))
 EDITS.push(E(
   "PREFERENCES.md",
   "(run from the plugin source repo; decides, user reviews the diff)",
+  "(run from the plugin maintainer's checkout of this plugin; decides the promotion — the plugin maintainer reviews the uncommitted diff, and the lead commits when the PM asks)",
+  "t6: learn diagram door roles",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
   "(run from the plugin maintainer's checkout of this plugin; the plugin maintainer decides and reviews the diff)",
-  "t6",
+  "(run from the plugin maintainer's checkout of this plugin; decides the promotion — the plugin maintainer reviews the uncommitted diff, and the lead commits when the PM asks)",
+  "review PR21: PREFERENCES diagram learn caption",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
+  "                                → commit + tag  (minor bump)",
+  "                                → lead commit (PM asks) · PM push/PR · maintainer merge+tag after verify",
+  "t6: preference loop diagram release path",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
+  "5. Version-bumps (minor for new prefs/capability, patch for a tiny tweak), runs `audit`, hands off. Commit/tag left to the user (git rule).",
+  "5. Version-bumps (minor for new prefs/capability, patch for a tiny tweak), runs `audit`, hands off — the lead `commit`s when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` are the plugin maintainer's after CI (`verify`) passes (`skills/kru-roster/learn.md` → §5, `skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "t6: learn tier-2 step 5 door roles",
+))
+EDITS.push(E(
+  "agents/dispatch-auditor.md",
+  "/kru-roster learn` sweeps, dedupes, and decides the promotion; the user reviews its diff before any commit.",
+  "/kru-roster learn` sweeps, dedupes, and decides the promotion; the plugin maintainer reviews the uncommitted diff, and the lead `commit`s when the PM asks.",
+  "review PR21: dispatch-auditor learn hand-off",
+))
+EDITS.push(E(
+  "ROSTER.md",
+  "/kru-roster learn` decides the promotion and the user reviews its diff before any commit.",
+  "/kru-roster learn` decides the promotion; the plugin maintainer reviews the uncommitted diff, and the lead `commit`s when the PM asks.",
+  "review PR21: ROSTER dispatch-auditor learn hand-off",
 ))
 EDITS.push(E(
   "skills/kru-remember/SKILL.md",
