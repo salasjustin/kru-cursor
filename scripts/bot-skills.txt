@@ -1,0 +1,12 @@
+# one skill directory per line. sync-bot-skills.sh copies each into <library-dir>/<name>/.
+# a name that leaves this list is reported, not deleted.
+writing-for-agents
+brief
+grilling
+brainstorm
+copywriting
+copy-editing
+ux-copy
+diagnosing-bugs
+claude-code-delegation
+reliable-work
