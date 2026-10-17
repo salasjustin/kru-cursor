@@ -228,17 +228,15 @@ shim and replace it in the same directory (disk state only; idempotent):
 
 ```bash
 PNPM_VERSION='<repo pin>' # e.g. 12.0.0 from packageManager or the repo's docs
-if command -v pnpm >/dev/null 2>&1; then
-  NODE_BIN="$(dirname "$(command -v pnpm)")" # the Corepack shim dir (before disable)
-else
-  NODE_BIN="$(dirname "$(command -v node)")"
-fi
-corepack disable pnpm # drops the image shim so it cannot shadow the pin
-export PNPM_VERSION
-curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION="$PNPM_VERSION" SHELL=bash bash -s --
+NODE_BIN="$(dirname "$(command -v node)")"
+corepack disable pnpm 2>/dev/null || true
 PNPM_HOME="${PNPM_HOME:-$HOME/.local/share/pnpm}"
-sudo ln -sf "$PNPM_HOME/bin/pnpm" "$NODE_BIN/pnpm"
-sudo ln -sf "$PNPM_HOME/bin/pnpx" "$NODE_BIN/pnpx"
+export PNPM_VERSION
+if ! [ -x "$PNPM_HOME/bin/pnpm" ] || [ "$("$PNPM_HOME/bin/pnpm" --version 2>/dev/null)" != "$PNPM_VERSION" ]; then
+  curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION="$PNPM_VERSION" SHELL=bash bash -s --
+fi
+sudo ln -sfn "$PNPM_HOME/bin/pnpm" "$NODE_BIN/pnpm"
+sudo ln -sfn "$PNPM_HOME/bin/pnpx" "$NODE_BIN/pnpx"
 ```
 
 (`sudo` is passwordless on Cursor's default image.) Where the repo uses `packageManager` and

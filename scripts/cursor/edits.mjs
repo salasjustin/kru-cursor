@@ -236,6 +236,18 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-roster/SKILL.md",
+  "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps + tags a version, which a subagent can't own. This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
+  "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own; the lead `commit`s locally, and the plugin maintainer `tag`s on release (`release.md`). This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
+  "t2: roster main thread bumps version; plugin maintainer tags",
+))
+EDITS.push(E(
+  "skills/kru-roster/SKILL.md",
+  "It's the only verb that reads the cross-project store (`${CURSOR_PLUGIN_ROOT}/references/store.md`) and the one verb that decides on its own what to land — the user reviews the uncommitted diff.",
+  "It's the only verb that reads the cross-project store (`${CURSOR_PLUGIN_ROOT}/references/store.md`) and the one verb that decides on its own what to land — the plugin maintainer reviews the uncommitted diff before it ships (`learn.md`).",
+  "t2: learn diff reviewed by plugin maintainer",
+))
+EDITS.push(E(
+  "skills/kru-roster/SKILL.md",
   "No verb given → run `audit` and report, then ask which of the others they want.",
   "No verb given → run `audit` and report, then ask which of the others they want (headless: report the audit and stop).",
   "t3: headless never waits",
