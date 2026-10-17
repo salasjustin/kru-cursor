@@ -1,11 +1,11 @@
 ---
 name: kru-roster
-description: Roster operations for this team plugin — hire or retire a specialist, author a skill, sweep learned preferences back into the team, or audit the roster for drift. The versioned "Growing the team" checklist, executed as a tool.
+description: Roster operations for this team plugin — hire or retire a specialist, author a skill, take a requester's ask for a new seat or skill, sweep learned preferences back into the team, or audit the roster for drift. The versioned "Growing the team" checklist, executed as a tool.
 disable-model-invocation: true
 argument-hint: "<hire|author|learn|retire|audit> [name]"
 ---
 
-You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps + tags a version, which a subagent can't own. This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.
+You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own. Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*. This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.
 
 **Roster-ops, not the excluded "ops/HR."** `ROSTER.md` → *Scope* excludes ops/HR as a *product-org* seat that serves end users. This skill mints the team's **own members** — self-authoring/governance, a different thing. It adds seats and skills; it never adds a business function.
 
@@ -27,11 +27,11 @@ Every place a **seat (agent)** is registered. `hire` writes all of them, `retire
 | 6 | `.cursor-plugin/plugin.json` | `version` bump |
 | 7 | `.cursor-plugin/marketplace.json` | the plugin entry's `version`, equal to `VERSION` |
 | 8 | `VERSION` · `ROSTER.md` header | version — minor for a new seat: `VERSION` and the `# Roster — vX.Y.Z` header, equal |
-| 9 | git | `commit` locally when the PM asks; the PM bot pushes and opens the pull request; merging and `tag vX.Y.Z` are the plugin maintainer's — the plugin maintainer owns this plugin's releases (`skills/kru-lead/SKILL.md` → *Who acts at the door*) |
+| 9 | git | the lead `commit`s on the branch; the PM bot pushes and opens the pull request; merge and `tag` per `skills/kru-lead/SKILL.md` → *Who acts at the door* and `release.md` |
 
 A **skill** touches a smaller map: `skills/<name>/SKILL.md` (+ any disclosed sibling files), a note in `ROSTER.md` → *Reused, not owned* (and `SOURCES.md` if it backs a seat), `VERSION`/header, git. A skill gated on a **library the repo may or may not have** takes one more row — `references/routing.md` → *Conditional skills*, which is what puts it into a repo's sheet and is the whole of its wiring — the brief and the sheet both carry the answer down, so the seat files hold still; a skill its seats load unconditionally stays out of that table. **No agent-count bump** (#6–#7 count is agents only). A *vendored* skill also needs the provenance HTML comment + a `SOURCES.md` → *Vendored resources* note — copy the shape at the top of `skills/kru-writing-for-agents/SKILL.md`.
 
-**`learn`** touches a map of its own: it promotes preferences from the inbox (`PREFERENCES.md`) into targeted `agents/<name>.md` prompt edits and/or the owning skill (`lead` SKILL.md for orchestration-wide rules), then bumps `VERSION`/header. It's the only verb that reads the cross-project store (`${CURSOR_PLUGIN_ROOT}/references/store.md`) and the one verb that decides on its own what to land — the user reviews the uncommitted diff.
+**`learn`** touches a map of its own: it promotes preferences from the inbox (`PREFERENCES.md`) into targeted `agents/<name>.md` prompt edits and/or the owning skill (`lead` SKILL.md for orchestration-wide rules), then bumps `VERSION`/header. It's the only verb that reads the cross-project store (`${CURSOR_PLUGIN_ROOT}/references/store.md`) and the one verb that decides on its own what to land — the plugin maintainer reviews the uncommitted diff before it ships (`learn.md`).
 
 ## Dispatch
 Read the one file for the requested verb, then execute it against the wiring map above.
@@ -43,6 +43,8 @@ Read the one file for the requested verb, then execute it against the wiring map
 | `learn` | sweep the preference inbox back into the team | `learn.md` |
 | `retire <name>` | remove a seat + unwire everywhere | `retire.md` |
 | `audit` | report roster drift (read-only) | `audit.md` |
+
+**A requester asks for a new seat or skill** → [`request.md`](request.md). Restate the ask, choose `hire` or `author`, and ship it. A typed verb in the table still runs its own file.
 
 Plus one shared reference, read by `hire` and `audit` rather than dispatched to: **`shared-blocks.md`** — the canonical text of the blocks every seat carries (`Context hygiene`, `TypeScript`, the return contract), with its invariant clauses and its per-seat tailored slots marked.
 

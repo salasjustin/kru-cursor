@@ -70,6 +70,10 @@ check allow $ui "Keep their names and assertions; add a one-line comment naming 
 check allow $ui "Make the key a plain object; keep lazy read only if a real reason exists, and fix the comment."
 check allow $ui "Write that rule as the comment at the place the sentence is kept."
 check allow $ui "Leave a comment explaining why the draft is retained."
+# one file's own comments, named with its other contents — each was a real refusal
+check allow $ui "Fix the script so a fresh session gets pnpm first on PATH. Keep its existing structure and comments."
+check allow $ui "Fold the column into 0062 (regenerate with drizzle-kit, keep its hand edits: lock_timeout, npos-before-dists order, comments, NOT VALID check)."
+
 check allow $ui "Keep it as one named constant in the module, with a comment naming the docs URL."
 # ...even under markdown emphasis, and "existing" on one comment points at it
 check allow $ui "\`Coded\` becomes \`Coding\`. **Keep its existing comment** about the two a catalogue would most plausibly grow back."
@@ -241,16 +245,19 @@ sheet_check kru-code-reviewer "Review \`packages/ui/card.tsx\` and \`apps/consol
 printf 'review     kru-code-reviewer        ← `apps/console/src/routes`\n' >> "$sandbox/sheet/AGENTS.md"
 sheet_check kru-code-reviewer "Review \`apps/console/src/routes/home.tsx\` and \`packages/ui/card.tsx\`. report: /tmp/kru-review/p/code-reviewer-x.md" 0
 
-# a sheet version pin re-typed in the brief logs a shadow line; moving it is slice content
-printf 'routes     kru-react-router-builder ← react-router 8.3.0 framework mode\n' >> "$sandbox/sheet/AGENTS.md"
-sheet_check kru-react-router-builder "Fix the loader in \`apps/console/src/routes/home.tsx\` — it runs on 8.3.0." 1
-sheet_check kru-react-router-builder "Upgrade react-router from 8.3.0 to 8.4.0 in \`apps/console/src/routes\`." 0
-sheet_check kru-react-router-builder "Fix the loader in \`apps/console/src/routes/home.tsx\`." 0
+# a scoped package is a dependency, not a directory the sheet hands out
+printf 'data       kru-turso-specialist     ← `src/db`, `@libsql/client`\n' >> "$sandbox/sheet/AGENTS.md"
+sheet_check kru-react-ui-builder "Build the card in \`packages/ui/card.tsx\`; the store reads through \`@libsql/client\` 0.18.0." 0
+# a path handed to its owner is named for reading
+sheet_check kru-react-ui-builder "Build the card in \`packages/ui/card.tsx\`. Read how \`src/db/store.ts\` loads it (one line in your report if it's off; the data seat owns that file)." 0
+sheet_check kru-react-ui-builder "Build the card in \`packages/ui/card.tsx\` and the query in \`src/db/store.ts\`." 1
 
-# a passage quoted from a file the brief names is the passage under edit: shadow, never refused
+# a version or a passage the brief names is slice content: no shadow line
+printf 'routes     kru-react-router-builder ← react-router 8.3.0 framework mode\n' >> "$sandbox/sheet/AGENTS.md"
+sheet_check kru-react-router-builder "Fix the loader in \`apps/console/src/routes/home.tsx\` — it runs on 8.3.0." 0
 mkdir -p "$sandbox/sheet/design"
 printf '# conventions\nPrimary actions sit at the bottom right of every dialog footer on desktop.\n' > "$sandbox/sheet/design/conventions.md"
-sheet_check kru-ux-designer "In design/conventions.md, replace \"Primary actions sit at the bottom right of every dialog footer on desktop\" with the mobile rule." 1
+sheet_check kru-ux-designer "In design/conventions.md, replace \"Primary actions sit at the bottom right of every dialog footer on desktop\" with the mobile rule." 0
 
 # the gate stays out of unknown seats
 check allow general-purpose "Preserve existing comments in the file."

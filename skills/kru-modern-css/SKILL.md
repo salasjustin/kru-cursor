@@ -1,6 +1,6 @@
 ---
 name: kru-modern-css
-description: Baseline 2023-2025 native CSS safe to use now — container queries, :has(), nesting, subgrid, color-mix()/light-dark(), @starting-style, scroll-driven animation, view transitions, @scope. Use before writing CSS that would reach for a JS workaround, extra wrapper, or preprocessor trick.
+description: Baseline 2023-2025 native CSS safe to use now — container queries, :has(), nesting, subgrid, color-mix()/light-dark(), @starting-style, scroll-driven animation, view transitions, @scope — plus the defensive defaults that break on real content (overflow, viewport units, zoom, RTL). Use before writing CSS that would reach for a JS workaround, extra wrapper, or preprocessor trick.
 ---
 
 This is the **Baseline** judgment: which native CSS a builder can reach for today without a fallback, and which still needs one. Load it when writing or reviewing CSS, and specifically when you're about to write a JS workaround, an extra wrapper `div`, a preprocessor trick, or an older hack for something — check first whether native CSS now does it outright.
@@ -38,6 +38,10 @@ The actual value of this skill: recognizing when a familiar workaround is now ob
 | Manually maintained typed CSS custom properties | `@property` (registered custom properties) |
 | Global unscoped selectors reached for encapsulation via BEM alone | `@scope` |
 | Hand-tuned `margin-top` to line an icon up with a multiline label | `lh` units (the pattern is `ui-patterns` → `text-and-icons`; this skill owns whether `lh` needs a fallback here) |
+| JS carousel library | `scroll-snap-type` + `scroll-snap-align` on a native scroller, `overscroll-behavior-x: contain`; buttons call `scrollBy` (sign flipped in RTL) |
+| JS auto-growing `<textarea>` | `field-sizing: content` with `min-height`/`max-height` in `lh` — limited availability; unsupported browsers keep a fixed-height textarea that scrolls, which is the fallback |
+| JS height measurement to animate an accordion | `::details-content` + `interpolate-size: allow-keywords` transitioning `height` — `interpolate-size` is limited availability; unsupported browsers open instantly, which is the fallback |
+| Popper/Floating UI placing a popover beside its trigger | anchor positioning (`position-area`, `position-try-fallbacks`) — check live status; unsupported placement breaks, so gate it behind `@supports (position-area: block-end)` and keep the library where the support floor needs it |
 
 If a build is doing any of the left column, check the right column's Baseline status in `reference/baseline.md` before assuming it needs the old approach.
 
@@ -46,6 +50,9 @@ If a build is doing any of the left column, check the right column's Baseline st
 
 ## Consult current status, don't guess
 This snapshot covers Baseline 2023–2025 only. For anything shipped after 2025, or a feature not in the reference list, or a project with an unusual support floor — don't answer from memory. Check live: MDN's Baseline badge on the feature's page, caniuse.com, or `web.dev/baseline/<feature-slug>` via WebFetch. Baseline status changes monthly; training data lags it.
+
+## Defaults that break on real content
+`reference/defensive.md` — CSS that renders right on the content it was written against and breaks on production's — overflow, viewport units, zoom, RTL, colour mixing. Read it when laying out a page, a card grid or a scroller, or when reviewing CSS for overflow.
 
 ## Full curated list
 `reference/baseline.md` — the exhaustive CSS feature tables, grouped by capability (selectors · layout · color · units & math · animation · scroll/perf · effects · typography · custom properties), each row carrying its Baseline year (`BL`) and a one-line description. Jump to the category that matches the task; consult it when you need the specific property/selector/function name, not just the judgment above.
