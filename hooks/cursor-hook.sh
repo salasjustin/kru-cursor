@@ -22,7 +22,7 @@
 #
 # fail open, like every upstream hook: a crash, a missing jq or a timeout is an
 # allow, never a block. KRU_HOOK_LOG=<file> appends one line per call (the
-# harness and the local smoke run read it).
+# harness reads it).
 event=${1:-}
 script=${2:-}
 shift 2 2>/dev/null

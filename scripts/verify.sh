@@ -1,8 +1,7 @@
 #!/bin/bash
 # every static check this fork has, in one run — what CI runs on each pull
-# request and push to main, and what to run before a commit. no model and no
-# cursor login: scripts/cursor-smoke.sh is the live half. runs every check, then
-# exits non-zero when any failed.
+# request and push to main, and what to run before a commit. runs every check,
+# then exits non-zero when any failed.
 # run: bash scripts/verify.sh
 set -u
 repo=$(cd "$(dirname "$0")/.." && pwd)
@@ -96,6 +95,7 @@ run_tests() {
 }
 
 step "port normalized (port.mjs --check)" node scripts/port.mjs --check --quiet
+step "PORTING.md cites every FORK_OWNED file" node scripts/port.mjs --check-porting-hand-owned
 step "fresh port of upstream reproduces the tree" fresh_port
 step "script syntax (bash -n, node --check)" syntax
 step "roster audit (scripts/audit.sh)" bash scripts/audit.sh

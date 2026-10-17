@@ -27,6 +27,6 @@ On the page that means: sequences whose order matters, defaults with the reason 
 - **Rewrite**: the entry bar above, on the new version, from a blank page.
 
 ## Both
-Minor version bump — `VERSION` · `ROSTER.md` header · `.cursor-plugin/plugin.json` · the `.cursor-plugin/marketplace.json` plugin entry's `version`, all equal (the plugin manifest is the one that gets forgotten — it has shipped stale before). Leave commit/tag to the user (git rule).
+Minor version bump — `VERSION` · `ROSTER.md` header · `.cursor-plugin/plugin.json` · the `.cursor-plugin/marketplace.json` plugin entry's `version`, all equal (the plugin manifest is the one that gets forgotten — it has shipped stale before). Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*.
 
 Completion: the skill loads, meets the standard (or is verbatim-vendored with provenance), and is recorded in `ROSTER.md`/`SOURCES.md` if it backs a seat or is vendored.

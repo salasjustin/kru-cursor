@@ -106,11 +106,26 @@ const DROP = [
   ".claude", //        upstream's own release tooling for claude code
   "evals", //          `claude plugin eval` suites
   "TESTING.md", //     upstream's claude-plugin test guide; PORTING.md → Verify carries ours
-  "scripts/smoke.sh", // a live `claude -p` run; scripts/cursor-smoke.sh is ours
+  "scripts/smoke.sh", // a live `claude -p` run; dropped like upstream v0.153.0
+  "scripts/cursor-smoke.sh", // fork's live token-spending check; verify.sh is the only gate (upstream v0.153.0 dropped smoke.sh)
   "hooks/check-task-tools.sh", // cursor's todo list is always on
   "hooks/check-task-tools.test.sh",
   "skills/setup/cloud-install.sh", // a claude cloud sessionstart template; cursor installs from .cursor/environment.json
+  "skills/claude-code-delegation", // cursor cloud agents; never claude code delegation
+  "skills/kru-claude-code-delegation", // same skill after layout prefix (merge can land either path)
+  "scripts/sync-bot-skills.sh", // upstream library sync; this fork syncs elsewhere (PORTING.md)
+  "scripts/sync-bot-skills.test.sh",
+  "scripts/bot-skills.txt",
+  "skills/roster/request.md", // fork-owned at skills/kru-roster/request.md (Cursor cloud path)
 ]
+const droppedSkillName = (name) =>
+  DROP.some((p) => {
+    if (!p.startsWith("skills/")) return false
+    const tail = p.slice("skills/".length)
+    if (tail.includes("/")) return false
+    const bare = tail.startsWith(PREFIX) ? tail.slice(PREFIX.length) : tail
+    return name === tail || name === PREFIX + bare || name === bare
+  })
 
 // fork-owned files: written for cursor by hand, never rewritten by rule. a merge
 // that touches one is a human read (PORTING.md → Hand-owned).
@@ -124,17 +139,11 @@ const FORK_OWNED = new Set([
   "scripts/verify-tree.mjs",
   "scripts/asset/xai.mjs",
   "scripts/asset/xai.test.mjs",
-  // sharp 0.35.5 (libvips 1.3.4) for GHSA-2464-fhr4-w9xw. upstream still pins
-  // 0.35.3, and a re-port would put that pin back; drop both once upstream's
-  // scripts/asset/package.json pins sharp at 0.35.5 or newer (PORTING.md).
-  "scripts/asset/package.json",
-  "scripts/asset/package-lock.json",
   "scripts/privacy-scan.mjs",
   "scripts/privacy-scan.test.sh",
   "scripts/leak-patterns.mjs",
   "scripts/guard-text.mjs",
   "scripts/cursor-hooks.test.sh",
-  "scripts/cursor-smoke.sh",
   "scripts/sync-upstream.sh",
   "scripts/sync-upstream.test.sh",
   "scripts/workflows.test.sh",
@@ -147,6 +156,7 @@ const FORK_OWNED = new Set([
   "scripts/cloud-skills.test.sh",
   "skills/kru-roster/release.md",
   "skills/kru-roster/fork-sync.md",
+  "skills/kru-roster/request.md",
   "hooks/cursor-hook.sh",
   "hooks/require-lead.sh",
   "hooks/require-lead.test.sh",
@@ -489,6 +499,10 @@ const RULES = [
   R(/\*\*The lead's board is user-scoped too\.\*\*[\s\S]*?lands on their next restart\.\n/g,
     "**The lead's board needs nothing.** Cursor's todo list is always on, so there is no switch to set.\n", { md: true, files: /^skills\/kru-setup\/SKILL\.md$/, required: /The lead's board needs nothing/ }),
   R(/ and the claude\.ai connector to `MCP claude_ai_Context7__\*` —\n  either leaves those seats holding entries that resolve to nothing\./g, " —\n  that leaves those seats holding entries that resolve to nothing. The claude.ai connector (`MCP claude_ai_Context7__*`) is Claude-only and is not a Cursor failure mode.", { md: true, files: /^skills\/kru-setup\/SKILL\.md$/, required: /is Claude-only and is not a Cursor failure mode/ }),
+  R(/ the same way, and the `svelte@svelte` plugin namespaces its server to\n  `\*` \(`plugin_svelte_svelte` MCP\) — a Svelte repo registers a bare `svelte` entry in its `\.mcp\.json`\n  \(http `https:\/\/mcp\.svelte\.dev\/mcp`\)\./g,
+    " the same way — a Svelte repo registers a bare `svelte` entry in `.cursor/mcp.json` (http `https://mcp.svelte.dev/mcp`) for local Cursor use. Cloud agents only get it once it is added as a team MCP server in the Cursor dashboard (they ignore the repo's `.cursor/mcp.json`).",
+    { md: true, files: /^skills\/kru-setup\/SKILL\.md$/, required: /Cloud agents only get it once it is added as a team MCP server/ }),
+  R(/\(`TESTING\.md` → \*Verify before shipping\*\)/g, "(`PORTING.md` — the verify gate at the top)", { md: true, required: /`PORTING\.md` — the verify gate at the top/ }),
   R(/\| `mcp` \| `agent mcp list` and the plugins under \*\*Customize\*\*,/g, "| `mcp` | `agent mcp list` and the plugins under **Customize**,", { md: true }),
   R(/`claude plugin details kru`/g, "the plugin's entry under **Customize**", { md: true }),
   R(/\ba `claude plugin eval` suite\b/g, "a claude plugin eval suite (kept from upstream; Cursor has no eval runner)", { md: true, files: /^ROSTER\.md$/ }),
@@ -975,6 +989,7 @@ function portSkills() {
   for (const { name, path: dir } of skillDirs()) {
     const path = join(dir, "SKILL.md")
     if (!exists(path)) {
+      if (droppedSkillName(name)) continue
       problems.push(`skills/${name}: no SKILL.md`)
       continue
     }
@@ -1241,7 +1256,7 @@ function portRules(version) {
     "- The PM is the bot or person that briefed this session; the owner approves hard-to-reverse calls (the `kru-lead` skill says what reaches the owner). The PM bot's own operating rules govern escalation and approval; the plugin's generic default applies only when the PM has none.",
     "- Team skills are `kru-<name>` (`kru-testing`), and the PM's commands are `/kru-<name>` (`/kru-brief`, `/kru-setup`).",
     "- The install dir is `${CURSOR_PLUGIN_ROOT}`; the store resolver is `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\"`.",
-    "- **PR babysit loop.** After you open or own a pull request, subscribe to its reviews, comments, and CI and check. Clean means CI green and every review thread answered. On AngelProtocolFinance/better-giving, wait until Greptile's review is posted and no Greptile P0 or P1 is still open; never wait for Greptile on any other repo. Already clean: tell the PM that requested the work it is ready to merge. Not clean: fix a valid finding, reply on each thread — say why when the finding stands — and push; if nothing is left to fix, end the turn. Repeat on the next wake until it is clean. That report is the only message out; the owner merges.",
+    "- **PR babysit loop.** After you open or own a pull request, subscribe to its reviews, comments, and CI and check. Clean means CI green and every review thread answered. On AngelProtocolFinance/better-giving, wait until Greptile's review is posted and no Greptile P0 or P1 is still open; never wait for Greptile on any other repo. Already clean: tell the PM that requested the work it is ready to merge (the plugin maintainer for this plugin after CI (`verify`); the owner for product repos — `skills/kru-lead/SKILL.md` → *Who acts at the door*). Not clean: fix a valid finding, `commit` locally on the branch, reply on each thread — say why when the finding stands — and return proof for the PM bot to push; if nothing is left to fix, end the turn. Repeat on the next wake until it is clean. That report is the only message out.",
     "",
   ].join("\n")
   write(join(ROOT, "rules", "kru-lead.mdc"), lead)
@@ -1303,7 +1318,7 @@ function audit() {
   const watched = new Map()
   for (const path of walk(ROOT)) {
     const rel = relative(ROOT, path)
-    if (!/\.(md|mdc|sh|json|mjs)$/.test(rel) || FORK_OWNED.has(rel)) continue
+    if (!/\.(md|mdc|sh|json|mjs)$/.test(rel) || FORK_OWNED.has(rel) || FORK_OWNED_DIRS.test(rel)) continue
     const src = readF(path) ?? ""
     if (!FORBIDDEN_OK.test(rel))
       for (const re of FORBIDDEN) {
@@ -1464,6 +1479,18 @@ if (process.argv.includes("--list-fork-owned")) {
   // the manifest's fork half of the version is the one fact a fresh port reads back
   out.push(".cursor-plugin/plugin.json")
   console.log([...new Set(out)].sort().join("\n"))
+  process.exit(0)
+}
+
+// --check-porting-hand-owned: every FORK_OWNED file is cited in PORTING.md's table
+if (process.argv.includes("--check-porting-hand-owned")) {
+  const porting = readF(join(ROOT, "PORTING.md"))
+  const missing = [...FORK_OWNED].filter((f) => existsSync(join(ROOT, f)) && !porting.includes("`" + f + "`"))
+  if (missing.length) {
+    console.error("PORTING.md hand-owned table missing FORK_OWNED entries:\n" + missing.map((f) => "  " + f).join("\n"))
+    process.exit(1)
+  }
+  console.log(`PORTING.md cites all ${[...FORK_OWNED].filter((f) => existsSync(join(ROOT, f))).length} FORK_OWNED files`)
   process.exit(0)
 }
 
