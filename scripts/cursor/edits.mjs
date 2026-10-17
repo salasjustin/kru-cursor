@@ -407,8 +407,14 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-roster/learn.md",
   "The review is the uncommitted diff — commit stays the user's, so an edit they disagree with is reverted before it ships.\n\nRun this **from the plugin source repo** (it commits the plugin), not a product repo.",
-  "The review is the uncommitted diff — the plugin maintainer's, so an edit they disagree with is reverted before it ships.\n\nRun this **from the plugin maintainer's checkout of this plugin** (it changes the plugin), not a product repo. The plugin maintainer reviews the diff, commits, pushes, opens the pull request, merges and tags — the plugin maintainer owns this plugin's releases. The owner's words (`owner`) outrank a PM's (`pm`) in every verdict below.",
+  "The review is the uncommitted diff — the plugin maintainer reviews it before it ships, so an edit they disagree with is reverted first.\n\nRun this **from the plugin maintainer's checkout of this plugin** (it changes the plugin), not a product repo. The lead `commit`s locally on the branch; the PM bot reviews the proof, pushes and opens the pull request; the plugin maintainer merges after CI (`verify`) passes and `tag`s this plugin's releases (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*). The owner's words (`owner`) outrank a PM's (`pm`) in every verdict below.",
   "t6: learn runs from the plugin maintainer's checkout; the owner outranks",
+))
+EDITS.push(E(
+  "skills/kru-roster/learn.md",
+  "The review is the uncommitted diff — the plugin maintainer's, so an edit they disagree with is reverted before it ships.\n\nRun this **from the plugin maintainer's checkout of this plugin** (it changes the plugin), not a product repo. The plugin maintainer reviews the diff, commits, pushes, opens the pull request, merges and tags — the plugin maintainer owns this plugin's releases. The owner's words (`owner`) outrank a PM's (`pm`) in every verdict below.",
+  "The review is the uncommitted diff — the plugin maintainer reviews it before it ships, so an edit they disagree with is reverted first.\n\nRun this **from the plugin maintainer's checkout of this plugin** (it changes the plugin), not a product repo. The lead `commit`s locally on the branch; the PM bot reviews the proof, pushes and opens the pull request; the plugin maintainer merges after CI (`verify`) passes and `tag`s this plugin's releases (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*). The owner's words (`owner`) outrank a PM's (`pm`) in every verdict below.",
+  "review PR21: learn intro matches kru-lead Who acts at the door",
 ))
 EDITS.push(E(
   "skills/kru-roster/learn.md",
@@ -419,8 +425,14 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-roster/learn.md",
   "Leave `commit`+`tag` to the user (git rule).",
-  "`commit`, push, pull request, merge and `tag` are the plugin maintainer's (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` are the plugin maintainer's after CI (`verify`) passes (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*).",
   "t6",
+))
+EDITS.push(E(
+  "skills/kru-roster/learn.md",
+  "`commit`, push, pull request, merge and `tag` are the plugin maintainer's (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` are the plugin maintainer's after CI (`verify`) passes (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "review PR21: learn §5 hand-off matches kru-lead Who acts at the door",
 ))
 EDITS.push(E(
   "hooks/check-handoff.sh",
@@ -1374,4 +1386,22 @@ EDITS.push(E(
   "The Svelte seats name\n  `*` (`svelte` MCP) the same way",
   "The Svelte seats name `list-sections`, `get-documentation`, and `svelte-autofixer` (`svelte` MCP) the same way",
   "review PR21: Svelte seats name real MCP tools, not a wildcard",
+))
+EDITS.push(E(
+  "skills/kru-roster/hire.md",
+  "Report the new seat + its boundary. Leave `commit`+`tag` to the user unless they asked (git rule). Then route work to the seat.",
+  "Report the new seat + its boundary. The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` wait on the plugin maintainer after CI (`verify`) passes (`skills/kru-lead/SKILL.md` → *Who acts at the door*). Then route work to the seat.",
+  "review PR21: hire hand-off matches kru-lead Who acts at the door",
+))
+EDITS.push(E(
+  "skills/kru-roster/author.md",
+  "Leave commit/tag to the user (git rule).",
+  "The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` wait on the plugin maintainer after CI (`verify`) passes (`skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "review PR21: author hand-off matches kru-lead Who acts at the door",
+))
+EDITS.push(E(
+  "skills/kru-roster/retire.md",
+  "Leave commit/tag to the user (git rule).",
+  "The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` wait on the plugin maintainer after CI (`verify`) passes (`skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "review PR21: retire hand-off matches kru-lead Who acts at the door",
 ))

@@ -95,6 +95,7 @@ run_tests() {
 }
 
 step "port normalized (port.mjs --check)" node scripts/port.mjs --check --quiet
+step "PORTING.md cites every FORK_OWNED file" node scripts/port.mjs --check-porting-hand-owned
 step "fresh port of upstream reproduces the tree" fresh_port
 step "script syntax (bash -n, node --check)" syntax
 step "roster audit (scripts/audit.sh)" bash scripts/audit.sh

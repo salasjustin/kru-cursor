@@ -32,4 +32,4 @@ Minor bump: `VERSION`, `.cursor-plugin/plugin.json` `version`, the `.cursor-plug
 Completion: **run `audit` (see `audit.md`) — it must pass.**
 
 ## 5. Hand off
-Report the new seat + its boundary. Leave `commit`+`tag` to the user unless they asked (git rule). Then route work to the seat.
+Report the new seat + its boundary. The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` wait on the plugin maintainer after CI (`verify`) passes (`skills/kru-lead/SKILL.md` → *Who acts at the door*). Then route work to the seat.

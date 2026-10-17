@@ -1482,6 +1482,18 @@ if (process.argv.includes("--list-fork-owned")) {
   process.exit(0)
 }
 
+// --check-porting-hand-owned: every FORK_OWNED file is cited in PORTING.md's table
+if (process.argv.includes("--check-porting-hand-owned")) {
+  const porting = readF(join(ROOT, "PORTING.md"))
+  const missing = [...FORK_OWNED].filter((f) => existsSync(join(ROOT, f)) && !porting.includes("`" + f + "`"))
+  if (missing.length) {
+    console.error("PORTING.md hand-owned table missing FORK_OWNED entries:\n" + missing.map((f) => "  " + f).join("\n"))
+    process.exit(1)
+  }
+  console.log(`PORTING.md cites all ${[...FORK_OWNED].filter((f) => existsSync(join(ROOT, f))).length} FORK_OWNED files`)
+  process.exit(0)
+}
+
 // the per-segment insert is decided inside the readonly-bash rewrite, which
 // also builds the text a later write() would save. run that rewrite once
 // before any rename or write and discard the pass. a drifted anchor still
