@@ -32,7 +32,7 @@ any project (cwd = someone's repo)         the cross-project root
                                 stamped with the plugin version they came from
 ```
 
-Three arrows, one circuit. **Cheap lossless capture**, then a **curated sweep** that edits the team and leaves the commit to the user (mirroring the `TODOS.md` → `/kru-brief` promotion the team already runs), then the **return leg**: a repo picks the evolved practice back up by re-running `/kru-setup`, which re-derives its answers against the newer plugin.
+Three arrows, one circuit. **Cheap lossless capture**, then a **curated sweep** that edits the team and hands off per steps 3 and 5 below (mirroring the `TODOS.md` → `/kru-brief` promotion the team already runs), then the **return leg**: a repo picks the evolved practice back up by re-running `/kru-setup`, which re-derives its answers against the newer plugin.
 
 **The plugin holds the practice; a repo's own file holds the engagement.** That split is what the sweep routes on — a preference that would still be true in the next repo goes upstream into a seat or a skill, one true only where it surfaced goes into that repo's sheet (`skills/kru-roster/learn.md` → step 2). The plugin is the same in every engagement, which is exactly why nothing client-specific may land in it.
 
@@ -64,7 +64,7 @@ Capture never derails the task — park the line, keep working (`TODOS.md` disci
 
 ## Tier 2 — sweep (`/kru-roster learn`)
 
-The **curated** half — it edits the team, so it lives under roster-ops (`/kru-roster learn`), reusing the same version/wiring machinery as `hire`/`author`. Run it **from the plugin source repo** periodically (not from a product repo — it commits the plugin). It:
+The **curated** half — it edits the team, so it lives under roster-ops (`/kru-roster learn`), reusing the same version/wiring machinery as `hire`/`author`. Run it **from the plugin maintainer's checkout of this plugin** periodically (not from a product repo — it changes the plugin). It:
 
 1. Reads the `inbox` (+ `patterns/`); groups by lane, dedupes, drops noise.
 2. For each keeper, picks a **destination**:

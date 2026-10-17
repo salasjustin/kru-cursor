@@ -429,6 +429,18 @@ EDITS.push(E(
   "t6: learn tier-2 step 5 door roles",
 ))
 EDITS.push(E(
+  "PREFERENCES.md",
+  "then a **curated sweep** that edits the team and leaves the commit to the user (mirroring the `TODOS.md` → `/kru-brief` promotion the team already runs)",
+  "then a **curated sweep** that edits the team and hands off per steps 3 and 5 below (mirroring the `TODOS.md` → `/kru-brief` promotion the team already runs)",
+  "review PR21: PREFERENCES loop prose matches learn hand-off",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
+  "Run it **from the plugin source repo** periodically (not from a product repo — it commits the plugin). It:",
+  "Run it **from the plugin maintainer's checkout of this plugin** periodically (not from a product repo — it changes the plugin). It:",
+  "review PR21: PREFERENCES tier-2 intro matches learn.md",
+))
+EDITS.push(E(
   "agents/dispatch-auditor.md",
   "/kru-roster learn` sweeps, dedupes, and decides the promotion; the user reviews its diff before any commit.",
   "/kru-roster learn` sweeps, dedupes, and decides the promotion; the plugin maintainer reviews the uncommitted diff, and the lead `commit`s when the PM asks.",
