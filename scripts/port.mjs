@@ -554,7 +554,9 @@ const RULES = [
   R(/\bPostToolUse\b/g, "postToolUse", { md: true }),
   // design is outside engineering (v0.156). cursor surfaces for the external designer.
   R(/Engineering never runs a mockup or canvas step\.(?!\n+\*\*External designer on Cursor)/g, () => "Engineering never runs a mockup or canvas step." + block("ui-design-cursor.md"), { md: true, files: /^references\/ui-practice\.md$/, required: /External designer on Cursor/ }),
-  R(/Invoke the bundled \*\*`\/design` skill\*\* for artboards and publish:/g, "Invoke **`/kru-design`** and publish with Cursor's `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) for artboards:", { md: true, files: /^references\/designer-handoff\.md$/, required: /publish with Cursor's `\/canvas`/ }),
+  R(/For the \*\*designer\*\* \(standalone bot or human\) using kru's design skills — `\/design`, `composition`/g, "For the **designer** (standalone bot or human) using kru's design skills — `skills/kru-design/SKILL.md`, `composition`", { md: true, files: /^references\/designer-handoff\.md$/, required: /skills\/kru-design\/SKILL\.md/ }),
+  R(/^## Canvas and `\/design`/m, "## Canvas and the design skill", { md: true, files: /^references\/designer-handoff\.md$/, required: /^## Canvas and the design skill/m }),
+  R(/Invoke the bundled \*\*`\/design` skill\*\* for artboards and publish:/g, "Load **`skills/kru-design/SKILL.md`** (`${CURSOR_PLUGIN_ROOT}/skills/kru-design/SKILL.md`, designer bot only — no engineering slash command) and publish with Cursor's `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) for artboards:", { md: true, files: /^references\/designer-handoff\.md$/, required: /skills\/kru-design\/SKILL\.md/ }),
   R(/^(# The sync lane — designing out of the repo's real components\n)(?!\n\*\*Cursor has no)/m, "$1\n**Cursor has no claude.ai/design project — engineering does not run this lane.** External designers on Cursor use `/kru-design` with `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)). The procedure below stays so a repo that already has a `.design-sync/` can still be read.\n", { md: true, files: /^references\/design-sync\.md$/, required: /engineering does not run this lane/ }),
   R(/\*\*A `\.design-sync\/` bundle, if present, is for the designer\*\* — keep components accurate so a designer-run `\/design-sync` sees real parts \(`\$\{CURSOR_PLUGIN_ROOT\}\/references\/design-sync\.md`\)\. When your slice touches published components, expect all of:/g, "**A `.design-sync/` bundle, if present, is for the designer** — keep components accurate so a designer-run `/design-sync` sees real parts (`${CURSOR_PLUGIN_ROOT}/references/design-sync.md`). Cursor has no claude.ai/design host; engineering does not run the sync lane. When your slice touches published components in such a tree, expect all of:", { md: true, files: /^agents\/react-ui-builder\.md$/, required: /engineering does not run the sync lane/ }),
   R(/- \*\*The values and the look\*\* — the designer's approved spec \(`\/design` \+ handoff to PM\), transcribed once by a builder\./g, "- **The values and the look** — the designer's approved spec (mockups + build spec handed to the PM), transcribed once by a builder.", { md: true, files: /^skills\/kru-design-system\/SKILL\.md$/, required: /mockups \+ build spec handed to the PM/ }),
@@ -1265,6 +1267,7 @@ function portCommands() {
     const hint = unquote(value(get(fm, "argument-hint")))
     const manual = value(get(fm, "disable-model-invocation")) === "true"
     if (!hint && !manual) continue
+    if (!hint && manual && name === `${PREFIX}design`) continue
     wanted.add(`${name}.md`)
     const description = (unquote(value(get(fm, "description"))) ?? "").split(/(?<=\.)\s/)[0].replace(/\s+/g, " ")
     const body = [

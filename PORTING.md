@@ -99,7 +99,7 @@ capped by each seat's *What you return* contract — the price of the stronger g
 and Delete tools by `hooks/seat-guard.sh`, which maps a Task's `tool_call_id` to its seat at
 `subagentStart` and reads it back through a tool call's `parent_tool_call_id`. That mapping uses a
 field the CLI sends (`parent_tool_call_id`) that Cursor's docs don't list; where it is absent the
-guard allows — and the seven readonly seats don't depend on it.
+guard allows — and the six readonly seats among the team's 37 agents don't depend on it.
 
 ## Hand-owned — what a merge will not normalize
 

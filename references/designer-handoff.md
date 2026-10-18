@@ -1,6 +1,6 @@
 # Designer handoff — mockups, build spec, PM approval
 
-For the **designer** (standalone bot or human) using kru's design skills — `/kru-design`, `composition`, `design-system`, `design-gallery`, `landing-page`, `ux-principles`, `user-research`, `research-synthesis`, `ux-copy`, `ui-patterns`, `brand-marks`, `algorithmic-art`, gen-asset tooling (`scripts/asset/`), motion skills, and related references. The engineering lead does not run this workflow or dispatch design seats.
+For the **designer** (standalone bot or human) using kru's design skills — `skills/kru-design/SKILL.md`, `composition`, `design-system`, `design-gallery`, `landing-page`, `ux-principles`, `user-research`, `research-synthesis`, `ux-copy`, `ui-patterns`, `brand-marks`, `algorithmic-art`, gen-asset tooling (`scripts/asset/`), motion skills, and related references. The engineering lead does not run this workflow or dispatch design seats.
 
 ## Your output to the PM
 
@@ -12,9 +12,9 @@ When the design is ready for build, hand the PM a single package they can attach
 
 Working files (artboards, `canvas.json`, images) stay **local and uncommitted** beside `.design-work/` in the repo or in the designer's store — they are inputs to the mockups, not something the lead serves or commits. Only the approved exports and build spec cross to the PM.
 
-## Canvas and `/kru-design`
+## Canvas and the design skill
 
-Invoke **`/kru-design`** and publish with Cursor's `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) for artboards:
+Load **`skills/kru-design/SKILL.md`** (`${CURSOR_PLUGIN_ROOT}/skills/kru-design/SKILL.md`, designer bot only — no engineering slash command) and publish with Cursor's `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) for artboards:
 
 - Match the existing app from the repo when brownfield — token file, stylesheets, closest screens — and say in one line what you matched.
 - **Directions at bootstrap, screen mockups after** — 2–4 genuinely different directions when the look is unsettled; compose from real parts once a system exists.

@@ -1416,8 +1416,14 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-update/vendored.md",
   "the `ux-designer` trio",
-  "the removed design seats (pre-v0.156)",
+  "removed design seats pre-v0.156",
   "reflect v0.156: design seats removed upstream",
+))
+EDITS.push(E(
+  "references/ui-practice.md",
+  "design skills (`/kru-design`, `composition`",
+  "design skills (`skills/kru-design/SKILL.md`, `composition`",
+  "design skill: ui-practice lists SKILL path for designer bot",
 ))
 EDITS.push(E(
   "skills/kru-update/reviewed.md",

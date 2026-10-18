@@ -1,7 +1,7 @@
 # Models — what each seat runs on in Cursor
 
 Upstream kru pins every seat to a Claude model and argues each tier in `ROSTER.md` → *Model tiers*.
-This fork keeps those tiers where Claude is still the right call, moves eight seats onto models
+This fork keeps those tiers where Claude is still the right call, moves five seats onto models
 Cursor serves that fit their work better or cost less, and records a fallback for every seat.
 `scripts/port.mjs` holds the data — `CONFIRMED_MODELS` (every id a seat may use, each with the page
 it was read from), `SEAT_MODELS` (the fork's picks, each with its fallback) and `TIER_FALLBACK`
