@@ -1,7 +1,7 @@
 #!/bin/bash
 # preToolUse / beforeMCPExecution: block outbound team connector MCP when Cursor runs these hooks.
 # Project hooks (`.cursor/hooks.json`) invoke this from the repo root; plugin hooks use cursor-hook.sh.
-# Denylist: scripts/cursor/mcp-outbound-denylist.mjs
+# Allowlist policy: scripts/cursor/mcp-outbound-denylist.mjs (default deny)
 # Kill switch: KRU_NO_MCP_OUTBOUND_GUARD=1
 # Cursor cloud agents do not currently run hooks for MCP connector calls (verified Oct 2026);
 # rules/kru-lead.mdc is the only guard there. Optional trace: set KRU_HOOK_TRACE to a log path.
@@ -69,6 +69,8 @@ fi
 is_mcp=0
 if looks_like_mcp "$input"; then
   is_mcp=1
+elif printf '%s' "$input" | grep -qE 'CallDynamicTool|"MCP:|mcp_server_name' 2>/dev/null; then
+  is_mcp=1
 fi
 
 if [ ! -f "$classify" ]; then
@@ -78,14 +80,28 @@ if [ ! -f "$classify" ]; then
   emit_allow
 fi
 
-errf=$(mktemp 2>/dev/null) || emit_allow
+if [ "$is_mcp" = 1 ]; then
+  if ! command -v jq >/dev/null 2>&1; then
+    emit_deny "kru: MCP outbound guard requires jq. Denying connector MCP."
+  fi
+  if ! printf '%s' "$input" | jq -e 'type == "object"' >/dev/null 2>&1; then
+    emit_deny "kru: MCP outbound guard received invalid JSON. Denying connector MCP."
+  fi
+fi
+
+errf=$(mktemp 2>/dev/null) || {
+  if [ "$is_mcp" = 1 ]; then
+    emit_deny "kru: MCP outbound guard could not run (mktemp failed). Denying connector MCP."
+  fi
+  emit_allow
+}
 out=$(printf '%s' "$input" | node "$classify" 2>"$errf")
 code=$?
 err=$(cat "$errf" 2>/dev/null)
 rm -f "$errf"
 
 if [ "$code" = 2 ]; then
-  msg=${err:-kru: this cloud agent cannot send, post, share, or delete through team connectors (MCP). Hand this action back to the PM bot to run outside the agent.}
+  msg=${err:-kru: this cloud agent cannot run that connector MCP tool. Hand the exact tool name and arguments back to the PM bot to run outside the agent.}
   trace_line "deny" "$(printf '%s' "$input" | jq -c --arg d "deny" '. + {decision:$d}' 2>/dev/null || printf '{}')"
   emit_deny "$msg"
 fi

@@ -91,16 +91,71 @@ run 2 "Slack slack_add_list_record" "$(payload_mcp 'MCP:Slack:slack_add_list_rec
 run 2 "Slack slack_create_list" "$(payload_mcp 'MCP:Slack:slack_create_list')"
 run 2 "beforeMCPExecution delete_comment" "$(jq -nc '{tool_name:"delete_comment",mcp_server_name:"Linear",hook_event_name:"beforeMCPExecution"}')"
 
+# round-2 must-deny (default-deny allowlist)
+run 2 "GitHub discussion_comment_write" "$(payload_mcp 'MCP:GitHub:discussion_comment_write')"
+run 2 "GitHub sub_issue_write" "$(payload_mcp 'MCP:GitHub:sub_issue_write')"
+run 2 "GitHub label_write" "$(payload_mcp 'MCP:GitHub:label_write')"
+run 2 "GitHub projects_write" "$(payload_mcp 'MCP:GitHub:projects_write')"
+run 2 "GitHub issue_dependency_write" "$(payload_mcp 'MCP:GitHub:issue_dependency_write')"
+run 2 "GitHub custom_properties_write" "$(payload_mcp 'MCP:GitHub:custom_properties_write')"
+run 2 "GitHub actions_run_trigger" "$(payload_mcp 'MCP:GitHub:actions_run_trigger')"
+run 2 "GitHub assign_copilot_to_issue" "$(payload_mcp 'MCP:GitHub:assign_copilot_to_issue')"
+run 2 "GitHub assign_copilot_to_issue_with_intent" "$(payload_mcp 'MCP:GitHub:assign_copilot_to_issue_with_intent')"
+run 2 "GitHub request_copilot_review" "$(payload_mcp 'MCP:GitHub:request_copilot_review')"
+run 2 "GitHub create_gist" "$(payload_mcp 'MCP:GitHub:create_gist')"
+run 2 "GitHub update_gist" "$(payload_mcp 'MCP:GitHub:update_gist')"
+run 2 "GitHub create_repository" "$(payload_mcp 'MCP:GitHub:create_repository')"
+run 2 "GitHub fork_repository" "$(payload_mcp 'MCP:GitHub:fork_repository')"
+run 2 "GitHub create_repository_ruleset" "$(payload_mcp 'MCP:GitHub:create_repository_ruleset')"
+run 2 "GitHub star_repository" "$(payload_mcp 'MCP:GitHub:star_repository')"
+run 2 "GitHub unstar_repository" "$(payload_mcp 'MCP:GitHub:unstar_repository')"
+run 2 "GitHub dismiss_notification" "$(payload_mcp 'MCP:GitHub:dismiss_notification')"
+run 2 "GitHub manage_notification_subscription" "$(payload_mcp 'MCP:GitHub:manage_notification_subscription')"
+run 2 "GitHub mark_all_notifications_read" "$(payload_mcp 'MCP:GitHub:mark_all_notifications_read')"
+run 2 "Gmail label_thread" "$(payload_mcp 'MCP:Gmail:label_thread')"
+run 2 "Gmail unlabel_thread" "$(payload_mcp 'MCP:Gmail:unlabel_thread')"
+run 2 "Gmail label_message" "$(payload_mcp 'MCP:Gmail:label_message')"
+run 2 "Gmail unlabel_message" "$(payload_mcp 'MCP:Gmail:unlabel_message')"
+run 2 "Gmail update_message_labels" "$(payload_mcp 'MCP:Gmail:update_message_labels')"
+run 2 "Gmail apply_sensitive_thread_label" "$(payload_mcp 'MCP:Gmail:apply_sensitive_thread_label')"
+run 2 "Gmail apply_sensitive_message_label" "$(payload_mcp 'MCP:Gmail:apply_sensitive_message_label')"
+run 2 "Gmail mark_thread_spam" "$(payload_mcp 'MCP:Gmail:mark_thread_spam')"
+run 2 "Gmail unmark_thread_spam" "$(payload_mcp 'MCP:Gmail:unmark_thread_spam')"
+run 2 "Gmail mark_message_spam" "$(payload_mcp 'MCP:Gmail:mark_message_spam')"
+run 2 "Gmail unmark_message_spam" "$(payload_mcp 'MCP:Gmail:unmark_message_spam')"
+run 2 "Gmail create_label" "$(payload_mcp 'MCP:Gmail:create_label')"
+run 2 "Gmail update_label" "$(payload_mcp 'MCP:Gmail:update_label')"
+run 2 "Linear update_diff" "$(payload_dyn Linear update_diff)"
+run 2 "Linear resolve_diff_thread" "$(payload_dyn Linear resolve_diff_thread)"
+run 2 "Linear retire_issue_label" "$(payload_dyn Linear retire_issue_label)"
+run 2 "Linear restore_issue_label" "$(payload_dyn Linear restore_issue_label)"
+run 2 "Linear create_initiative_label" "$(payload_dyn Linear create_initiative_label)"
+run 2 "Linear mark_notification" "$(payload_dyn Linear mark_notification)"
+run 2 "Slack slack_update_list_record" "$(payload_mcp 'MCP:Slack:slack_update_list_record')"
+run 2 "Slack slack_get_file_upload_url" "$(payload_mcp 'MCP:Slack:slack_get_file_upload_url')"
+run 2 "Linear prepare_attachment_upload" "$(payload_dyn Linear prepare_attachment_upload)"
+
+# round-2 must-allow
+run 0 "GitHub pull_request_read" "$(payload_mcp 'MCP:GitHub:pull_request_read')"
+run 0 "GitHub list_pull_requests" "$(payload_mcp 'MCP:GitHub:list_pull_requests')"
+run 0 "GitHub search_pull_requests" "$(payload_mcp 'MCP:GitHub:search_pull_requests')"
+run 0 "GitHub issue_read" "$(payload_mcp 'MCP:GitHub:issue_read')"
+run 0 "GitHub get_file_contents" "$(payload_mcp 'MCP:GitHub:get_file_contents')"
+run 0 "Slack slack_read_channel" "$(payload_mcp 'MCP:Slack:slack_read_channel')"
+run 0 "Gmail get_draft" "$(payload_mcp 'MCP:Gmail:get_draft')"
+run 0 "Gmail list_drafts" "$(payload_mcp 'MCP:Gmail:list_drafts')"
+run 0 "Context7 resolve-library-id" "$(payload_dyn Context7 resolve-library-id)"
+
 # module-level stem checks
 (cd "$root" && node --input-type=module -e "
 import { classifyMcpTool } from './scripts/cursor/mcp-outbound-denylist.mjs';
 const deny = (stem) => classifyMcpTool({ id: 'x/'+stem, stem }).action === 'deny';
 const allow = (stem) => classifyMcpTool({ id: 'x/'+stem, stem }).action === 'allow';
 const cases = [
-  ['list_teams', allow], ['delete_comment', deny], ['create_draft', allow], ['reply', deny],
+  ['list_teams', allow], ['delete_comment', deny], ['create_draft', allow], ['pull_request_read', allow],
   ['add_issue_comment', deny], ['create_pull_request', deny], ['push_files', deny],
-  ['create_or_update_file', deny], ['merge_pull_request', deny], ['slack_complete_file_upload', deny],
-  ['create_filter', deny], ['create_attachment', deny], ['unshare_issue', deny],
+  ['discussion_comment_write', deny], ['prepare_attachment_upload', deny],
+  ['slack_get_file_upload_url', deny], ['save_issue', allow],
 ];
 let bad = 0;
 for (const [s, fn] of cases) if (!fn(s)) { console.error('classify', s); bad++; }
@@ -136,6 +191,15 @@ if printf '%s' "$resp" | jq -e '.permission == "deny" and (.agent_message | test
   pass=$((pass + 1))
 else
   fail=$((fail + 1)); echo "FAIL: classifier non-zero should fail closed for MCP"; echo "  resp: $resp"
+fi
+
+resp=$(printf '%s' 'not-json' | bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "allow"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: non-MCP invalid JSON should allow"; echo "  resp: $resp"
+fi
+resp=$(printf '%s' '{"tool_name":"CallDynamicTool","tool_input":{"namespace":"Linear","toolName":"list_teams"},broken' | bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "deny"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: MCP invalid JSON should deny"; echo "  resp: $resp"
 fi
 
 printf '%d passed, %d failed\n' "$pass" "$fail"

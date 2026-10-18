@@ -111,9 +111,9 @@ match the hook commands) before merging hook entries: `hooks/mcp-outbound-guard.
 `preToolUse` and `beforeMCPExecution` entries from
 `${CURSOR_PLUGIN_ROOT}/scripts/cursor/hooks.repo.mcp-guard.json` into `.cursor/hooks.json` (create the
 file when the repo has none). Commands are repo-root paths such as `bash hooks/mcp-outbound-guard.sh`
-(project hooks run with cwd = the repo root; do not use `${CURSOR_PLUGIN_ROOT}`). The guard denies
-send/post/share/delete and similar connector tools while allowing reads, drafts, and Linear
-`save_issue` — the denylist lives in `scripts/cursor/mcp-outbound-denylist.mjs`. Skip when the repo
+(project hooks run with cwd = the repo root; do not use `${CURSOR_PLUGIN_ROOT}`). The guard is
+default-deny: only reads, drafts, and Linear `save_issue` are allowed through connectors — the
+allowlist lives in `scripts/cursor/mcp-outbound-denylist.mjs`. Skip when the repo
 already carries the same matchers. Cursor cloud agents do not currently run hooks for MCP connector
 calls (verified Oct 2026); the always-on rule is the only guard there (`rules/kru-lead.mdc`).
 

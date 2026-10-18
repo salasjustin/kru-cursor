@@ -40,10 +40,42 @@ allow() {
   esac
   exit 0
 }
+deny_mcp() {
+  local msg=${1:-kru: MCP outbound guard failed. Denying connector MCP.}
+  case "$event" in
+    preToolUse|subagentStart|beforeShellExecution|beforeReadFile|beforeMCPExecution)
+      jq -nc --arg m "$msg" '{permission: "deny", user_message: $m, agent_message: $m}'
+      exit 0
+      ;;
+    beforeSubmitPrompt) jq -nc --arg m "$msg" '{continue: false, user_message: $m}'; exit 0 ;;
+    *) allow ;;
+  esac
+}
+mcp_payload_heuristic() {
+  case "$1" in
+    *CallDynamicTool*|*\"MCP:*|*mcp_server_name*) return 0 ;;
+  esac
+  return 1
+}
+mcp_guard_context() {
+  [ "$event" = beforeMCPExecution ] && return 0
+  [ "$script" = mcp-outbound-guard.sh ] && return 0
+  return 1
+}
 input=$(cat 2>/dev/null)
-command -v jq >/dev/null 2>&1 || allow
+if ! command -v jq >/dev/null 2>&1; then
+  if mcp_guard_context || mcp_payload_heuristic "$input"; then
+    deny_mcp "kru: MCP outbound guard requires jq. Denying connector MCP."
+  fi
+  allow
+fi
 [ -f "$root/hooks/$script" ] || allow
-printf '%s' "$input" | jq -e 'type == "object"' >/dev/null 2>&1 || allow
+if ! printf '%s' "$input" | jq -e 'type == "object"' >/dev/null 2>&1; then
+  if mcp_guard_context || mcp_payload_heuristic "$input"; then
+    deny_mcp "kru: MCP outbound guard received invalid JSON. Denying connector MCP."
+  fi
+  allow
+fi
 
 norm=$(printf '%s' "$input" | jq -c --arg ev "$event" --arg pd "${CURSOR_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-}}" '
   def flat: if type == "object" or type == "array" then ([.. | strings] | first // "") else (. // "") end;
@@ -76,8 +108,19 @@ norm=$(printf '%s' "$input" | jq -c --arg ev "$event" --arg pd "${CURSOR_PROJECT
 cwd=$(printf '%s' "$norm" | jq -r '.cwd // empty' 2>/dev/null)
 [ -n "$cwd" ] && [ -d "$cwd" ] && cd "$cwd" 2>/dev/null
 
-errf=$(mktemp 2>/dev/null) || allow
-inf=$(mktemp 2>/dev/null) || { rm -f "$errf"; allow; }
+errf=$(mktemp 2>/dev/null) || {
+  if mcp_guard_context || mcp_payload_heuristic "$input"; then
+    deny_mcp "kru: MCP outbound guard could not run (mktemp failed). Denying connector MCP."
+  fi
+  allow
+}
+inf=$(mktemp 2>/dev/null) || {
+  rm -f "$errf"
+  if mcp_guard_context || mcp_payload_heuristic "$input"; then
+    deny_mcp "kru: MCP outbound guard could not run (mktemp failed). Denying connector MCP."
+  fi
+  allow
+}
 trap 'rm -f "$errf" "$inf"' EXIT
 # the original payload rides in a file: a long brief passed as an argument
 # would hit the argv limit and silently lose the rewrite
@@ -106,7 +149,14 @@ if [ "$code" = 2 ]; then
   esac
   allow
 fi
-[ "$code" = 0 ] || { [ -n "$err" ] && printf '%s\n' "$err" >&2; allow; }
+if [ "$code" != 0 ] && [ "$code" != 2 ]; then
+  if [ "$script" = mcp-outbound-guard.sh ] || mcp_payload_heuristic "$input" || [ "$event" = beforeMCPExecution ]; then
+    msg=${err:-kru: MCP outbound guard failed (exit $code). Denying connector MCP.}
+    deny_mcp "$msg"
+  fi
+  [ -n "$err" ] && printf '%s\n' "$err" >&2
+  allow
+fi
 [ -n "$err" ] && printf '%s\n' "$err" >&2
 # one answer, the hook's last json object; anything else is an allow
 out=$(printf '%s' "$out" | jq -cs 'map(select(type == "object")) | last // empty' 2>/dev/null)
