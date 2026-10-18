@@ -7,8 +7,8 @@
 *(said “crew”)*
 
 **kru for Cursor.** Your engineering department as a Cursor plugin: an engineering lead that scopes,
-routes and verifies, 41 specialist subagents it dispatches (React, SvelteKit, Next.js, Postgres,
-Stripe, Cloudflare, reviewers, designers…), the skills they work from, and hooks that keep every
+routes and verifies, 37 specialist subagents it dispatches (React, SvelteKit, Next.js, Postgres,
+Stripe, Cloudflare, reviewers…), the skills they work from, and hooks that keep every
 handoff honest.
 
 This is a port of [kru](https://github.com/ap-justin/kru) (built for Claude Code) to the
@@ -49,7 +49,7 @@ Plugin Imports** on, and a marketplace install of the same name takes precedence
 - **Context7** (`https://mcp.context7.com/mcp`) as an MCP server named `context7`: most seats' official-source chain starts there.
 - **Optional, for generated image/video assets:** `GOOGLE_API_KEY` (or `XAI_API_KEY` for stills and
   edits through xAI's Grok Imagine) and Node.js on PATH. Without them
-  the `graphic-designer` seat says what's missing and offers a fallback instead of a placeholder.
+  the asset generator says what's missing and offers a fallback instead of a placeholder.
 
 ## First run: `/kru-setup`
 In the repo you want the team to work on, type:
@@ -125,7 +125,7 @@ The team is opinionated about process and enforces it with hooks. Each fails ope
 | First write, dispatch or command | Blocks once until the lead skill is loaded, so no build starts off-contract. Reads are never blocked | `KRU_NO_LEAD_GATE=1`, or `touch ~/.kru/lead-gate/off` |
 | Dispatching a seat | Refuses a brief that carries stale line numbers, restates a rule the seat already has, or leaves a decision open, and logs the refusal | `KRU_NO_GATE=1` |
 | During `/kru-brainstorm` | Refuses writes until you say *go* (or *brief it*, or run `/kru-brief`) | — |
-| A no-edit seat writes a file | Refused: reviewers and designers run `readonly`; the planner and the dispatch auditor write only through the shell | — |
+| A no-edit seat writes a file | Refused: the six readonly seats (`code-reviewer`, `architecture-reviewer`, `accessibility-reviewer`, `visual-reviewer`, `ux-auditor`, `conversion-copywriter`) run `readonly`; the planner and the dispatch auditor write only through the shell | — |
 | A seat returns without its `Return pass:` line | Asked once to run its return pass; a second miss is logged | — |
 | End of a turn that dispatched seats | Sends one follow-up asking the lead to run the dispatch auditor over the routing | `KRU_NO_AUDIT=1` |
 

@@ -1,9 +1,10 @@
 ---
 name: kru-design
-description: Draft .dc.html artboards and publish them with Cursor's /canvas so the PM can settle a look. Use when a look is unsettled — 2-4 directions at bootstrap, screen mockups after, or a re-draft after the PM's verdict. The local files are the surface when /canvas is not available.
+description: Designer-bot skill only — draft .dc.html artboards and publish with Cursor's /canvas for the PM to compare directions. Not for engineering sessions; the lead never loads this skill.
+disable-model-invocation: true
 ---
 
-The artboard and publish mechanics `ui-designer` draws on. The look is decided on the canvas. The verdict is the PM's. Practice: `${CURSOR_PLUGIN_ROOT}/references/ui-practice.md` → *The canvas*.
+The artboard and publish mechanics for a **designer bot** session. Load this file (`skills/kru-design/SKILL.md`); engineering does not invoke it as a slash command. The look is decided on the canvas. The verdict is the PM's. Practice: `${CURSOR_PLUGIN_ROOT}/references/ui-practice.md` and `${CURSOR_PLUGIN_ROOT}/references/designer-handoff.md`.
 
 ## Draft the files first
 
@@ -20,8 +21,8 @@ Always draft self-contained `.dc.html` artboards. They are the re-seed and the t
 - **`.dc.html` for an artboard**, plain `.html` for the index.
 - **Absolute paths in the return.**
 - **Inline everything.** A `<style>` block, values as literals. Every value is a literal. The token file is a builder's to write, once.
-- **One viewport per file, stated.** 1280 for desktop, 375 for mobile. A direction that only makes sense at both is two files.
-- **Real content.** The copy `ux-designer` wrote. Placeholder text hides the decision.
+- **One viewport per file, stated.** 1440 for desktop, 375 for mobile. A direction that only makes sense at both is two files.
+- **Real content.** Copy from the build spec (or `conversion-copywriter`'s SECTION deck on marketing pages). Placeholder text hides the decision.
 - **The states the screen has**, stacked under small labels, where the brief names them.
 - **Web-safe faces, or a `<link>` to a font host.** Those are the file's outside loads. Everything else is local.
 - **Label every artboard in the file** — the direction's name and its one-line thesis.
@@ -43,12 +44,12 @@ If `/canvas` is not offered, or creating the canvas fails, do not invent a publi
 
 ## The handoff
 
-You have no channel to the PM. The return carries what the lead needs in order to ask, and never the markup:
+You talk to the **PM**, not the engineering lead. The return carries what the PM needs to approve and attach to the engineering brief (`references/design-spec.md`):
 
 - the canvas card, when one was created; otherwise the absolute path of each artboard and the index, marked uncommitted
 - each direction's name and one-line thesis
 - the one line saying what you matched from the repo
-- the design question for the PM (static mockups or working controls, and anything the brief left open)
+- design questions for the PM (static mockups or working controls, and anything the brief left open)
 - any screen or element from the inventory you could not cover, and what it would need
 
-The look is settled on the canvas. The verdict is the PM's.
+The look is settled on the canvas. The PM's approval is what ships to engineering.

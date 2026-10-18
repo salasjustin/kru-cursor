@@ -1,4 +1,4 @@
-// xai image backend for gen-asset.ts (graphic-designer's generator): Grok
+// xai image backend for gen-asset.ts: Grok Imagine stills and edits
 // Imagine stills and edits over xAI's REST API. plain js, no deps (global
 // fetch), so run.sh copies it beside the generator and node --test covers it
 // without a TS loader (scripts/asset/xai.test.mjs).

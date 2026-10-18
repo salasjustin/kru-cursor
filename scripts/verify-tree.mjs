@@ -38,11 +38,11 @@ if (process.argv[2] === "--matcher") process.exit(matcherNames(String(process.ar
 const git = (...a) => execFileSync("git", a, { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim()
 const files = git("ls-files", "-co", "--exclude-standard").split("\n").filter(Boolean).filter((f) => existsSync(join(ROOT, f)))
 
-const SEAT_COUNT = 41
+const SEAT_COUNT = 37
 // upstream's no-edit seats (no Edit/Write in their tools: allowlist). the ones
 // whose work writes nothing carry cursor's `readonly`; the two store writers
 // are refused the Write tool by hooks/seat-guard.sh instead (scripts/port.mjs → STORE_WRITERS)
-const READ_ONLY = ["accessibility-reviewer", "architecture-reviewer", "code-reviewer", "conversion-copywriter", "ux-auditor", "ux-designer", "visual-reviewer"]
+const READ_ONLY = ["accessibility-reviewer", "architecture-reviewer", "code-reviewer", "conversion-copywriter", "ux-auditor", "visual-reviewer"]
 const STORE_WRITERS = ["dispatch-auditor", "planner"]
 const PREFIX = "kru-"
 const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/

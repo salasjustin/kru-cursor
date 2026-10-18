@@ -59,6 +59,6 @@ This snapshot covers Baseline 2023–2025 only. For anything shipped after 2025,
 
 ## Not this skill's job
 - **Native HTML elements and attributes** — `<dialog>` vs the `popover` attribute, invoker commands, `<details name>`, `inert`, constraint validation and `:user-invalid`, `<search>`, the loading/priority hints: the **`modern-html`** skill, which is the HTML half of the same judgment and defers to this file for the three Baseline states and the aging rule.
-- **Whether to use a feature here** (palette, layout, motion feel) is the design's call (the repo's token file + what the canvas settled) — this only answers "is this CSS mechanism safe to reach for," never "should this be the design."
+- **Whether to use a feature here** (palette, layout, motion feel) is the design's call (the repo's token file + approved spec) — this only answers "is this CSS mechanism safe to reach for," never "should this be the design."
 - **Accessibility semantics** of a CSS-driven pattern (focus, ARIA) — that's the `ark-ui` skill / `accessibility-review`.
 - **Framework-specific CSS tooling** (Tailwind config, CSS Modules, vanilla-extract) — match whatever the repo already uses; this skill is about the native platform underneath it.

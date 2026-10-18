@@ -48,7 +48,7 @@ re-run has no way to check it.
 | project seats | `.cursor/skills/*`, `.cursor/agents/*` | seats this plugin has no way to know exist |
 | `skills` | the same manifests, run through **`${CURSOR_PLUGIN_ROOT}/references/routing.md`** → *Conditional skills* | a seat reading `package.json` for its libraries on every dispatch — and the silence when a seat that never carried the skill writes against the library anyway |
 | `tokens` | the design system's file, and the gate that closes it (hook config, test script) | a builder's hunt for the `## Design system` pointer — and the from-scratch design chain, since a system already exists |
-| `screens` | whether this repo renders UI, and what starts its dev server | the screen passes and the design gate |
+| `screens` | whether this repo renders UI, and what starts its dev server | the screen passes and the PM's design-spec gate |
 | `test` | the runner, its command, and **what a run costs** | rediscovering the repo's testing conventions |
 | `verify` | typecheck and lint commands | the behavior gate's generic form |
 | `mcp` | `agent mcp list` and the plugins under **Customize**, against the seats the rows above named and their **`${CURSOR_PLUGIN_ROOT}/SOURCES.md`** rows | a seat reaching mid-run for a server this repo never enabled, and a dispatch spent finding that out |
@@ -230,22 +230,36 @@ shim and replace it in the same directory (disk state only; idempotent):
 PNPM_VERSION='<repo pin>' # e.g. 12.0.0 from packageManager or the repo's docs
 NODE_BIN="$(dirname "$(command -v node)")"
 corepack disable pnpm 2>/dev/null || true
+rm -f "$NODE_BIN/pnpm" "$NODE_BIN/pnpx" 2>/dev/null || sudo rm -f "$NODE_BIN/pnpm" "$NODE_BIN/pnpx"
 PNPM_HOME="${PNPM_HOME:-$HOME/.local/share/pnpm}"
 export PNPM_VERSION
 if ! [ -x "$PNPM_HOME/bin/pnpm" ] || [ "$("$PNPM_HOME/bin/pnpm" --version 2>/dev/null)" != "$PNPM_VERSION" ]; then
   curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION="$PNPM_VERSION" SHELL=bash bash -s --
 fi
-sudo ln -sfn "$PNPM_HOME/bin/pnpm" "$NODE_BIN/pnpm"
-sudo ln -sfn "$PNPM_HOME/bin/pnpx" "$NODE_BIN/pnpx"
+EXE="$PNPM_HOME/.tools/pnpm-exe/$PNPM_VERSION/pnpm"
+if [ -x "$EXE" ]; then
+  KRU_BIN="$HOME/.kru-bin"
+  mkdir -p "$KRU_BIN"
+  ln -sf "$EXE" "$KRU_BIN/pnpm"
+  export PATH="$KRU_BIN:$PATH"
+  PATH_PREFIX="$KRU_BIN"
+else
+  export PATH="$PNPM_HOME/bin:$PATH"
+  PATH_PREFIX="$PNPM_HOME/bin"
+fi
 ```
 
-(`sudo` is passwordless on Cursor's default image.) Where the repo uses `packageManager` and
+In the same `.cursor/environment.json`, persist what agent shells inherit — prepend `PATH_PREFIX`
+from the install block to `env.PATH` (for example `"env": { "PATH": "/home/ubuntu/.local/share/pnpm/bin:…" }`
+when pnpm 12 laid down no `.tools/pnpm-exe/<ver>/pnpm` binary, or `"PATH": "/home/ubuntu/.kru-bin:…"`
+when it did). Link the real binary under `.tools/pnpm-exe/<ver>/pnpm`, never the `pnpm` wrapper in
+`$PNPM_HOME/bin` (the wrapper resolves beside its own path and breaks when linked). pnpm 12's installer
+often lays down no `.tools` binary; then `$PNPM_HOME/bin` on `PATH` whole is the fix. Do not append
+`PATH` to `~/.bashrc` or `~/.profile` and expect agent shells to pick it up. (`sudo` is passwordless on
+Cursor's default image when removing the Corepack shim.) Where the repo uses `packageManager` and
 Corepack can activate the pin (`corepack enable pnpm && corepack prepare pnpm@"$PNPM_VERSION"
---activate`), that is an alternative to the installer + symlinks — still run `corepack disable pnpm`
-first when an old shim is present. Where the installer lays down a binary under
-`.tools/pnpm-exe/<ver>/`, symlink that file into `$NODE_BIN` instead of `$PNPM_HOME/bin/pnpm`. Do not
-append `PATH` to `~/.bashrc` or `~/.profile` and expect agent shells to pick it up. Set `PATH` in a
-custom `build.dockerfile` when the repo uses one. The team itself
+--activate`), that is an alternative — still run `corepack disable pnpm` first when an old shim is
+present. Set `PATH` in a custom `build.dockerfile` when the repo uses one. The team itself
 needs no install line: a cloud agent loads kru-cursor from the marketplace or the team marketplace
 it was installed from, never from a local copy. Context7 reaches a cloud agent only as a server the
 team configured at `cursor.com/agents` — name it in the report when step 1c wired it locally.

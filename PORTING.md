@@ -92,14 +92,14 @@ this tree byte for byte — so no ported file carries a hand edit the next merge
 ## Read-only seats
 
 `code-reviewer`, `architecture-reviewer`, `accessibility-reviewer`, `visual-reviewer`, `ux-auditor`,
-`ux-designer`, `conversion-copywriter` run with Cursor's `readonly`. Upstream let its reviewers write a
+`conversion-copywriter` run with Cursor's `readonly`. Upstream let its reviewers write a
 report file through the shell; `readonly` refuses that, so their long-form report comes back inline,
 capped by each seat's *What you return* contract — the price of the stronger guarantee. `planner` and
 `dispatch-auditor` keep the shell (the plan of record, the audit closeout) and are refused the Write
 and Delete tools by `hooks/seat-guard.sh`, which maps a Task's `tool_call_id` to its seat at
 `subagentStart` and reads it back through a tool call's `parent_tool_call_id`. That mapping uses a
 field the CLI sends (`parent_tool_call_id`) that Cursor's docs don't list; where it is absent the
-guard allows — and the seven readonly seats don't depend on it.
+guard allows — and the six readonly seats among the team's 37 agents don't depend on it.
 
 ## Hand-owned — what a merge will not normalize
 
@@ -138,7 +138,7 @@ one is overwritten by the next port, and `scripts/verify.sh`'s fresh-port check 
 | `scripts/cursor/gates-report-path.md` | the review-report paragraph of `gates.md` |
 | `scripts/asset/xai.mjs`, `scripts/asset/xai.test.mjs` | the asset generator's xAI backend and its tests; port rules hook it into upstream's `gen-asset.ts` and copy it in `run.sh` (`MODELS.md`) |
 | `scripts/cursor/sources-harness-row.md` | `SOURCES.md` → *Orchestration / harness mechanics* |
-| `scripts/cursor/ui-canvas.md` | `references/ui-practice.md` → *The canvas*, pulled in by a port rule |
+| `scripts/cursor/ui-design-cursor.md` | `references/ui-practice.md` after *Engineering never runs a mockup or canvas step*, pulled in by a port rule |
 | `scripts/cursor/update-sweep.md` | `skills/kru-update/claude.md`, the Cursor changelog sweep, pulled in by a port rule (the file keeps the name `claude.md`) |
 | `skills/kru-design/SKILL.md` | the design skill: `.dc.html` artboards plus Cursor's `/canvas`. Listed in `FORK_OWNED` so a new file inside `skills/` survives the port |
 | `skills/kru-update/claude.md`, `reviewed.md` | `claude.md` is the Cursor changelog sweep (the block above); `reviewed.md` keeps the closed Claude Code ledger and a Cursor mark. Layout rules only, plus that one edit |
