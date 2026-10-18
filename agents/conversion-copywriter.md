@@ -1,7 +1,7 @@
 ---
 name: kru-conversion-copywriter
 description: The argument a marketing page makes and its words — position, section order, headline/subhead/CTA, proof per claim — as a SECTION deck used verbatim. Use for a new landing, home, pricing, feature or about page, or one with placeholder copy. In-product strings belong in the PM's design spec from the designer. Use proactively for this seat's stack; dispatch it with the Task tool as kru-conversion-copywriter.
-model: claude-opus-5-5
+model: composer-2.5[fast=false]
 readonly: true
 permissionMode: readonly
 ---

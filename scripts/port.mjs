@@ -48,10 +48,6 @@ const PREFIX = "kru-"
 // cursor's model parameters (`id[effort=high]`, `id[fast=false]`).
 // ---------------------------------------------------------------------------
 const CONFIRMED_MODELS = {
-  "claude-opus-5-5": "https://cursor.com/docs/models/claude-opus-5-5",
-  "claude-sonnet-5-5": "https://cursor.com/docs/models/claude-sonnet-5-5",
-  "claude-haiku-5-5": "https://cursor.com/docs/models/claude-haiku-5-5",
-  "claude-fable-5-1": "https://cursor.com/docs/models/claude-fable-5-1",
   "grok-4.7": "https://cursor.com/docs/models/grok-4-7",
   "composer-2.5": "https://cursor.com/docs/models/cursor-composer-2-5",
   "kimi-k3": "https://cursor.com/docs/models/kimi-k3",
@@ -60,24 +56,65 @@ const CONFIRMED_MODELS = {
   inherit: "https://cursor.com/docs/subagents",
 }
 const CURSOR_MODELS = new Set(Object.keys(CONFIRMED_MODELS))
+// upstream still names opus/sonnet/haiku; the port never writes those ids to agents/
 const MODEL_ALIAS = { opus: "claude-opus-5-5", sonnet: "claude-sonnet-5-5", haiku: "claude-haiku-5-5" }
 const baseModel = (m) => m.replace(/\[.*\]$/, "")
-// where this fork re-tiers a seat away from upstream's pin: [pick, fallback].
-// the why for each row is MODELS.md's. a seat not named here keeps upstream's
-// pin, with the fallback its tier gets below
+// every seat's cursor pin and fallback — [pick, fallback]. the why is MODELS.md's.
+// no Anthropic model id is written to agents/; upstream's Claude tiers are read only
+// when choosing effort on judgment seats.
+const JUDGMENT = ["gpt-5.6-sol[effort=high]", "gemini-3.1-pro"]
+const BUILDER = ["composer-2.5[fast=false]", "grok-4.7"]
+const FAST = ["composer-2.5", "grok-4.7"]
 const SEAT_MODELS = {
-  // the component seats: Kimi K3, Opus where it isn't served
-  "react-ui-builder": ["kimi-k3", "claude-opus-5-5"],
-  "web-components-builder": ["kimi-k3", "claude-opus-5-5"],
-  // bounded build and repair work: Grok 4.7, in Cursor's own pool
-  "test-writer": ["grok-4.7", "claude-sonnet-5-5"],
-  "toolchain-engineer": ["grok-4.7[effort=medium]", "claude-sonnet-5-5[effort=medium]"],
-  "vercel-perf-optimizer": ["grok-4.7[effort=medium]", "claude-sonnet-5-5[effort=medium]"],
+  // judgment and review
+  planner: JUDGMENT,
+  "code-reviewer": JUDGMENT,
+  "architecture-reviewer": JUDGMENT,
+  "ux-auditor": JUDGMENT,
+  // money, auth, and data correctness
+  "better-auth-specialist": JUDGMENT,
+  "stripe-specialist": JUDGMENT,
+  "paypal-specialist": JUDGMENT,
+  "nowpayments-specialist": JUDGMENT,
+  "chariot-specialist": JUDGMENT,
+  "quickbooks-specialist": JUDGMENT,
+  "postgres-architect": JUDGMENT,
+  "sqlite-architect": JUDGMENT,
+  "turso-specialist": JUDGMENT,
+  // builders and bounded implementation work
+  "cloudflare-builder": BUILDER,
+  "conversion-copywriter": BUILDER,
+  "extension-builder": BUILDER,
+  "fly-platform-engineer": BUILDER,
+  "go-fullstack-builder": BUILDER,
+  "hono-builder": BUILDER,
+  "nextjs-builder": BUILDER,
+  "node-developer": BUILDER,
+  "python-developer": BUILDER,
+  "react-router-builder": BUILDER,
+  "sanity-builder": BUILDER,
+  "svelte-ui-builder": BUILDER,
+  "sveltekit-builder": BUILDER,
+  "tanstack-start-builder": BUILDER,
+  "vercel-platform-engineer": BUILDER,
+  "zapier-specialist": BUILDER,
+  // component seats (non-Anthropic; Kimi K3)
+  "react-ui-builder": ["kimi-k3", "gpt-5.6-sol"],
+  "web-components-builder": ["kimi-k3", "gpt-5.6-sol"],
+  // long, checklist, or suite work in Cursor's Grok pool
+  "test-writer": ["grok-4.7", "composer-2.5[fast=false]"],
+  "toolchain-engineer": ["grok-4.7[effort=medium]", "composer-2.5[fast=false]"],
+  "vercel-perf-optimizer": ["grok-4.7[effort=medium]", "composer-2.5[fast=false]"],
+  // mechanical / fast-tier seats (upstream sonnet and haiku)
+  "accessibility-reviewer": ["grok-4.7[effort=low]", "composer-2.5"],
+  "visual-reviewer": ["grok-4.7[effort=low]", "composer-2.5"],
+  "dispatch-auditor": FAST,
 }
 const TIER_FALLBACK = {
-  "claude-opus-5-5": "gpt-5.6-sol", // the same price band and tier, another provider
-  "claude-sonnet-5-5": "grok-4.7",
-  "claude-haiku-5-5": "composer-2.5[fast=false]",
+  "gpt-5.6-sol": "gemini-3.1-pro",
+  "composer-2.5": "grok-4.7",
+  "grok-4.7": "composer-2.5[fast=false]",
+  "kimi-k3": "gpt-5.6-sol",
 }
 const EFFORTS = new Set(["low", "medium", "high", "xhigh", "max"])
 
@@ -527,9 +564,7 @@ const RULES = [
   R(/ — or a `\.claude\/cloud-setup\.md`\./g, " — or a `.cursor/environment.json` setup wrote.", { md: true, files: /^skills\/kru-propagate\/SKILL\.md$/ }),
   R(/A cloud session pushes its own `claude\/\*` branch/g, "A cloud agent pushes its own branch", { md: true }),
   // upstream's tiers stand as written; MODELS.md's map overrides them here
-  R(/^## Model tiers\n(?:In kru-cursor[^\n]*\n\n)?/m, () => "## Model tiers\nIn kru-cursor `MODELS.md` is the map, and it overrides this section where they differ: " +
-    `${Object.keys(SEAT_MODELS).length} seats run on models other than upstream's pin (${Object.keys(SEAT_MODELS).map((n) => "`" + n + "`").join(", ")}), every pick has a fallback, ` +
-    "`effort` becomes the model id's `[effort=…]` parameter, `experimental.cacheTtl` has no Cursor equivalent, and `scripts/port.mjs` writes every seat's `model:` line.\n\n",
+  R(/^## Model tiers\n(?:In kru-cursor[^\n]*\n\n)?/m, () => "## Model tiers\nIn kru-cursor `MODELS.md` is the map, and it overrides this section where they differ: every seat's pin lives in `scripts/port.mjs` → `SEAT_MODELS` (no Anthropic model ids in `agents/`), every pick has a fallback, `effort` becomes the model id's `[effort=…]` parameter, `experimental.cacheTtl` has no Cursor equivalent, and `scripts/port.mjs` writes every seat's `model:` line.\n\n",
     { md: true, files: /^ROSTER\.md$/, required: /^In kru-cursor `MODELS\.md` is the map/m }),
   // the store's cloud surface
   R(/cloud session \(`CLAUDE_CODE_REMOTE=true`\)/g, "cloud agent (`CURSOR_AGENT_SOCKET` set, or `KRU_CLOUD=1`)", { md: true }),
@@ -937,6 +972,9 @@ function seatModel(seat, fm) {
   if (effort) {
     if (!EFFORTS.has(effort)) problems.push(`agents/${seat}.md: effort ${effort} is not one cursor takes`)
     up = `${baseModel(up)}[effort=${effort}]`
+  }
+  if (!SEAT_MODELS[seat]) {
+    problems.push(`agents/${seat}.md: missing from SEAT_MODELS (scripts/port.mjs)`)
   }
   const [pick, fallback] = SEAT_MODELS[seat] ?? [up, TIER_FALLBACK[baseModel(up)] ?? "inherit"]
   seatPlan.set(seat, { pick, fallback })

@@ -1,46 +1,41 @@
 # Models — what each seat runs on in Cursor
 
 Upstream kru pins every seat to a Claude model and argues each tier in `ROSTER.md` → *Model tiers*.
-This fork keeps those tiers where Claude is still the right call, moves five seats onto models
-Cursor serves that fit their work better or cost less, and records a fallback for every seat.
-`scripts/port.mjs` holds the data — `CONFIRMED_MODELS` (every id a seat may use, each with the page
-it was read from), `SEAT_MODELS` (the fork's picks, each with its fallback) and `TIER_FALLBACK`
-(the fallback for a seat left on upstream's pin) — and writes every seat's `model:` line. No agent
-file is edited by hand. `node scripts/port.mjs --list-models --seats` prints the map below.
+This fork keeps those *roles* (judgment, builder, mechanical) but pins every seat to a
+non-Anthropic model Cursor documents in subagent frontmatter. `scripts/port.mjs` holds the data —
+`CONFIRMED_MODELS` (every id a seat may use, each with the page it was read from), `SEAT_MODELS`
+(every seat's pick and fallback) — and writes every seat's `model:` line. No agent file is edited
+by hand. `node scripts/port.mjs --list-models --seats` prints the map below.
 
 ## The map
 
 | seat | model | fallback | why | source |
 |---|---|---|---|---|
-| `code-reviewer`, `architecture-reviewer`, `planner`, `ux-auditor` | `claude-opus-5-5[effort=high]` | `gpt-5.6-sol` | judgment seats: what they return *is* the judgment, so they get the strongest tier at high effort (upstream's reasoning, unchanged). Fable 5.1 stays unpinned for upstream's reason (2.5× the price). Fallback: GPT-5.6 Sol is the same price band ($4 / $20) from another provider | [opus-5-5](https://cursor.com/docs/models/claude-opus-5-5), [gpt-5-6-sol](https://cursor.com/docs/models/gpt-5-6-sol) |
-| the other 25 seats on upstream's Opus pin — builders, data, auth, payments, platform, `conversion-copywriter`, `svelte-ui-builder` | `claude-opus-5-5` | `gpt-5.6-sol` | correctness on money, auth, migrations and deploys; upstream's per-seat case in `ROSTER.md` holds | [opus-5-5](https://cursor.com/docs/models/claude-opus-5-5), [gpt-5-6-sol](https://cursor.com/docs/models/gpt-5-6-sol) |
-| `react-ui-builder`, `web-components-builder` | `kimi-k3` | `claude-opus-5-5` | the component seats move to Kimi K3 (Moonshot, Cursor's *Other Models* pool, $3 / $15 — under Opus's $4 / $20). `web-components-builder` writes a public API, so a defect it ships re-pins it to the fallback | [kimi-k3](https://cursor.com/docs/models/kimi-k3) |
-| `test-writer` | `grok-4.7` | `claude-sonnet-5-5` | coverage sweeps and suite repair: long, bounded, self-checking work. Grok 4.7 draws from the *Cursor Models* pool ($2 / $6, more included usage, no Cursor Token Rate on Teams) | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
-| `toolchain-engineer`, `vercel-perf-optimizer` | `grok-4.7[effort=medium]` | `claude-sonnet-5-5[effort=medium]` | checklist work against documented conventions; medium effort as upstream pins it. Grok 4.7 lists `medium` among its four effort levels | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
-| `accessibility-reviewer`, `visual-reviewer` | `claude-sonnet-5-5` | `grok-4.7` | upstream's tier: restraint-heavy review. `visual-reviewer` stays off Kimi K3 — it judges screenshots, and Kimi K3's page doesn't claim vision beyond the generic "images for vision-capable models" line | [sonnet-5-5](https://cursor.com/docs/models/claude-sonnet-5-5) |
-| `dispatch-auditor` | `claude-haiku-5-5[effort=medium]` | `composer-2.5[fast=false]` | checklist seat that fires every turn: the cheapest model on the list ($0.10 / $0.50) | [haiku-5-5](https://cursor.com/docs/models/claude-haiku-5-5) |
+| `code-reviewer`, `architecture-reviewer`, `planner`, `ux-auditor` | `gpt-5.6-sol[effort=high]` | `gemini-3.1-pro` | judgment seats: what they return *is* the judgment, so they get the strongest non-Anthropic tier at high effort (upstream's reasoning role, new provider). Fallback: Gemini 3.1 Pro is another top-tier model in Cursor's docs | [gpt-5-6-sol](https://cursor.com/docs/models/gpt-5-6-sol), [gemini-3-1-pro](https://cursor.com/docs/models/gemini-3-1-pro) |
+| `better-auth-specialist`, `stripe-specialist`, `paypal-specialist`, `nowpayments-specialist`, `chariot-specialist`, `quickbooks-specialist`, `postgres-architect`, `sqlite-architect`, `turso-specialist` | `gpt-5.6-sol[effort=high]` | `gemini-3.1-pro` | money, auth, and migration correctness; same strongest non-Anthropic tier as judgment seats | [gpt-5-6-sol](https://cursor.com/docs/models/gpt-5-6-sol) |
+| builders — `cloudflare-builder`, `conversion-copywriter`, `extension-builder`, `fly-platform-engineer`, `go-fullstack-builder`, `hono-builder`, `nextjs-builder`, `node-developer`, `python-developer`, `react-router-builder`, `sanity-builder`, `svelte-ui-builder`, `sveltekit-builder`, `tanstack-start-builder`, `vercel-platform-engineer`, `zapier-specialist` | `composer-2.5[fast=false]` | `grok-4.7` | implementation work: Cursor's Composer standard variant (`fast=false`), not the fast tier | [composer-2-5](https://cursor.com/docs/models/cursor-composer-2-5) |
+| `react-ui-builder`, `web-components-builder` | `kimi-k3` | `gpt-5.6-sol` | the component seats stay on Kimi K3 (Moonshot, Cursor's *Other Models* pool). `web-components-builder` writes a public API, so a defect it ships re-pins it to the fallback | [kimi-k3](https://cursor.com/docs/models/kimi-k3) |
+| `test-writer` | `grok-4.7` | `composer-2.5[fast=false]` | coverage sweeps and suite repair: long, bounded, self-checking work in Cursor's Grok pool | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
+| `toolchain-engineer`, `vercel-perf-optimizer` | `grok-4.7[effort=medium]` | `composer-2.5[fast=false]` | checklist work against documented conventions; medium effort as upstream pins it | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
+| `accessibility-reviewer`, `visual-reviewer` | `grok-4.7[effort=low]` | `composer-2.5` | upstream's sonnet tier: restraint-heavy review on the fast Grok effort level | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
+| `dispatch-auditor` | `composer-2.5` | `grok-4.7` | checklist seat that fires every turn: Composer's fast tier (default variant) | [composer-2-5](https://cursor.com/docs/models/cursor-composer-2-5) |
 | the lead (`kru-lead` skill) | the conversation's model | — | main thread, not settable from a file | — |
 
-`svelte-ui-builder` stays on Opus: it is outside the two component seats the fork moved to Kimi K3, and its
-loop runs on the Svelte MCP's autofixer, which the model doesn't change. Moving it is one line in
-`SEAT_MODELS`.
+Retiering is one row in `SEAT_MODELS` plus the matching row here, then `node scripts/port.mjs && bash scripts/verify.sh`.
 
 ### Confirmed ids
 
-Every id below was read verbatim as the page's **Model ID** on 2026-10-13. An id not in this list
-is refused by the port and by `scripts/verify.sh` (*seat models are confirmed cursor ids*).
+Every id below was read verbatim as the page's **Model ID** on 2026-10-18 (Anthropic ids are
+omitted on purpose — they must not appear in `agents/`). An id not in this list is refused by the
+port and by `scripts/verify.sh` (*seat models are confirmed cursor ids*).
 
 | id | page | pool, list price per 1M tokens (input / output) |
 |---|---|---|
-| `claude-opus-5-5` | cursor.com/docs/models/claude-opus-5-5 | Other Models, $4 / $20 |
-| `claude-sonnet-5-5` | cursor.com/docs/models/claude-sonnet-5-5 | Other Models, $2 / $10 |
-| `claude-haiku-5-5` | cursor.com/docs/models/claude-haiku-5-5 | Other Models, $0.10 / $0.50 |
-| `claude-fable-5-1` | cursor.com/docs/models/claude-fable-5-1 | Other Models, $10 / $50 (no seat) |
 | `grok-4.7` | cursor.com/docs/models/grok-4-7 | Cursor Models, $2 / $6 (fast $4 / $12) |
 | `composer-2.5` | cursor.com/docs/models/cursor-composer-2-5 | Cursor Models, $0.50 / $2.50 (fast $3 / $15) |
 | `kimi-k3` | cursor.com/docs/models/kimi-k3 | Other Models, $3 / $15 |
-| `gpt-5.6-sol` | cursor.com/docs/models/gpt-5-6-sol | Other Models, $4 / $20 (fallback only) |
-| `gemini-3.1-pro` | cursor.com/docs/models/gemini-3-1-pro | Other Models, $2 / $12 (no seat) |
+| `gpt-5.6-sol` | cursor.com/docs/models/gpt-5-6-sol | Other Models, $4 / $20 |
+| `gemini-3.1-pro` | cursor.com/docs/models/gemini-3-1-pro | Other Models, $2 / $12 |
 | `inherit` | cursor.com/docs/subagents → Configuration fields | the parent's model |
 
 Prices from `cursor.com/docs/models-and-pricing`. A named third-party model draws from *Other
@@ -70,7 +65,7 @@ levels:
 
 - **The docs:** a custom subagent's `model` is honored except in the three cases above; the parent
   agent can also name a model when it launches a subagent, and the task card shows which model ran.
-- **The CLI as installed here** (`cursor-agent 2026.10.01-e373342`, re-checked 2026-10-13): its loader
+- **The CLI as installed here** (`cursor-agent` 2026.10.01-e373342, re-checked 2026-10-18): its loader
   for a *plugin's* agents drops `model` and `tools` (`fu(e, {stripModel: true, stripTools: true})`)
   and builds each with `model: "inherit"`, reading read-only from `permissionMode`. Project and user
   agents (`.cursor/agents/`, `~/.cursor/agents/`) keep their `model`. So in that CLI every kru seat
@@ -82,10 +77,13 @@ levels:
 
 ## The translations
 
-- **`effort:` → model parameters.** Upstream's `effort: high|medium` becomes `id[effort=…]`, Cursor's
-  documented home for it (`cursor.com/docs/subagents` → *Model parameters*).
+- **`effort:` → model parameters.** Upstream's `effort: high|medium|low` becomes `id[effort=…]`,
+  Cursor's documented home for it (`cursor.com/docs/subagents` → *Model parameters*). Judgment and
+  mechanical seats set effort on the non-Anthropic pick; builders use Composer's `fast=false` instead
+  of effort.
 - **`experimental.cacheTtl`** has no Cursor equivalent and is dropped.
-- **Model aliases.** A floating `opus`/`sonnet`/`haiku` a merge brings back maps to its full id.
+- **Model aliases.** A floating `opus`/`sonnet`/`haiku` a merge brings back maps to its full id when
+  the port reads upstream; `SEAT_MODELS` still decides what gets written to `agents/`.
 
 ## The asset generator's xAI backend
 
@@ -109,7 +107,7 @@ edits (`scripts/asset/xai.mjs`, hand-owned; the hook into the generator is port 
 
 ## Retiering
 
-Edit `SEAT_MODELS` (or `TIER_FALLBACK`) in `scripts/port.mjs` and the row above, then
+Edit `SEAT_MODELS` in `scripts/port.mjs` and the row above, then
 `node scripts/port.mjs && bash scripts/verify.sh`. A new id goes into `CONFIRMED_MODELS` with the
 page it was read from, and only once a page shows it verbatim.
 
