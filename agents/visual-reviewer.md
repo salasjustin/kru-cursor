@@ -1,7 +1,7 @@
 ---
 name: kru-visual-reviewer
 description: Compare the rendered UI to the approved design spec at 1440 and 375, plus coverage of states nobody opens and defect root cause at `file:line`. Use after UI ships. WCAG and target sizes are `accessibility-reviewer`'s. Reports; does not edit. Use proactively for this seat's stack; dispatch it with the Task tool as kru-visual-reviewer.
-model: claude-sonnet-5-5
+model: grok-4.7[effort=low]
 readonly: true
 permissionMode: readonly
 ---

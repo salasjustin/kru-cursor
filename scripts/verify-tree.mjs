@@ -292,6 +292,11 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
   const gate = read("hooks/check-handoff.sh")
   if (!gate.includes(`grep -q '^readonly: true' "$plugin_root/agents/$seat.md"`)) fail("seats", "hooks/check-handoff.sh lost the ported read-only test (scripts/port.mjs)")
   if (/\^tools:/.test(gate)) fail("seats", "hooks/check-handoff.sh still reads a tools: line, which no ported seat has")
+  const anthropic = /claude|opus|sonnet|haiku/i
+  for (const [s, fm] of agentFm) {
+    const m = String(fm.model ?? "")
+    if (anthropic.test(m)) fail("seats", `agents/${s}.md: model '${m}' must not name an Anthropic id (scripts/port.mjs → SEAT_MODELS)`)
+  }
 }
 
 // --- dispatch names -----------------------------------------------------------------------
