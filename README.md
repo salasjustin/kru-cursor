@@ -85,9 +85,11 @@ the installer in [Cloud agents](#cloud-agents).
 A Cursor cloud agent loads project skills from `<repo>/.claude/skills/<name>/SKILL.md`, including
 files git does not track. It does not load `<repo>/.cursor/skills` or `~/.cursor/skills`.
 `scripts/cloud-skills.sh` fills `.claude/skills` and `.claude/agents` from this repo and from
-[pstack](https://github.com/cursor/plugins/tree/main/pstack), and copies each agent to
-`~/.cursor/agents/` as well, for any repo. Run the installer in the environment install step
-only. Subagents load at session start, so the start step is too late for that session.
+[pstack](https://github.com/cursor/plugins/tree/main/pstack), copies each agent to
+`~/.cursor/agents/`, and when pstack installs copies `rules/pstack-models.mdc` to
+`~/.cursor/rules/pstack-models.mdc` (Grok-only pstack Task model defaults). Run the installer in
+the environment install step only. Subagents and always-on rules load at session start, so the
+start step is too late for that session.
 Cursor loads custom subagents from `.cursor/agents`, `~/.cursor/agents`, and `.claude/agents`
 ([subagents](https://cursor.com/docs/subagents)). A copy that lands only in the repo mid-session
 is not offered to the Task tool for that session, so the home directory has to be filled before
@@ -99,9 +101,11 @@ curl -fsSL https://raw.githubusercontent.com/salasjustin/kru-cursor/main/scripts
 
 Pass the repo directory when the shell is not already inside it. With no argument the script uses
 `git rev-parse --show-toplevel`, then `/workspace`. It shallow-clones `skills/` and `agents/` from
-this repo and `pstack/` from `cursor/plugins` (latest `main`) into `~/.cache/kru-cloud-skills`,
-copies each skill flat into `.claude/skills/<name>/` and each agent into `.claude/agents/` and
-`~/.cursor/agents/`, and overwrites an untracked copy. A name the repo already tracks is left as
+this repo (`skills/`, `agents/`, `rules/`) and `pstack/` from `cursor/plugins` (latest `main`) into
+`~/.cache/kru-cloud-skills`, copies each skill flat into `.claude/skills/<name>/` and each agent
+into `.claude/agents/` and `~/.cursor/agents/`, and overwrites an untracked copy. When pstack
+installs, it also writes `~/.cursor/rules/pstack-models.mdc` unless that file already exists with a
+`# budget:` line (your edits are kept). A name the repo already tracks is left as
 it is in the repo. A home agent whose frontmatter `name:` starts with `kru-` is replaced, and a missing home file is copied. An existing home agent whose `name:` is not `kru-*` is left untouched. On a shared name, this repo's copy wins over
 pstack. It then lists the registered subagent `name:` values. If none start with `kru-`, it exits
 1. Each copied repo path is one line in the checkout's `info/exclude`
