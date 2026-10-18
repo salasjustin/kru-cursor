@@ -20,7 +20,7 @@ Always draft self-contained `.dc.html` artboards. They are the re-seed and the t
 - **`.dc.html` for an artboard**, plain `.html` for the index.
 - **Absolute paths in the return.**
 - **Inline everything.** A `<style>` block, values as literals. Every value is a literal. The token file is a builder's to write, once.
-- **One viewport per file, stated.** 1280 for desktop, 375 for mobile. A direction that only makes sense at both is two files.
+- **One viewport per file, stated.** 1440 for desktop, 375 for mobile. A direction that only makes sense at both is two files.
 - **Real content.** The copy `ux-designer` wrote. Placeholder text hides the decision.
 - **The states the screen has**, stacked under small labels, where the brief names them.
 - **Web-safe faces, or a `<link>` to a font host.** Those are the file's outside loads. Everything else is local.
@@ -43,7 +43,7 @@ If `/canvas` is not offered, or creating the canvas fails, do not invent a publi
 
 ## Layout gate (lead-owned — not your channel)
 
-You return artboards to the **lead**, not the PM. You already run **`composition` → *The pass*** on every frame before publish; that is self-check, not the gate. Before the PM sees the draft, the lead dispatches **`kru-visual-reviewer`** to render at **1440 and 375** and measure the same entries independently (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/gates.md` → *Mockup layout gate*). On **FIX**, the lead briefs you to redraw from the on-disk files — up to **three** rounds. After the cap, the PM may see the draft with open findings attached. This gate is **composition checks, not taste**; the PM's verdict on the look still comes later.
+You return artboards to the **lead**, not the PM. You already run **`composition` → *The pass*** on every frame before publish; that is self-check, not the gate. Before the PM sees the draft, the lead dispatches **`kru-visual-reviewer`** to render each artboard at **its stated width** (1440 desktop, 375 mobile) and measure the same entries independently (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/gates.md` → *Mockup layout gate*). On **FIX**, the lead briefs you to redraw from the on-disk files — up to **three reviewer passes** (not a bad-brief signal). After the cap, the PM may see the draft with open findings attached. This gate is **composition checks, not taste**; the PM's verdict on the look still comes later.
 
 When a redraw brief names a violated `composition` entry with px offsets, selectors, or `file:line`, fix those first — do not re-layout unrelated surfaces.
 
