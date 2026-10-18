@@ -298,20 +298,14 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
-  "- Design work: **the gate is the user's eye, and there is no substitute for it**",
-  "- Design work: **the gate is the PM bot's eye, and there is no substitute for it** — it judges the screenshots and paths in your Proof block, and takes the call to the owner only when it can't judge it",
-  "t4: design conformance goes to the PM, the owner only if the PM can't judge",
+  "- Design spec: before UI builders run, the brief must carry the approved mockups and build spec (`${CURSOR_PLUGIN_ROOT}/references/design-spec.md`). A **named gap** in the builder's return goes to the **PM** with the token name it would need — not to a seat.",
+  "- Design spec: before UI builders run, the brief must carry the approved mockups and build spec (`${CURSOR_PLUGIN_ROOT}/references/design-spec.md`). A **named gap** in the builder's return goes to the **PM bot** with the token name it would need — not to a seat.",
+  "t4: design spec gaps go to the PM bot",
 ))
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
-  "A **named gap** in the builder's return is the one output you act on before the user looks: it goes to the **user** as the visible choice (\"what colour for warnings?\"), not to a seat — the token name it would need stays in the record and the builder's brief. The user reports back through you",
-  "A **named gap** in the builder's return is the one output you act on before the PM looks: it goes to the **PM** as the visible choice (\"what colour for warnings?\"), not to a seat — the token name it would need stays in the record and the builder's brief. The PM reports back through you",
-  "t4",
-))
-EDITS.push(E(
-  "skills/kru-lead/references/gates.md",
-  "their findings merge into the same fix list as `code-reviewer`'s, and the user's eye above remains the gate.",
-  "their findings merge into the same fix list as `kru-code-reviewer`'s, and the PM bot's eye above remains the gate.",
+  "Findings merge into the same fix list as `code-reviewer`'s and route back to the UI builder.",
+  "Findings merge into the same fix list as `kru-code-reviewer`'s and route back to the UI builder.",
   "t4",
 ))
 EDITS.push(E(
@@ -328,9 +322,9 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "Its bound is in its own wording: the user has to actually *be* the oracle.",
-  "Its bound is in its own wording: the PM bot has to actually *be* the oracle, judging the screen from the Proof block's screenshots.",
-  "t4: the PM bot is the screen oracle",
+  "- **The screen exemption is a deferral, not a waiver.** Layout and look wait for Step 4's `visual-reviewer` against the approved spec at 1440 and 375; the covering slice for seam code goes on the worklist (or `Done when`) in the same breath, and Step 4 dispatches both once the intent is settled.",
+  "- **The screen exemption is a deferral, not a waiver.** Layout and look wait for Step 4's `kru-visual-reviewer` against the approved spec at 1440 and 375; the covering slice for seam code goes on the worklist (or `Done when`) in the same breath, and Step 4 dispatches both once the intent is settled.",
+  "t4: screen exemption names the Task seat",
 ))
 EDITS.push(E(
   "skills/kru-landed/SKILL.md",
@@ -703,82 +697,22 @@ EDITS.push(E(
 
 // --- t10: seat prompts say PM where they mean the requester ------------------
 EDITS.push(E(
-  "agents/ui-designer.md",
-  "The canvas decides the look inside the frame you draft; the user decides whether it's any good.",
-  "The canvas decides the look inside the frame you draft; the PM decides whether it's any good.",
+  "agents/web-components-builder.md",
+  "not from asking the user — you have no user channel, so the **`tdd`** skill's",
+  "not from asking the PM — you have no channel to it, so the **`tdd`** skill's",
   "t10: the requester is the PM; end-user lines untouched",
 ))
 EDITS.push(E(
-  "agents/ui-designer.md",
-  "and the user judging a canvas drawn in its happy state.",
-  "and the PM judging a canvas drawn in its happy state.",
-  "t10: the requester is the PM; end-user lines untouched",
+  "agents/react-ui-builder.md",
+  "rendered conformance is `visual-reviewer`'s — it compares the build to the approved spec at 1440 and 375 and returns mismatches to the builder.",
+  "rendered conformance is `kru-visual-reviewer`'s — it compares the build to the approved spec at 1440 and 375 and returns mismatches to the builder.",
+  "t10: self-check names the Task seat",
 ))
 EDITS.push(E(
-  "agents/ui-designer.md",
-  "You are one of them: paid in the direction the user picks,",
-  "You are one of them: paid in the direction the PM picks,",
-  "t10: the requester is the PM; end-user lines untouched",
-))
-EDITS.push(E(
-  "agents/ui-designer.md",
-  "**2–4 genuinely different directions** for the user to pick one they can see",
-  "**2–4 genuinely different directions** for the PM to pick one it can see",
-  "t10: the requester is the PM; end-user lines untouched",
-))
-EDITS.push(E(
-  "agents/ui-designer.md",
-  "- **You have no user channel.** The `kru-design` skill asks one design question",
-  "- **You have no channel to the PM.** The `kru-design` skill asks one design question",
-  "t10: the requester is the PM; end-user lines untouched",
-))
-EDITS.push(E(
-  "agents/ui-designer.md",
-  "and hand the question up in your return for the lead to put to the user.",
-  "and hand the question up in your return for the lead to put to the PM.",
-  "t10: the requester is the PM; end-user lines untouched",
-))
-EDITS.push(E(
-  "agents/ui-designer.md",
-  "The look is settled and it's the user's —",
-  "The look is settled and it's the PM's —",
-  "t10: the requester is the PM; end-user lines untouched",
-))
-EDITS.push(E(
-  "agents/ui-designer.md",
-  "- **The look is the canvas's and the verdict is the user's.**",
-  "- **The look is the canvas's and the verdict is the PM's.**",
-  "t10: the requester is the PM; end-user lines untouched",
-))
-EDITS.push(E(
-  "agents/ui-designer.md",
-  "the design question for the user;",
-  "the design question for the PM;",
-  "t10: the requester is the PM; end-user lines untouched",
-))
-EDITS.push(E(
-  "agents/ux-designer.md",
-  "(`/design`, or the user's own claude.ai/design session)",
-  "(`/kru-design`, publishing with `/canvas`, or the `.dc.html` artboards when `/canvas` isn't available)",
-  "t10: the requester is the PM; end-user lines untouched",
-))
-EDITS.push(E(
-  "agents/ux-designer.md",
-  "you have no Bash, no Write and no user channel, and the look was never yours.",
-  "you have no Bash, no Write and no channel to the PM, and the look was never yours.",
-  "t10: the requester is the PM; end-user lines untouched",
-))
-EDITS.push(E(
-  "agents/ux-designer.md",
-  "Whether it looks good is the user's call",
-  "Whether it looks good is the PM's call",
-  "t10: the requester is the PM; end-user lines untouched",
-))
-EDITS.push(E(
-  "agents/ux-designer.md",
-  "- You run as a subagent and have no user channel.",
-  "- You run as a subagent and have no channel to the PM.",
-  "t10: the requester is the PM; end-user lines untouched",
+  "agents/svelte-ui-builder.md",
+  "rendered conformance is `visual-reviewer`'s — it compares the build to the approved spec at 1440 and 375 and returns mismatches to the builder.",
+  "rendered conformance is `kru-visual-reviewer`'s — it compares the build to the approved spec at 1440 and 375 and returns mismatches to the builder.",
+  "t10: self-check names the Task seat",
 ))
 EDITS.push(E(
   "agents/web-components-builder.md",
@@ -788,15 +722,9 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "agents/web-components-builder.md",
-  "not from asking the user — you have no user channel, so the **`tdd`** skill's",
-  "not from asking the PM — you have no channel to it, so the **`tdd`** skill's",
-  "t10: the requester is the PM; end-user lines untouched",
-))
-EDITS.push(E(
-  "agents/web-components-builder.md",
-  "the rendered design gate is the user's look,",
-  "the rendered design gate is the PM's look,",
-  "t10: the requester is the PM; end-user lines untouched",
+  "rendered conformance is `visual-reviewer`'s — it compares the build to the approved spec at 1440 and 375 and returns mismatches to the builder.",
+  "rendered conformance is `kru-visual-reviewer`'s — it compares the build to the approved spec at 1440 and 375 and returns mismatches to the builder.",
+  "t10: self-check names the Task seat",
 ))
 EDITS.push(E(
   "agents/visual-reviewer.md",
@@ -843,12 +771,6 @@ EDITS.push(E(
   "something merely *wanted* stays a `TODOS.md` capture.",
   "something merely *wanted* is a want, captured by the todo bullet above (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*).",
   "t7: a want follows the routing table, not always TODOS.md",
-))
-EDITS.push(E(
-  "agents/ux-designer.md",
-  "the lead takes it to the user.",
-  "the lead takes it to the PM.",
-  "t10: the requester is the PM; end-user lines untouched",
 ))
 EDITS.push(E(
   "skills/kru-setup/SKILL.md",
@@ -1106,8 +1028,8 @@ EDITS.push(E(
 // --- dispatch: Task subagent_type is kru-<seat> ------------------------
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "## Delegate on stack, not size\nA specialist's value is its official-source discipline \u2014 Svelte MCP and its autofixer, Better Auth's\nCLI schema, Next's cache semantics, parameterized SQL \u2014 not lines of code. A change routes to its\nstack's seat whenever getting it right needs that seat's source chain \u2014 its MCP, autofixer, CLI \u2014\nhowever small it is; a change fully specified and checkable inline (a reviewer's exact replacement\nafter the loop closed, a version pin) runs inline, on the seat's skills (below). A stack's own config file is that stack (`turbo.json`,\n`wrangler.jsonc`, `fly.toml` go to their seats), and a red or flaky suite no build is running is\n`test-writer`'s, however small the fix looks. A question with no code to write routes too when a\nseat owns the answer: where a seam goes is `architecture-reviewer`'s, even answered in prose.\nImplement inline for the genuinely stack-agnostic: a typo, a rename, a string the user dictates, a\ncomment, docs. Rewording a screen people find confusing is judgment, not a string fix, so it is\n`ux-designer`'s. When in doubt, route.\n\nInline work runs on the seat's sources: before the edit, load every skill the definition of the seat\nthat would have taken the job names (`agents/<seat>.md` lists them), so inline work runs on the\nsources the seat would have. Inline work spawns no reviewer, so you are both halves of the gate.\n\n",
-  "## Delegate on stack, not size\nA specialist's value is its official-source discipline \u2014 Svelte MCP and its autofixer, Better Auth's\nCLI schema, Next's cache semantics, parameterized SQL \u2014 not lines of code. A change routes to its\nstack's seat whenever getting it right needs that seat's source chain \u2014 its MCP, autofixer, CLI \u2014\nhowever small it is. A stack's own config file is that stack (`turbo.json`,\n`wrangler.jsonc`, `fly.toml` go to their seats), and a red or flaky suite no build is running is\n`test-writer`'s, however small the fix looks. A question with no code to write routes too when a\nseat owns the answer: where a seam goes is `architecture-reviewer`'s, even answered in prose.\nRewording a screen people find confusing is judgment, not a string fix, so it is\n`ux-designer`'s. When in doubt, route.\n\n**Dispatch is a Task tool call with `subagent_type` `kru-<seat>`.** That string is the seat's `name:` in `agents/<seat>.md` (`kru-code-reviewer`, `kru-react-ui-builder`). Prose may say the bare seat; the Task call uses `kru-<seat>`. Never do that seat's work in the main thread. Try the call. If the Task tool rejects `kru-<seat>` or does not offer it, report the types it offered and stop. Do not do the seat's work inline, and do not decide that from a directory listing.\n\n**Inline is a closed list, and the list does not depend on file type.** Only these edits run in the main thread: a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement after the loop closed. A typo or a comment in a CSS, component, route, or test file is still on this list. A behavior, CSS, component, route, or test change that is not on this list is dispatched. A detailed brief is not fully specified. Before that edit, load every skill the definition of the seat that would have taken the job names (`agents/<seat>.md` lists them), so the closed list still runs on the sources the seat would have. Inline work spawns no reviewer, so you are both halves of the gate.\n\n**Lead-owned work is not that list, and it is not a seat's job done inline.** It stays in the main thread because no seat owns it:\n- a user-named pass with no seat — `/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro`, `/kru-review-animations`, `/kru-improve-animations` — and only when the user names one (`references/screen-passes.md`)\n- the comment pass: read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I (`references/gates.md`). `/review` itself is a background subagent, not this pass\n- a scoped test-count check: run the slice's tests and read the count (`references/gates.md`); before any scoped run, `kru-test-writer` dispatch, or Browser check that needs secrets or a database, follow `references/test-credentials.md` and stop the slice on a failed guard. A red or flaky suite, a coverage sweep, and a long run are `kru-test-writer`\n\n**No covering seat: report and stop.** Hiring is the PM's. Until a seat exists, that slice stays parked. Do not implement it.\n\n",
+  "## Delegate on stack, not size\nA specialist's value is its official-source discipline \u2014 Svelte MCP and its autofixer, Better Auth's\nCLI schema, Next's cache semantics, parameterized SQL \u2014 not lines of code. A change routes to its\nstack's seat whenever getting it right needs that seat's source chain \u2014 its MCP, autofixer, CLI \u2014\nhowever small it is; a change fully specified and checkable inline (a reviewer's exact replacement\nafter the loop closed, a version pin) runs inline, on the seat's skills (below). A stack's own config file is that stack (`turbo.json`,\n`wrangler.jsonc`, `fly.toml` go to their seats), and a red or flaky suite no build is running is\n`test-writer`'s, however small the fix looks. A question with no code to write routes too when a\nseat owns the answer: where a seam goes is `architecture-reviewer`'s, even answered in prose.\nImplement inline for the genuinely stack-agnostic: a typo, a rename, a string the user dictates, a\ncomment, docs. Rewording in-product UI copy or flows is not an engineering inline fix \u2014 it belongs in the **design spec** from the designer; tell the PM. When in doubt, route.\n\nInline work runs on the seat's sources: before the edit, load every skill the definition of the seat\nthat would have taken the job names (`agents/<seat>.md` lists them), so inline work runs on the\nsources the seat would have. Inline work spawns no reviewer, so you are both halves of the gate.\n\n",
+  "## Delegate on stack, not size\nA specialist's value is its official-source discipline \u2014 Svelte MCP and its autofixer, Better Auth's\nCLI schema, Next's cache semantics, parameterized SQL \u2014 not lines of code. A change routes to its\nstack's seat whenever getting it right needs that seat's source chain \u2014 its MCP, autofixer, CLI \u2014\nhowever small it is. A stack's own config file is that stack (`turbo.json`,\n`wrangler.jsonc`, `fly.toml` go to their seats), and a red or flaky suite no build is running is\n`test-writer`'s, however small the fix looks. A question with no code to write routes too when a\nseat owns the answer: where a seam goes is `architecture-reviewer`'s, even answered in prose.\nImplement inline for the genuinely stack-agnostic: a typo, a rename, a string the user dictates, a\ncomment, docs. Rewording in-product UI copy or flows is not an engineering inline fix \u2014 it belongs in the **design spec** from the designer; tell the PM bot. When in doubt, route.\n\n**Dispatch is a Task tool call with `subagent_type` `kru-<seat>`.** That string is the seat's `name:` in `agents/<seat>.md` (`kru-code-reviewer`, `kru-react-ui-builder`). Prose may say the bare seat; the Task call uses `kru-<seat>`. Never do that seat's work in the main thread. Try the call. If the Task tool rejects `kru-<seat>` or does not offer it, report the types it offered and stop. Do not do the seat's work inline, and do not decide that from a directory listing.\n\n**Inline is a closed list, and the list does not depend on file type.** Only these edits run in the main thread: a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement after the loop closed. A typo or a comment in a CSS, component, route, or test file is still on this list. A behavior, CSS, component, route, or test change that is not on this list is dispatched. A detailed brief is not fully specified. Before that edit, load every skill the definition of the seat that would have taken the job names (`agents/<seat>.md` lists them), so the closed list still runs on the sources the seat would have. Inline work spawns no reviewer, so you are both halves of the gate.\n\n**Lead-owned work is not that list, and it is not a seat's job done inline.** It stays in the main thread because no seat owns it:\n- a user-named pass with no seat — `/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro`, `/kru-review-animations`, `/kru-improve-animations` — and only when the user names one (`references/screen-passes.md`)\n- the comment pass: read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I (`references/gates.md`). `/review` itself is a background subagent, not this pass\n- a scoped test-count check: run the slice's tests and read the count (`references/gates.md`); before any scoped run, `kru-test-writer` dispatch, or Browser check that needs secrets or a database, follow `references/test-credentials.md` and stop the slice on a failed guard. A red or flaky suite, a coverage sweep, and a long run are `kru-test-writer`\n\n**No covering seat: report and stop.** Hiring is the PM's. Until a seat exists, that slice stays parked. Do not implement it.\n\n",
   "dispatch: inline is a closed list; seat work is a Task call",
 ))
 EDITS.push(E(
@@ -1130,8 +1052,8 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
-  "The three seats Block O exempts (`test-writer`, `brand-designer`, `ui-designer`)",
-  "The three seats Block O exempts (`kru-test-writer`, `kru-brand-designer`, `kru-ui-designer`)",
+  "The one seat Block O exempts (`test-writer`)",
+  "The one seat Block O exempts (`kru-test-writer`)",
   "dispatch: Block O names the Task name",
 ))
 EDITS.push(E(
@@ -1203,8 +1125,8 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "**The two screen passes have seats you dispatch, and a set of passes that stay the user's.** `visual-reviewer` and `accessibility-reviewer` are review-only seats you spawn at Step 4; `/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro` and the two animation passes run inline only when the user names one, because each edits work that already exists and each carries taste rather than a rule.",
-  "**The two screen passes have seats you dispatch, and a set of passes that are lead-owned.** `visual-reviewer` and `accessibility-reviewer` are review-only seats you spawn at Step 4; `/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro` and the two animation passes are lead-owned, the list in *Delegate on stack, not size*, and they run in the main thread only when the user names one, because each edits work that already exists and each carries taste rather than a rule. They are not an opening of the closed inline list.",
+  "**The two screen passes have seats you dispatch, and a set of passes that stay the user's.** `visual-reviewer` and `accessibility-reviewer` are review-only seats you spawn at Step 4; `/seo-review`, `/copywriting`, `/copy-editing`, `/cro` and the two animation passes run inline only when the user names one, because each edits work that already exists and each carries taste rather than a rule. Writing a marketing page's words in the first place is not one of them — that routes to `conversion-copywriter` before design or build, and what comes back is a draft the user still gates. How to brief the two for coverage and cause, what `visual-reviewer` may conclude, and the full user-owned list: **`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/screen-passes.md`** — read it before dispatching the batch. **Conformance to the token file is not a pass at all** — it's the repo's own gate, running at every commit (`${CURSOR_PLUGIN_ROOT}/references/ui-practice.md`).",
+  "**The two screen passes have seats you dispatch, and a set of passes that are lead-owned.** `visual-reviewer` and `accessibility-reviewer` are review-only seats you spawn at Step 4; `/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro` and the two animation passes are lead-owned, the list in *Delegate on stack, not size*, and they run in the main thread only when the user names one, because each edits work that already exists and each carries taste rather than a rule. They are not an opening of the closed inline list. Writing a marketing page's words in the first place is not one of them — that routes to `conversion-copywriter` before design or build, and what comes back is a draft the PM still gates. How to brief the two for coverage and cause, what `visual-reviewer` may conclude, and the full lead-owned list: **`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/screen-passes.md`** — read it before dispatching the batch. **Conformance to the token file is not a pass at all** — it's the repo's own gate, running at every commit (`${CURSOR_PLUGIN_ROOT}/references/ui-practice.md`).",
   "dispatch: user-named passes are lead-owned",
 ))
 EDITS.push(E(
