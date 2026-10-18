@@ -260,7 +260,11 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
     }
   } catch {}
   if (upstream === null) notes.push("upstream pin not checked (no upstream commit in this clone's history — fetch with depth 0)")
-  else if (upstream !== version.split("+kru")[1]) fail("version", `VERSION pins kru ${version.split("+kru")[1]}, the newest upstream commit in history says ${upstream}`)
+  else if (upstream !== version.split("+kru")[1])
+    fail(
+      "version",
+      `VERSION pins kru ${version.split("+kru")[1]}, the newest upstream commit in history says ${upstream} — upstream must be recorded as a merge parent (never squash or rebase a port/sync pull request; see skills/kru-roster/fork-sync.md)`,
+    )
 }
 
 // --- seats --------------------------------------------------------------------------------------------
