@@ -27,7 +27,7 @@ Always draft self-contained `.dc.html` artboards. They are the re-seed and the t
 - **Label every artboard in the file** — the direction's name and its one-line thesis.
 - **Match the repo first** and say in one line what you matched: the token file, the stylesheets, the closest screen, the icon set.
 - **Directions differ.** 2–4 at bootstrap. Three palettes of the same layout is one direction. State each thesis in one line.
-- **Re-draft from the files that are there.** The PM's pick is the base. Two rounds is normal. A third means the brief is what's wrong.
+- **Re-draft from the files that are there.** The PM's pick is the base. Two post-verdict rounds is normal. A third post-verdict redraw means the brief is what's wrong. Layout-gate redraws before the PM sees the draft follow the three `kru-visual-reviewer` passes in *Mockup layout gate* (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/gates.md`) — not a bad-brief signal.
 
 ## Publish with `/canvas`
 

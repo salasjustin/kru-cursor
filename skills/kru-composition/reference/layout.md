@@ -8,9 +8,9 @@
 
 ## Shared column alignment (desktop grid)
 
-**Default it corrects:** sections on the same page whose **shell content edges** (left and right of each section's content box inside the page shell padding) drift — column lines that look "almost" aligned.
-**Rule:** each section sizes to its own content (*An element takes the width its content needs*). A section may use a second content width only when the brief or that entry names it; full-bleed bands are allowed.
-**Check:** at desktop **1440**, for each pair of adjacent section **content roots** at the same hierarchy level, measure left and right shell content edges (`getBoundingClientRect`). Report when |Δleft| > 2px or |Δright| > 2px. Each finding cites a **selector or `file:line`** and the **measured offsets**.
+**Default it corrects:** sections on the same page whose **shell content edges** (left and right of each section container's content box inside the page shell padding) drift — column lines that look "almost" aligned.
+**Rule:** one default shell content width for the page. A second shell content width only when the brief or this entry names that section; full-bleed sections are allowed. Elements inside a shell still take the width their content needs (*An element takes the width its content needs*); this check compares section **shells**, not inner elements edge-to-edge.
+**Check:** at desktop **1440**, for each pair of adjacent section **shells** at the same hierarchy level, measure left and right shell content edges (`getBoundingClientRect` on each section container's content box). Report when |Δleft| > 2px or |Δright| > 2px. Each finding cites a **selector or `file:line`** and the **measured offsets**.
 
 ## Separate with space first, then a background step, then a border
 

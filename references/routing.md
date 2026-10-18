@@ -39,7 +39,7 @@ names the seat and its skills has this question answered — take the answer.
 | user research / user flows / IA / usability critique / UX copy / the conventions file the design agent works from (corpus **or** header) | `ux-designer` |
 | a **marketing page's words** — landing, home, pricing, feature or about: a new page before it reaches design or build, or one whose copy is placeholder or whose section order doesn't argue | `conversion-copywriter` → its deck briefs the canvas or the builder |
 | design/landing/marketing/portfolio UI — **no system yet** | the chain in *UI from scratch*, Step 2 |
-| a look that is genuinely unsettled — bootstrap directions, a system change the user wants to see, a marketing or print one-off — or a **coverage read** of the ledger before feature work | `ui-designer` (drafts + publishes the canvas; you put it to the user) |
+| a look that is genuinely unsettled — bootstrap directions, a system change the PM wants to see, a marketing or print one-off — or a **coverage read** of the ledger before feature work | `ui-designer` (drafts + publishes; run the **mockup layout gate** before the PM sees the canvas except a **coverage read** — `gates.md` → *Mockup layout gate*) |
 | UI feature or screen — **system exists** | `ux-designer` (flow pass) → UI builder against the existing tokens (*UI on an existing system*, Step 2) |
 | a builder returned a **named gap** | the **user**, with the token name it would need. No seat fills it, and no seat extends the system |
 | a logo, mark or wordmark; a favicon, app icon or manifest icon set; a README or social header in the project's own identity | `brand-designer` (concepts → the user picks → the kit) → builder or you for the `<link>`/manifest/README lines it hands back |

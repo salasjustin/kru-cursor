@@ -32,7 +32,7 @@ Run it on every artboard before a canvas publishes, and on any screen or section
 4. **Pick each step by its neighbours.** Guess a step, then try the one either side; two of the three usually look wrong at once. When an outer one wins, re-centre on it and compare again.
 5. **Check the draft against every entry in the files the index mapped.**
 
-**Done when** every sibling-group gap is a strictly larger space-ladder step than any gap inside that group; every section heading has more space to its own content than to the section above; no view has more than one distinct primary action; and every entry in the loaded files has been checked against the draft.
+**Done when** every sibling-group gap is a strictly larger space-ladder step than any gap inside that group; every section heading satisfies `layout.md` → *The space around a group is larger than the space inside it*; no view has more than one distinct primary action; and every entry in the loaded files has been checked against the draft.
 
 **Self-check is not the gate.** The drafter runs this pass before publish; the lead still dispatches **`kru-visual-reviewer`** to render each artboard and **measure the same entries independently** before the PM sees the mockup (`skills/kru-lead/references/gates.md` → *Mockup layout gate*). The reviewer cites the **`layout.md` / `hierarchy.md` / `text.md` entry** violated, with selector or `file:line` and measured px — it does not invent a parallel rule set.
 
