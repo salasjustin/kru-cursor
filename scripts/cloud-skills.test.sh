@@ -33,7 +33,7 @@ commit_repo() {
 
 kru="$sandbox/src-kru"
 plugins="$sandbox/src-plugins"
-mkdir -p "$kru/skills/kru-alpha" "$kru/skills/shared" "$kru/skills/not-a-skill" "$kru/agents"
+mkdir -p "$kru/skills/kru-alpha" "$kru/skills/shared" "$kru/skills/not-a-skill" "$kru/agents" "$kru/rules"
 mkdir -p "$plugins/pstack/skills/pstack-beta" "$plugins/pstack/skills/shared" \
   "$plugins/pstack/skills/foo" "$plugins/pstack/agents" \
   "$plugins/other-plugin/skills/nope"
@@ -41,6 +41,7 @@ printf 'kru alpha\n' > "$kru/skills/kru-alpha/SKILL.md"
 printf 'kru shared\n' > "$kru/skills/shared/SKILL.md"
 printf 'not a skill\n' > "$kru/skills/not-a-skill/README.md"
 printf '%s\n' '---' 'name: kru-lead' '---' 'kru lead' > "$kru/agents/lead.md"
+cp "$repo/rules/pstack-models.mdc" "$kru/rules/pstack-models.mdc"
 printf 'notes\n' > "$kru/agents/notes.txt"
 printf 'pstack beta\n' > "$plugins/pstack/skills/pstack-beta/SKILL.md"
 printf 'pstack shared\n' > "$plugins/pstack/skills/shared/SKILL.md"
@@ -114,6 +115,16 @@ report "exclude lists a copied skill and agent" "$(printf '%s\n' "$exclude" | gr
 report "exclude does not list the tracked skill" "$(printf '%s\n' "$exclude" | grep -q '.claude/skills/foo' && echo no || echo yes)" "$exclude"
 report "exclude block is marked" "$(printf '%s\n' "$exclude" | grep -qx '# kru-cloud-skills begin' && printf '%s\n' "$exclude" | grep -qx '# kru-cloud-skills end' && echo yes || echo no)" "$exclude"
 report "info/exclude hides the copies" "$(printf '%s\n' "$ignore" | grep -q 'info/exclude' && echo yes || echo no)" "$ignore"
+report "pstack rule installed in home" "$(grep -q '^# budget:' "$sandbox/home/.cursor/rules/pstack-models.mdc" && grep -q 'grok-4.7-high' "$sandbox/home/.cursor/rules/pstack-models.mdc" && echo yes || echo no)" "$(head -20 "$sandbox/home/.cursor/rules/pstack-models.mdc" 2>/dev/null)"
+
+printf '%s\n' '# user rule without budget marker' > "$sandbox/home/.cursor/rules/pstack-models.mdc"
+run_install "$sandbox" "$target" >/dev/null 2>"$sandbox/err-budget-miss"
+report "pstack rule replaces file missing # budget" "$(grep -q '^# budget:' "$sandbox/home/.cursor/rules/pstack-models.mdc" && ! grep -q 'user rule without budget' "$sandbox/home/.cursor/rules/pstack-models.mdc" && echo yes || echo no)" "$(head -5 "$sandbox/home/.cursor/rules/pstack-models.mdc" 2>/dev/null)"
+
+printf '%s\n' '# budget: custom' 'local: grok-4.7-high' > "$sandbox/home/.cursor/rules/pstack-models.mdc"
+run_install "$sandbox" "$target" >/dev/null 2>"$sandbox/err-budget-keep"
+report "pstack rule left alone when # budget present" "$([ "$(cat "$sandbox/home/.cursor/rules/pstack-models.mdc")" = "$(printf '%s\n' '# budget: custom' 'local: grok-4.7-high')" ] && echo yes || echo no)" "$(cat "$sandbox/home/.cursor/rules/pstack-models.mdc" 2>/dev/null)"
+report "pstack rule keep warns" "$(grep -q 'leaving home rule pstack-models.mdc' "$sandbox/err-budget-keep" && echo yes || echo no)" "$(cat "$sandbox/err-budget-keep")"
 
 tree_hash() {
   (
@@ -211,6 +222,7 @@ report "kru ok + plugins fail copies the kru agent" "$([ "$(cat "$pf_target/.cla
 report "kru ok + plugins fail copies the home agent" "$([ "$(cat "$pf_home/.cursor/agents/lead.md" 2>/dev/null)" = "$(cat "$kru/agents/lead.md")" ] && echo yes || echo no)" "$(cat "$pf_home/.cursor/agents/lead.md" 2>/dev/null)"
 report "kru ok + plugins fail lists the kru seat" "$(printf '%s\n' "$pf_out" | grep -qx 'registered subagents: kru-lead' && echo yes || echo no)" "$pf_out"
 report "kru ok + plugins fail skips pstack" "$([ ! -e "$pf_target/.claude/skills/pstack-beta" ] && echo yes || echo no)" "$(find "$pf_target/.claude" -type f -print 2>/dev/null)"
+report "kru ok + plugins fail skips pstack rule" "$([ ! -e "$pf_home/.cursor/rules/pstack-models.mdc" ] && echo yes || echo no)" "$(ls -la "$pf_home/.cursor/rules" 2>/dev/null || true)"
 
 printf '%s\n' '---' 'name: helper' '---' 'not a kru seat' > "$kru/agents/lead.md"
 commit_repo "$kru" "no kru seat"

@@ -4,7 +4,9 @@
 # Shallow-clones kru-cursor skills/ + agents/ and pstack into ~/.cache/kru-cloud-skills.
 # Copies each skill flat to .claude/skills/<name>/ and each agent to
 # .claude/agents/<name>.md and to ~/.cursor/agents/<name>.md (KRU_CURSOR_AGENTS_DIR
-# overrides the home dir). Overwrites an untracked copy, skips a tracked name
+# overrides the home dir). When pstack installs, copies rules/pstack-models.mdc to
+# ~/.cursor/rules/pstack-models.mdc (KRU_CURSOR_RULES_DIR overrides the rules dir).
+# Overwrites an untracked copy, skips a tracked name
 # in the repo, and lets kru-cursor win a shared name. The home copy replaces a
 # file whose frontmatter name starts with kru-, and a file that is not there
 # yet. An existing home agent whose name: is not kru-* is left untouched.
@@ -148,10 +150,12 @@ main() {
   cache=${KRU_CLOUD_SKILLS_CACHE:-${HOME:-/tmp}/.cache/kru-cloud-skills}
   kru_url=${KRU_CLOUD_SKILLS_KRU_URL:-https://github.com/salasjustin/kru-cursor.git}
   plugins_url=${KRU_CLOUD_SKILLS_PLUGINS_URL:-https://github.com/cursor/plugins.git}
-  refresh "$kru_url" "$cache/kru-cursor" skills agents || exit 1
+  refresh "$kru_url" "$cache/kru-cursor" skills agents rules || exit 1
   # pstack is optional. a plugins failure must not skip the kru copy, and the
   # run still exits 1 below when no kru-* agent is on disk.
+  local pstack_ok=1
   if ! refresh "$plugins_url" "$cache/plugins" pstack; then
+    pstack_ok=0
     warn "plugins clone or fetch failed; installing kru seats without pstack"
   fi
 
@@ -189,6 +193,9 @@ main() {
     rm -rf -- "$dest"
     cp -a -- "${agent_src[$name]}" "$dest"
   done
+  if [ "$pstack_ok" = 1 ]; then
+    install_pstack_models_rule "$cache/kru-cursor/rules/pstack-models.mdc"
+  fi
   if ! list_registered "$home_agents" "$target/.claude/agents"; then
     exit 1
   fi
@@ -201,6 +208,21 @@ front_name() {
   line=${line#\"}; line=${line%\"}; line=${line#\'}; line=${line%\'}
   printf '%s' "$line"
 }
+# when pstack landed, install the fork's pstack model rule for cloud agents.
+# an existing home file that already has a # budget: line is left alone so
+# local edits survive re-runs; a file without that marker is replaced.
+install_pstack_models_rule() {
+  local src=$1
+  local dest=${KRU_CURSOR_RULES_DIR:-${HOME:-/tmp}/.cursor/rules}/pstack-models.mdc
+  [ -f "$src" ] || return 0
+  mkdir -p -- "$(dirname -- "$dest")"
+  if [ -f "$dest" ] && grep -q '^# budget:' "$dest"; then
+    warn "leaving home rule pstack-models.mdc (# budget line present)"
+    return 0
+  fi
+  cp -a -- "$src" "$dest"
+}
+
 list_registered() {
   local d f name
   local -a found=() kru=()
