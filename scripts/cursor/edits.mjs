@@ -36,16 +36,11 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "You scope, route, delegate, integrate, verify, and report.\n\n**Capture, listing,",
-  "You scope, route, delegate, integrate, verify, and report.\n\n**The PM decides; the owner hears only a hard-to-reverse call.** The PM is the bot or person that briefed this session. A PM makes the calls it is handed by default, records why, and keeps going. The PM bot's own operating rules govern escalation and approval. The plugin's generic default applies only when the PM has none: escalate to the owner only a call that is hard to reverse or reaches outside the team — money (billing, pricing, spend), legal or compliance (terms, privacy, licensing), user impact (a change customers, clients or users need a heads-up about), security or data exposure, anything public or live, product direction (a change of direction or strategy), and any new outside account or service, free trials included. The owner decides that last one, and the account setup itself goes through ops. A call that fits none of these but would be costly to guess wrong goes to the owner too. Everything else the PM answers, including your grill. **Not an escalation:** a bug or want on the work tracker is internal tracking — GitHub issues on the product repo, or Linear when `KRU_TRACKER=linear` (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`) — public repo or not. The lead files it itself at Step 4.5, the PM bot through `/kru-issue` and `/kru-todo` (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*). A security finding goes to Linear when the tracker is Linear, internal to the team. bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand. It never goes to a public GitHub issue; on GitHub it stays in the store's `issues/` or a GitHub private security advisory.\n\n**Capture, listing,",
+  "You scope, route, delegate, integrate, run in-build gates, gather evidence, and report. **Neither you nor a seat accepts work for the PM** — tests, CI, and a `Return pass:` line are evidence; acceptance is theirs after Step 5.\n\n**Capture, listing,",
+  "You scope, route, delegate, integrate, run in-build gates, gather evidence, and report. **Neither you nor a seat accepts work for the PM** — tests, CI, and a `Return pass:` line are evidence; acceptance is theirs after Step 5.\n\n**The PM decides; the owner hears only a hard-to-reverse call.** The PM is the bot or person that briefed this session. A PM makes the calls it is handed by default, records why, and keeps going. The PM bot's own operating rules govern escalation and approval. The plugin's generic default applies only when the PM has none: escalate to the owner only a call that is hard to reverse or reaches outside the team — money (billing, pricing, spend), legal or compliance (terms, privacy, licensing), user impact (a change customers, clients or users need a heads-up about), security or data exposure, anything public or live, product direction (a change of direction or strategy), and any new outside account or service, free trials included. The owner decides that last one, and the account setup itself goes through ops. A call that fits none of these but would be costly to guess wrong goes to the owner too. Everything else the PM answers, including your grill. **Not an escalation:** a bug or want on the work tracker is internal tracking — GitHub issues on the product repo, or Linear when `KRU_TRACKER=linear` (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`) — public repo or not. The lead files it itself at Step 4.5, the PM bot through `/kru-issue` and `/kru-todo` (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*). A security finding goes to Linear when the tracker is Linear, internal to the team. bug and want issues MAY carry a plain repro, symptoms and call sites, but never secrets, keys, credentials or customer emails/phones; SECURITY issues are pointer-only (short title + link to the store file, no repro, no root cause, no exploit detail); MCP-path sessions apply the same rule by hand. It never goes to a public GitHub issue; on GitHub it stays in the store's `issues/` or a GitHub private security advisory.\n\n**Capture, listing,",
   "t1: the escalation default, one source the other files point at",
 ))
-EDITS.push(E(
-  "skills/kru-lead/SKILL.md",
-  "**Capture, listing, and the persisted brief are the user's own skills**",
-  "**Capture, listing, and the persisted brief are the PM's own skills**",
-  "t1: the PM runs them",
-))
+
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "roadmaps, prioritization, and what-to-build-next are the user's.",
@@ -84,7 +79,7 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "ROSTER.md",
-  "**The user is the PM** — there is no product-management function, no roadmap, and no prioritization framework in the team; what-to-build-next is the user's call,",
+  "**The PM bot or owner is the PM** — there is no product-management function, no roadmap, and no prioritization framework in the team; what-to-build-next is the PM's call,",
   "**The PM is the PM bot that briefs the session, with the owner approving hard-to-reverse calls** (`skills/kru-lead/SKILL.md`, first paragraph) — there is no product-management function, no roadmap, and no prioritization framework in the team; what-to-build-next is the PM's call,",
   "t1",
 ))
@@ -136,16 +131,11 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "**A push is a one-way door, and most of the user's repos are public.** Read the repo's visibility\n(`gh repo view --json visibility`) before any push. A security fix stays local\nuntil the user OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` the session starts through the GitHub API, the workflow creating the tag\non its job token — the release is the session's to run end to end.",
-  '**Who acts at the door.** **Ordinary work** — review fixes, hire, author, retire, requester ships, ports: the lead `commit`s on the branch and returns proof; the lead never pushes and never waits for a PM ask (headless runs do not wait). The PM bot reviews the proof, pushes the branch and opens the pull request. On a cloud agent, outbound team connector MCP (send, post, share, delete, and the rest) is barred by the always-on rule in `rules/kru-lead.mdc`; hand the exact tool and arguments back to the PM bot. The repo hook is default-deny (reads, drafts, and Linear `save_issue` only when hooks run; cloud agents skip those hooks today; see `PORTING.md`). **`/kru-roster learn` only:** the sweep leaves the diff uncommitted; the plugin maintainer reviews it; then the lead `commit`s when the PM asks; then the PM bot pushes and opens the pull request — "when the PM asks" appears only in learn contexts. **Merge:** in this plugin repo, the plugin maintainer merges after CI (`verify`) passes; in product repos, the owner merges. **Tag:** only when the PM asked for a release, per `skills/kru-roster/release.md`. The maintainer creates and pushes the tag from a checkout that has push rights (`git tag` + `git push origin <tag>`, or `gh release create`). A cloud session that cannot push a tag (403) stops and hands the tag step back to the PM bot with the exact commands. Deploying, publishing and any message outside the team wait for the owner. A bug or want on the work tracker (GitHub issues, or Linear when the repo has opted in) is internal tracking, not a message outside the team (first section). Pull requests stay on GitHub either way: the body carries the line `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh" link --id <id>` prints. Most product repos are public, so the PM bot reads the repo\'s visibility (`gh repo view --json visibility`) before a push. A security fix stays local until the owner OKs it, then ships through a GitHub security advisory\'s temporary private fork, published on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays in `issues/`, off the PR and off Linear.',
+  "**A push is a one-way door, and most of the user's repos are public.** Read the repo's visibility\n(`gh repo view --json visibility`) before any push. A **security fix** stays local and **returns to the\ncaller** — it ships through a GitHub security advisory's temporary private fork, published on merge; the\nlead does not push or run `.cursor/skills/release/SKILL.md` for it. Its PR body summarizes the fix without exploit\ndetail; the defect write-up stays in `issues/`, off the PR. **A plugin release** runs only when the task\nexplicitly approves tag, push, and GitHub release (`.cursor/skills/release/SKILL.md`); naming a version or loading\n`release` is not approval. Cloud sessions may get a 403 on tag push; when the task approves a release,\nstart `workflow_dispatch` through the GitHub API so the workflow creates the tag on its job token.",
+  "**Who acts at the door.** **Ordinary work** — review fixes, hire, author, retire, requester ships, ports: the lead `commit`s on the branch and returns proof; the lead never pushes and never waits for a PM ask (headless runs do not wait). The PM bot reviews the proof, pushes the branch and opens the pull request. On a cloud agent, outbound team connector MCP (send, post, share, delete, and the rest) is barred by the always-on rule in `rules/kru-lead.mdc`; hand the exact tool and arguments back to the PM bot. The repo hook is default-deny (reads, drafts, and Linear `save_issue` only when hooks run; cloud agents skip those hooks today; see `PORTING.md`). **`/kru-roster learn` only:** the sweep leaves the diff uncommitted; the plugin maintainer reviews it; then the lead `commit`s when the PM asks; then the PM bot pushes and opens the pull request — \"when the PM asks\" appears only in learn contexts. **Merge:** in this plugin repo, the plugin maintainer merges after CI (`verify`) passes; in product repos, the owner merges. **Tag:** only when the PM asked for a release — naming a version or loading `release` is not approval — per `skills/kru-roster/release.md`. The maintainer creates and pushes the tag from a checkout that has push rights (`git tag` + `git push origin <tag>`, or `gh release create`). A cloud session that cannot push a tag (403) stops and hands the tag step back to the PM bot with the exact commands. Deploying, publishing and any message outside the team wait for the owner. A bug or want on the work tracker (GitHub issues, or Linear when the repo has opted in) is internal tracking, not a message outside the team (first section). Pull requests stay on GitHub either way: the body carries the line `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` prints. Most product repos are public, so the PM bot reads the repo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local and returns to the caller — the lead does not push it or run `.cursor/skills/release/SKILL.md` for it — then ships through a GitHub security advisory's temporary private fork once the owner OKs it, published on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays in `issues/`, off the PR and off Linear.",
   "t2: the lead commits, the PM pushes and opens the PR, the owner merges (the plugin maintainer for this plugin)",
 ))
-EDITS.push(E(
-  "skills/kru-lead/SKILL.md",
-  "On a cloud agent, outbound team connector MCP (send/post/share/delete and the rest) is forbidden by the always-on rule in `rules/kru-lead.mdc` — hand the exact tool and arguments back to the PM bot; the repo hook is default-deny (only reads, drafts, and Linear `save_issue` when hooks run; not on cloud agents today; see `PORTING.md`).",
-  "On a cloud agent, outbound team connector MCP (send, post, share, delete, and the rest) is barred by the always-on rule in `rules/kru-lead.mdc`; hand the exact tool and arguments back to the PM bot. The repo hook is default-deny (reads, drafts, and Linear `save_issue` only when hooks run; cloud agents skip those hooks today; see `PORTING.md`).",
-  "text-fix: tighten cloud MCP guard sentence in Who acts at the door",
-))
+
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "description: How this engineering team works — load before building, reviewing or dispatching any seat. Also the entry for a project from scratch and for planning work past one context.",
@@ -194,32 +184,32 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "name `/kru-setup` for the user to re-run — it is theirs to type, and the current sheet still carries the work meanwhile.",
-  "name `/kru-setup` for the PM to re-run — the PM bot runs it itself, and the current sheet still carries the work meanwhile.",
+  "load `skills/kru-setup/SKILL.md` only when the task says to derive or re-derive — never auto re-derive from a stale stamp alone.",
+  "name `skills/kru-setup/SKILL.md` for the PM to re-run — the PM bot runs it itself; a headless run says so in its return — never auto re-derive from a stale stamp alone.",
   "t3: the PM bot runs /kru-setup",
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "**Persisting it is `/kru-brief`'s**, and the user types it. Only when the work will span sessions — or `planner` will slice it — ask in outcome terms (\"keep this plan past today?\"), and on a yes give them `/kru-brief` to type.",
-  "**Persisting it is `/kru-brief`'s**, and the PM bot runs it. Only when the work will span sessions — or `planner` will slice it — ask in outcome terms (\"keep this plan past today?\"), and on a yes name `/kru-brief` for the PM bot to run; headless, say it under *Questions for the PM* and keep building.",
+  "**Persisting it is `skills/kru-brief/SKILL.md`'s.** Only when the work will span sessions — or `planner` will slice it — ask in outcome terms (\"keep this plan past today?\"); when the task approves persist, load brief and write. It never blocks building: what the plan can't change is already running.",
+  "**Persisting it is `skills/kru-brief/SKILL.md`'s**, and the PM bot runs it. Only when the work will span sessions — or `planner` will slice it — ask in outcome terms (\"keep this plan past today?\"); when the task approves persist, load brief and write, and headless, say it under *Questions for the PM*. It never blocks building: what the plan can't change is already running.",
   "t3: the PM bot runs /kru-brief; headless never waits",
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "Only the product calls still open wait on the user.",
-  "Only the product calls still open wait on the PM — and headless, not even those (*A headless run never waits*).",
+  "Only the product calls still open return to the caller.",
+  "Only the product calls still open return to the caller — and headless, they go under *Questions for the PM* rather than waiting (*A headless run never waits*).",
   "t3",
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "A slice reaching a stack no seat covers is a question for the user — hiring is their call on their team — and it parks only that slice:",
-  "A slice reaching a stack no seat covers is a question for the PM — hiring is the PM bot's call on the team — and it parks only that slice (headless, it goes under *Questions for the PM*):",
+  "A slice reaching a stack no seat covers is a question for the user — hiring is their call on their team — **return that slice to the caller** and dispatch every other slice meanwhile.",
+  "A slice reaching a stack no seat covers is a question for the PM — hiring is the PM bot's call on the team — **return that slice to the caller** and dispatch every other slice meanwhile (headless, the question goes under *Questions for the PM*).",
   "t3: the unseated-stack question goes to the PM bot and never blocks",
 ))
 EDITS.push(E(
   "skills/kru-grilling/SKILL.md",
-  "The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.",
-  "The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.\n\nThe user here is the PM bot that briefed the session, and it answers up front: its brief's *Decisions resolved* settle the frontier they cover. In a headless run nobody answers mid-run, so no round is asked and nothing waits: an open two-way door gets your recommended answer, recorded as a decision; an open product call or one-way door parks only the work it touches and is returned under *Questions for the PM* (`skills/kru-lead/SKILL.md` → *A headless run never waits*).",
+  "The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. When the task asks to act on the settled tree, hand off to the skill that persists or builds — do not wait for a separate \"confirm shared understanding\" line unless the task requires it.",
+  "The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. When the task asks to act on the settled tree, hand off to the skill that persists or builds — do not wait for a separate \"confirm shared understanding\" line unless the task requires it.\n\nThe user here is the PM bot that briefed the session, and it answers up front: its brief's *Decisions resolved* settle the frontier they cover. In a headless run nobody answers mid-run, so no round is asked and nothing waits: an open two-way door gets your recommended answer, recorded as a decision; an open product call or one-way door parks only the work it touches and is returned under *Questions for the PM* (`skills/kru-lead/SKILL.md` → *A headless run never waits*).",
   "t3: the grill is answered by the PM bot; headless never waits",
 ))
 EDITS.push(E(
@@ -230,14 +220,14 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-brainstorm/SKILL.md",
-  "The user's go (\"go\", \"brief it\") is the only thing that writes.",
-  "The PM's go (\"go\", \"brief it\") is the only thing that writes. A headless brainstorm carries it in the prompt as a line of its own reading `go`, which lifts the lock from the start (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*).",
+  "When the task approves persist (\"go\", \"brief it\", \"write the brief\", or equivalent), run the brief's §1 writes",
+  "When the task approves persist (\"go\", \"brief it\", \"write the brief\", or equivalent), or a headless prompt carries a line of its own reading `go` (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), run the brief's §1 writes",
   "t3: an explicit go in the brief lifts the brainstorm lock",
 ))
 EDITS.push(E(
   "skills/kru-remember/SKILL.md",
-  "If empty, ask one line (\"What should I bank — and is it design, code, or workflow?\") and stop.",
-  "If empty, ask one line (\"What should I bank — and is it design, code, or workflow?\") and stop — or, headless, bank nothing and say so in the return.",
+  "1. **Read the preference from the invoking task.** If the task names none, return one line asking what to bank and whether it is design, code, or workflow.",
+  "1. **Read the preference from the invoking task.** If the task names none, return one line asking what to bank and whether it is design, code, or workflow. Headless, bank nothing and say so in the return.",
   "t3: headless never waits",
 ))
 EDITS.push(E(
@@ -272,20 +262,20 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "references/backlog-loop.md",
-  "Held entries get the numbered list, each with a recommendation;",
-  "Held entries go under *Questions for the PM*, numbered, each with a recommendation;",
+  "Held entries stay in the numbered list with a recommendation each",
+  "Held entries go under *Questions for the PM*, numbered, each with a recommendation",
   "t3: one name for the held list",
 ))
 EDITS.push(E(
   "references/backlog-loop.md",
-  "Nothing is pushed — the branch is the user's to review and open.",
-  "Nothing is pushed — the PM bot reviews the branch, pushes it and opens the pull request.",
+  "Nothing is pushed unless the task approved it — the branch is theirs to review and open.",
+  "Nothing is pushed unless the task approved it — the PM bot reviews the branch, pushes it and opens the pull request.",
   "t2/t3: the PM bot pushes",
 ))
 EDITS.push(E(
   "hooks/setup-nudge.sh",
-  "there is no sheet in .claude/CLAUDE.md. Name /kru-setup to the user once this session (it is theirs to type), then carry on:",
-  "there is no sheet in AGENTS.md. Name /kru-setup to the PM once this session (the PM bot runs it itself; a headless run says it in its return), then carry on:",
+  "no kru sheet in .claude/CLAUDE.md. Once this session, Read \\${CURSOR_PLUGIN_ROOT}/skills/kru-setup/SKILL.md (${setup_path}) and run it when the task is to derive the sheet — otherwise carry on:",
+  "no kru sheet in AGENTS.md. Once this session, name /kru-setup to the PM (the PM bot runs it itself; a headless run says it in its return). Read \\${CURSOR_PLUGIN_ROOT}/skills/kru-setup/SKILL.md (${setup_path}) when the task is to derive the sheet — otherwise carry on:",
   "t3: the PM bot runs /kru-setup; the sheet is AGENTS.md here",
 ))
 
@@ -302,16 +292,11 @@ EDITS.push(E(
   "- Design spec: before UI builders run, the brief must carry the approved mockups and build spec (`${CURSOR_PLUGIN_ROOT}/references/design-spec.md`). A **named gap** in the builder's return goes to the **PM bot** with the token name it would need — not to a seat.",
   "t4: design spec gaps go to the PM bot",
 ))
-EDITS.push(E(
-  "skills/kru-lead/references/gates.md",
-  "Findings merge into the same fix list as `code-reviewer`'s and route back to the UI builder.",
-  "Findings merge into the same fix list as `kru-code-reviewer`'s and route back to the UI builder.",
-  "t4",
-))
+
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "   - *Report when work lands* — what's different for users, then what's next. A handful of lines,\n     closing on the `/kru-reflect` line filled in — its target the commit or range that landed — ready\n     to run as typed.",
-  "   - *Report when work lands* — what's different for users, then what's next. A handful of lines,\n     then a **Proof** block: each `Done when` item beside the command you ran and its result, or the\n     screenshot or file path that shows it (`references/gates.md` → *Done is judged on evidence*), and\n     *Questions for the PM* when any stayed open. Close on the `/kru-reflect` line filled in — its\n     target the commit or range that landed — ready to run as typed.",
+  "   - *Report when work lands* — what's different for users, then what's next. A handful of lines.\n     When a slice finished the build path, **Step 5's acceptance package** is the close — not a team\n     sign-off. When the task asked for a look-back, name whether `skills/kru-reflect/SKILL.md` should run\n     and its target (commit or range) in one line after that.",
+  "   - *Report when work lands* — what's different for users, then what's next. A handful of lines,\n     then a **Proof** block: each `Done when` item beside the command you ran and its result, or the\n     screenshot or file path that shows it (`references/gates.md` → *Done is judged on evidence*), and\n     *Questions for the PM* when any stayed open. When a slice finished the build path, **Step 5's\n     acceptance package** is the close — criteria with builder evidence or **unproven**, PR/preview/CI,\n     and the product checks — not a team sign-off. When the task asked for a look-back, name whether\n     `skills/kru-reflect/SKILL.md` should run and its target (commit or range) in one line after that.",
   "t4: every return carries a proof block",
 ))
 EDITS.push(E(
@@ -320,12 +305,7 @@ EDITS.push(E(
   "A builder has no user channel, so `tdd`'s \"confirm the seams under test with the user\" resolves to *your grill*, which the PM bot answered",
   "t4",
 ))
-EDITS.push(E(
-  "skills/kru-lead/SKILL.md",
-  "- **The screen exemption is a deferral, not a waiver.** Layout and look wait for Step 4's `visual-reviewer` against the approved spec at 1440 and 375; the covering slice for seam code goes on the worklist (or `Done when`) in the same breath, and Step 4 dispatches both once the intent is settled.",
-  "- **The screen exemption is a deferral, not a waiver.** Layout and look wait for Step 4's `kru-visual-reviewer` against the approved spec at 1440 and 375; the covering slice for seam code goes on the worklist (or `Done when`) in the same breath, and Step 4 dispatches both once the intent is settled.",
-  "t4: screen exemption names the Task seat",
-))
+
 EDITS.push(E(
   "skills/kru-landed/SKILL.md",
   "The user just watched their PR merge.",
@@ -376,8 +356,8 @@ EDITS.push(E(
 // --- t6: two preference channels, one each -----------------------------------
 EDITS.push(E(
   "PREFERENCES.md",
-  "1. **The user, explicitly** — `/kru-remember <what they liked>`. Never inferred from approval; the team does not guess.",
-  "1. **The owner or the PM, explicitly** — `/kru-remember <what they liked>`, sourced `owner` or `pm`. **Two channels, one each:** how a PM bot itself operates stays in that PM bot's own operating rules, never here; the engineering practice the seats should carry comes here. Only the PM-to-lead loop counts as input. The PM bot's own operating rules govern escalation and approval; the plugin's generic default applies only when the PM has none (`skills/kru-lead/SKILL.md`, first section): a `pm` line is a proposal, and the owner's words outrank it. Never inferred from approval; the team does not guess.",
+  "1. **The user, explicitly** — `skills/kru-remember/SKILL.md` (scope in the invoking task: <what they liked>). Never inferred from approval; the team does not guess. A liked *pattern* with concrete code is saved as an artifact under `~/.kru/patterns/<slug>.md` and indexed by an inbox line.",
+  "1. **The owner or the PM, explicitly** — `skills/kru-remember/SKILL.md` (scope in the invoking task: <what they liked>), sourced `owner` or `pm`. **Two channels, one each:** how a PM bot itself operates stays in that PM bot's own operating rules, never here; the engineering practice the seats should carry comes here. Only the PM-to-lead loop counts as input. The PM bot's own operating rules govern escalation and approval; the plugin's generic default applies only when the PM has none (`skills/kru-lead/SKILL.md`, first section): a `pm` line is a proposal, and the owner's words outrank it. Never inferred from approval; the team does not guess. A liked *pattern* with concrete code is saved as an artifact under `~/.kru/patterns/<slug>.md` and indexed by an inbox line.",
   "t6: two preference channels, one each; PM-bot lines are proposals",
 ))
 EDITS.push(E(
@@ -430,8 +410,8 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "PREFERENCES.md",
-  "then a **curated sweep** that edits the team and leaves the commit to the user (mirroring the `TODOS.md` → `/kru-brief` promotion the team already runs)",
-  "then a **curated sweep** that edits the team and hands off per steps 3 and 5 below (mirroring the `TODOS.md` → `/kru-brief` promotion the team already runs)",
+  "then a **curated sweep** that edits the team and leaves the commit to the user (mirroring the `TODOS.md` → `skills/kru-brief/SKILL.md` promotion the team already runs)",
+  "then a **curated sweep** that edits the team and hands off per steps 3 and 5 below (mirroring the `TODOS.md` → `skills/kru-brief/SKILL.md` promotion the team already runs)",
   "review PR21: PREFERENCES loop prose matches learn hand-off",
 ))
 EDITS.push(E(
@@ -442,14 +422,14 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "agents/dispatch-auditor.md",
-  "/kru-roster learn` sweeps, dedupes, and decides the promotion; the user reviews its diff before any commit.",
-  "/kru-roster learn` sweeps, dedupes, and decides the promotion; the plugin maintainer reviews the uncommitted diff, and the lead `commit`s when the PM asks.",
+  "`skills/kru-roster/learn.md` (PM or lead loads) sweeps, dedupes, and decides the promotion; the user reviews its diff before any commit.",
+  "`skills/kru-roster/learn.md` (PM or lead loads) sweeps, dedupes, and decides the promotion; the plugin maintainer reviews the uncommitted diff, and the lead `commit`s when the PM asks.",
   "review PR21: dispatch-auditor learn hand-off",
 ))
 EDITS.push(E(
   "ROSTER.md",
-  "/kru-roster learn` decides the promotion and the user reviews its diff before any commit.",
-  "/kru-roster learn` decides the promotion; the plugin maintainer reviews the uncommitted diff, and the lead `commit`s when the PM asks.",
+  "decides the promotion and the user reviews its diff before any commit.",
+  "decides the promotion; the plugin maintainer reviews the uncommitted diff, and the lead `commit`s when the PM asks.",
   "review PR21: ROSTER dispatch-auditor learn hand-off",
 ))
 EDITS.push(E(
@@ -460,8 +440,8 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-remember/SKILL.md",
-  "Source is always `user` for this command (agents append their own lines directly, per the lead's handoff).",
-  "Source is `owner` for the owner's words and `pm` for a PM's — a PM's line is a proposal, and the owner's words outrank it at the sweep. Agents append their own lines directly, per the lead's handoff.",
+  "Project slug = the current repo's dir name (or `—` if none). Date = today. Source is always `user` for this load (agents append their own lines directly, per the lead's handoff).",
+  "Project slug = the current repo's dir name (or `—` if none). Date = today. Source is `owner` for the owner's words and `pm` for a PM's — a PM's line is a proposal, and the owner's words outrank it at the sweep. Agents append their own lines directly, per the lead's handoff.",
   "t6: the source tag accepts pm:<bot>",
 ))
 EDITS.push(E(
@@ -526,8 +506,8 @@ EDITS.push(E(
 // --- t7: tracking split: security private, bugs/wants on GitHub, scratch in the store ---
 EDITS.push(E(
   "TRACKER.md",
-  "— **not** committed to the working repo, and **not** on GitHub Issues. This file **is** the \"tracker doc\" the vendored planning skills ask for — **do NOT run `/setup-matt-pocock-skills`**. When a vendored skill says \"the issue tracker should have been provided to you,\" or offers a GitHub/Linear path, use the file layout here — it is the skills' own **local-markdown path**, made canonical for this team.",
-  "— **not** committed to the working repo. Bugs and product wants are tracked on the work tracker (`scripts/kru-tracker.sh`) instead — GitHub issues unless the repo sets `KRU_TRACKER=linear` — and security findings stay private (*Where each thing is tracked*, below). This file **is** the \"tracker doc\" the vendored planning skills ask for — **do NOT run `/setup-matt-pocock-skills`**. When a vendored skill says \"the issue tracker should have been provided to you,\" or offers a GitHub/Linear path for a plan, a spec or tickets, use the file layout here — it is the skills' own **local-markdown path**, made canonical for this team. `KRU_TRACKER` does not move a spec, a map or a plan ticket onto Linear.",
+  "— **not** committed to the working repo, and **not** on GitHub Issues. This file **is** the \"tracker doc\" the vendored planning skills ask for — **do NOT run `TRACKER.md`**. When a vendored skill says \"the issue tracker should have been provided to you,\" or offers a GitHub/Linear path, use the file layout here — it is the skills' own **local-markdown path**, made canonical for this team.",
+  "— **not** committed to the working repo. Bugs and product wants are tracked on the work tracker (`scripts/kru-tracker.sh`) instead — GitHub issues unless the repo sets `KRU_TRACKER=linear` — and security findings stay private (*Where each thing is tracked*, below). This file **is** the \"tracker doc\" the vendored planning skills ask for — **do NOT run `TRACKER.md`**. When a vendored skill says \"the issue tracker should have been provided to you,\" or offers a GitHub/Linear path for a plan, a spec or tickets, use the file layout here — it is the skills' own **local-markdown path**, made canonical for this team. `KRU_TRACKER` does not move a spec, a map or a plan ticket onto Linear.",
   "t7: bugs and wants move to GitHub issues; plans stay in the store",
 ))
 EDITS.push(E(
@@ -574,8 +554,8 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "TRACKER.md",
-  "The **`/kru-todo` skill** (`skills/kru-todo/`) is the user's direct front door for when there's no task running to sweep from: always `pitched`,",
-  "The **`/kru-todo` skill** (`skills/kru-todo/`) is the PM's direct front door for when there's no task running to sweep from: it files on the work tracker, and writes here only when `ready` exits 4 — always `pitched`,",
+  "The **`skills/kru-todo/SKILL.md` skill** (`skills/kru-todo/`) is the PM loads for when there's no task running to sweep from: always `pitched`,",
+  "The **`skills/kru-todo/SKILL.md` skill** (`skills/kru-todo/`) is the PM's direct front door for when there's no task running to sweep from: it files on the work tracker, and writes here only when `ready` exits 4 — always `pitched`,",
   "t7",
 ))
 EDITS.push(E(
@@ -622,8 +602,8 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-issue/SKILL.md",
-  "Filling the file in is a normal `/kru-lead <task>`; fixing it deletes the file in that same change, along with the repro test that replaces it (`lead` Step 4.5).",
-  "Filling it in is a normal `/kru-lead <task>`; fixing it puts the line `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` prints on the pull request (and closes a Linear issue through MCP `save_issue` with `state` `Done` when those tools are connected (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*), otherwise `close --id <id>`) or deletes the file in that same change, along with the repro test that replaces it (`lead` Step 4.5).",
+  "- Don't fix it, and don't offer a fix. Filling the file in is a normal `skills/kru-lead/SKILL.md` (scope in the invoking task: <task>); fixing it deletes the file in that same change, along with the repro test that replaces it (`lead` Step 4.5).",
+  "- Don't fix it, and don't offer a fix. Filling the file in is a normal `skills/kru-lead/SKILL.md` (scope in the invoking task: <task>); fixing it puts the line `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` prints on the pull request (and closes a Linear issue through MCP `save_issue` with `state` `Done` when those tools are connected (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*), otherwise `close --id <id>`) or deletes the file in that same change, along with the repro test that replaces it (`lead` Step 4.5).",
   "t7",
 ))
 EDITS.push(E(
@@ -702,36 +682,16 @@ EDITS.push(E(
   "not from asking the PM — you have no channel to it, so the **`tdd`** skill's",
   "t10: the requester is the PM; end-user lines untouched",
 ))
-EDITS.push(E(
-  "agents/react-ui-builder.md",
-  "rendered conformance is `visual-reviewer`'s — it compares the build to the approved spec at 1440 and 375 and returns mismatches to the builder.",
-  "rendered conformance is `kru-visual-reviewer`'s — it compares the build to the approved spec at 1440 and 375 and returns mismatches to the builder.",
-  "t10: self-check names the Task seat",
-))
-EDITS.push(E(
-  "agents/svelte-ui-builder.md",
-  "rendered conformance is `visual-reviewer`'s — it compares the build to the approved spec at 1440 and 375 and returns mismatches to the builder.",
-  "rendered conformance is `kru-visual-reviewer`'s — it compares the build to the approved spec at 1440 and 375 and returns mismatches to the builder.",
-  "t10: self-check names the Task seat",
-))
+
+
 EDITS.push(E(
   "agents/web-components-builder.md",
   "the lead carries it to the user.",
   "the lead carries it to the PM.",
   "t10: the requester is the PM; end-user lines untouched",
 ))
-EDITS.push(E(
-  "agents/web-components-builder.md",
-  "rendered conformance is `visual-reviewer`'s — it compares the build to the approved spec at 1440 and 375 and returns mismatches to the builder.",
-  "rendered conformance is `kru-visual-reviewer`'s — it compares the build to the approved spec at 1440 and 375 and returns mismatches to the builder.",
-  "t10: self-check names the Task seat",
-))
-EDITS.push(E(
-  "agents/visual-reviewer.md",
-  "that's the **user's** `/kru-visual-review` front door,",
-  "that's the **PM's** `/kru-visual-review` front door,",
-  "t10: the requester is the PM; end-user lines untouched",
-))
+
+
 EDITS.push(E(
   "agents/visual-reviewer.md",
   "- **You have no user channel, so report-only is absolute.**",
@@ -748,8 +708,8 @@ EDITS.push(E(
 // --- t11: small ownership fixes ----------------------------------------------
 EDITS.push(E(
   "skills/kru-update/SKILL.md",
-  "- **Consider** — the only verdict the user is asked about; the action verdicts run through `/kru-roster` without a question. Real value at a cost the user decides:",
-  "- **Consider** — the only verdict that goes to the plugin maintainer first; the action verdicts run through `/kru-roster` without a question. Real value at a cost someone has to decide — the plugin maintainer does, and takes it on to the owner when the PM's own operating rules say so, or under the plugin's generic default when the PM has none (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md`, first section):",
+  "- **Consider** — return to the PM as this sweep's result; action verdicts run through `skills/kru-roster/SKILL.md` only after the task approves. Real value at a cost the PM decides: money, a machine constraint, a UX change to a skill, a reproduction session.",
+  "- **Consider** — return to the plugin maintainer first (this plugin); action verdicts run through `skills/kru-roster/SKILL.md` only after the task approves. Real value at a cost someone has to decide — the plugin maintainer does, and takes it on to the owner when the PM's own operating rules say so, or under the plugin's generic default when the PM has none (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md`, first paragraph): money, a machine constraint, a UX change to a skill, a reproduction session.",
   "t11: Consider goes to the plugin maintainer first",
 ))
 EDITS.push(E(
@@ -774,22 +734,22 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-setup/SKILL.md",
-  "Nothing on disk answers step 1, so the user does, and the sheet is written from the **decision**. Load\n**`grilling`**; its rounds are these three:",
-  "Nothing on disk answers step 1, so the user does, and the sheet is written from the **decision**. Headless\n(`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), the brief's answers\nare the rounds: take the subject and the lanes it settles, deploy on those, and put each lane it left\nopen under **Questions for the PM** with your recommendation instead of a round. Otherwise load\n**`grilling`**; its rounds are these three:",
+  "Nothing on disk answers step 1, so the PM's task carries the subject and stack, or setup grills one\nround and **returns the frontier** for the next invocation. Load **`grilling`**; each round is one",
+  "Nothing on disk answers step 1, so the PM's task carries the subject and stack, or setup grills one\nround and **returns the frontier** for the next invocation. Headless\n(`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), take the lanes the task already settled and put each lane it left open under **Questions for the PM** with your recommendation instead of waiting on a round. Load **`grilling`**; each round is one",
   "t3: a headless blank-repo setup never waits on the grill",
 ))
 EDITS.push(E(
   "skills/kru-setup/SKILL.md",
-  "words, with what dropping it would cost. Everything the answer can't touch is written already.",
-  "words, with what dropping it would cost. Everything the answer can't touch is written already.\nHeadless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), keep the\nrule and return the question under **Questions for the PM**.",
+  "a human authored whose only copy is here, **return one question** — in their words, with what dropping\nit would cost — and apply only when the invoking task approves that cut. Everything else is written\nwithout waiting.",
+  "a human authored whose only copy is here, **return one question** — in their words, with what dropping\nit would cost — and apply only when the invoking task approves that cut. Everything else is written\nwithout waiting. Headless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), keep the rule and put that question under **Questions for the PM**.",
   "t3: a headless setup keeps a hand-written rule rather than waiting to ask",
 ))
 
 // --- review fixes (PR 4, round 2) ------------------------------------------
 EDITS.push(E(
   "skills/kru-brief/SKILL.md",
-  "The store's existing `plan/<effort>/brief.md` (if you're re-grilling an effort), `TODOS.md` (the captured, untriaged one-liners), and the store's `notes/` (freeform brainstorming — **input, never authority**: cite it as *\"there's a note that says…\"*, never as a decision, and never let it override the brief, the repo's docs, or the user).\n\nBring them back to the user during the grill: an old brief's open threads get re-decided, and a `TODOS.md` line is either pulled into this change's scope or left where it is. Order them **`value × urgency ÷ effort`** the way `/kru-todos` ranks them — what matters, soon, for little work first, a `~n` ranked as filed, legacy lines with no digits after — and note the ones filed 90+ days ago or against a `plan/<slug>/` that's since been archived (\"may be out of date\"), since those are the lines most likely to be asking for a codebase that no longer exists. To the user, each surfaces as the want in plain words — what someone using the product would get — in that order, with no digits, tildes, ages or scoring notation. That ordering is arithmetic over filed numbers, not a triage: you don't triage `TODOS.md` on your own — you surface it and the user calls it.",
-  "The store's existing `plan/<effort>/brief.md` (if you're re-grilling an effort), `TODOS.md` (the captured, untriaged one-liners), the work tracker's open wants (Linear MCP `list_issues` when those tools are connected, `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*; otherwise `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" list --kind want`), and the store's `notes/` (freeform brainstorming — **input, never authority**: cite it as *\"there's a note that says…\"*, never as a decision, and never let it override the brief, the repo's docs, or the user).\n\nBring them back to the user during the grill: an old brief's open threads get re-decided, and a `TODOS.md` line or an open want is either pulled into this change's scope or left where it is. Order them **`value × urgency ÷ effort`** the way `/kru-todos` ranks them — what matters, soon, for little work first, a work-tracker want on the three scores in its body, a `~n` ranked as filed, legacy lines with no digits after — and note the ones filed 90+ days ago or against a `plan/<slug>/` that's since been archived (\"may be out of date\"), since those are the lines most likely to be asking for a codebase that no longer exists. To the user, each surfaces as the want in plain words — what someone using the product would get — in that order, with no digits, tildes, ages or scoring notation. That ordering is arithmetic over filed numbers, not a triage: you don't triage `TODOS.md` or the open wants on your own — you surface them and the user calls it. One the code has since grown is named for the PM bot to close, not closed by you.",
+  "The store's existing `plan/<effort>/brief.md` (if you're re-grilling an effort), `TODOS.md` (the captured, untriaged one-liners), and the store's `notes/` (freeform brainstorming — **input, never authority**: cite it as *\"there's a note that says…\"*, never as a decision, and never let it override the brief, the repo's docs, or the user).\n\nBring them back to the user during the grill: an old brief's open threads get re-decided, and a `TODOS.md` line is either pulled into this change's scope or left where it is. Order them **`value × urgency ÷ effort`** the way `skills/kru-todos/SKILL.md` ranks them — what matters, soon, for little work first, a `~n` ranked as filed, legacy lines with no digits after — and note the ones filed 90+ days ago or against a `plan/<slug>/` that's since been archived (\"may be out of date\"), since those are the lines most likely to be asking for a codebase that no longer exists. To the user, each surfaces as the want in plain words — what someone using the product would get — in that order, with no digits, tildes, ages or scoring notation. That ordering is arithmetic over filed numbers, not a triage: you don't triage `TODOS.md` on your own — you surface it and the user calls it.\n",
+  "The store's existing `plan/<effort>/brief.md` (if you're re-grilling an effort), `TODOS.md` (the captured, untriaged one-liners), the work tracker's open wants (Linear MCP `list_issues` when those tools are connected, `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*; otherwise `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" list --kind want`), and the store's `notes/` (freeform brainstorming — **input, never authority**: cite it as *\"there's a note that says…\"*, never as a decision, and never let it override the brief, the repo's docs, or the user).\n\nBring them back to the user during the grill: an old brief's open threads get re-decided, and a `TODOS.md` line or an open want is either pulled into this change's scope or left where it is. Order them **`value × urgency ÷ effort`** the way `skills/kru-todos/SKILL.md` ranks them — what matters, soon, for little work first, a work-tracker want on the three scores in its body, a `~n` ranked as filed, legacy lines with no digits after — and note the ones filed 90+ days ago or against a `plan/<slug>/` that's since been archived (\"may be out of date\"), since those are the lines most likely to be asking for a codebase that no longer exists. To the user, each surfaces as the want in plain words — what someone using the product would get — in that order, with no digits, tildes, ages or scoring notation. That ordering is arithmetic over filed numbers, not a triage: you don't triage `TODOS.md` or the open wants on your own — you surface them and the user calls it. One the code has since grown is named for the PM bot to close, not closed by you.",
   "review: a brief reads open enhancement issues back with the parking lot",
 ))
 EDITS.push(E(
@@ -812,20 +772,20 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-todos/SKILL.md",
-  "No answer → say so in one line and return to whatever was in flight.\n\n## 5. Land what they picked",
-  "No answer → say so in one line and return to whatever was in flight.\n\nHeadless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), return the batch under *Questions for the PM*; `/kru-todos-loop` pays this gate in advance.\n\n## 5. Land what they picked",
+  "**Nothing past the bookkeeping is written before the next task carries the pick.** Apply §5 when the invoking task names which numbers to build.",
+  "**Nothing past the bookkeeping is written before the next task carries the pick.** Apply §5 when the invoking task names which numbers to build.\n\nHeadless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), return the batch under *Questions for the PM*; `/kru-todos-loop` pays this gate in advance.",
   "review: headless returns the batch; the loop pays the gate in advance",
 ))
 EDITS.push(E(
   "skills/kru-issues/SKILL.md",
-  "No answer → say so in one line and return to whatever was in flight.\n\n## 5. Fix what they picked",
-  "No answer → say so in one line and return to whatever was in flight.\n\nHeadless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), return the batch under *Questions for the PM*; `/kru-issues-loop` pays this gate in advance.\n\n## 5. Fix what they picked",
+  "**Nothing past the bookkeeping is written before the next task carries the pick.** Apply §5 when the invoking task names which numbers to fix.",
+  "**Nothing past the bookkeeping is written before the next task carries the pick.** Apply §5 when the invoking task names which numbers to fix.\n\nHeadless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), return the batch under *Questions for the PM*; `/kru-issues-loop` pays this gate in advance.",
   "review: headless returns the batch; the loop pays the gate in advance",
 ))
 EDITS.push(E(
   "skills/kru-briefs/SKILL.md",
-  "No answer → say so in one line and return to whatever was in flight.\n\n## 3. Apply what they picked",
-  "No answer → say so in one line and return to whatever was in flight.\n\nHeadless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), return the batch under *Questions for the PM*. `/kru-todos-loop` and `/kru-issues-loop` pay their own gates in advance; this pick stays in that return.\n\n## 3. Apply what they picked",
+  "The PM picks by number in the next task; at most one effort to resume — execution is sequential. Apply §3 when the task names the pick.",
+  "The PM picks by number in the next task; at most one effort to resume — execution is sequential. Apply §3 when the task names the pick.\n\nHeadless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), return the batch under *Questions for the PM*; this pick stays in that return.",
   "review: headless returns the batch; a brief has no loop that pays the gate",
 ))
 
@@ -886,7 +846,7 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-issue/SKILL.md",
-  "description: Open a defect file in the project's plan store from what the user just said, un-investigated. The user's front door to issues/, for when no task is running to sweep from.",
+  "description: Open a defect file in the project's plan store from what the user just said, un-investigated. PM loads when no task is running to sweep from.",
   "description: Record a defect from what the PM just said, un-investigated. A normal bug goes to the work tracker. A security finding stays in the store on GitHub; on Linear it goes to Linear, internal to the team, and what is filed follows *Tracker text* in TRACKER.md. The PM's front door for when no task is running to sweep from.",
   "tracker: the issue command names the work tracker",
 ))
@@ -904,26 +864,26 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/references/reconcile.md",
-  "- **Todo closeout** — the other half, and it fires on the slices a `/kru-todos` run lands: **a slice that satisfies a parked want deletes its line** from `TODOS.md`, in that same reconciliation. `TODOS.md` is the open parking lot, never an archive — the commit is where the want is written down now. Outside a `todos` run you delete only a line the slice you just landed actually satisfies; the rest of the file is the user's.",
-  "- **Todo closeout** — the other half, and it fires on the slices a `/kru-todos` run lands: **a slice that satisfies a parked want deletes its line** from `TODOS.md`, or closes its work-tracker item (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` on the pull request, and, when the tracker is Linear, close it through MCP `save_issue` with `state` `Done` when those tools are connected (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*), otherwise `close --id <id>`), in that same reconciliation. `TODOS.md` is the open parking lot, never an archive — the commit is where the want is written down now. Outside a `todos` run you delete only a line the slice you just landed actually satisfies; the rest of the file is the user's.",
+  "- **Todo closeout** — the other half, and it fires on the slices a `skills/kru-todos/SKILL.md` run lands: **a slice that satisfies a parked want deletes its line** from `TODOS.md`, in that same reconciliation. `TODOS.md` is the open parking lot, never an archive — the commit is where the want is written down now. Outside a `todos` run you delete only a line the slice you just landed actually satisfies; the rest of the file is the user's.",
+  "- **Todo closeout** — the other half, and it fires on the slices a `skills/kru-todos/SKILL.md` run lands: **a slice that satisfies a parked want deletes its line** from `TODOS.md`, or closes its work-tracker item (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` on the pull request, and, when the tracker is Linear, close it through MCP `save_issue` with `state` `Done` when those tools are connected (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Linear MCP*), otherwise `close --id <id>`), in that same reconciliation. `TODOS.md` is the open parking lot, never an archive — the commit is where the want is written down now. Outside a `todos` run you delete only a line the slice you just landed actually satisfies; the rest of the file is the user's.",
   "tracker: the pull request links the work-tracker id",
 ))
 EDITS.push(E(
   "references/routing.md",
-  "| something the user wants but doesn't want done now — \"not yet,\" \"remember this for later\" | **`/kru-todo`** — user-invoked, so name it in one line; mid-task it's your Step 4.5 `TODOS.md` capture |",
-  "| something the user wants but doesn't want done now — \"not yet,\" \"remember this for later\" | **`/kru-todo`** — user-invoked, so name it in one line; mid-task it's your Step 4.5 capture on the work tracker (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`; scratch still lands in `TODOS.md`; Linear MCP when those tools are connected, `TRACKER.md` → *Linear MCP*) |",
+  "| something the PM wants but doesn't want done now — \"not yet,\" \"remember this for later\" | **`skills/kru-todo/SKILL.md`** — load when the task is capture; mid-task it's your Step 4.5 `TODOS.md` capture |",
+  "| something the PM wants but doesn't want done now — \"not yet,\" \"remember this for later\" | **`skills/kru-todo/SKILL.md`** — load when the task is capture; mid-task it's your Step 4.5 capture on the work tracker (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`; scratch still lands in `TODOS.md`; Linear MCP when those tools are connected, `TRACKER.md` → *Linear MCP*) |",
   "tracker: routing sends bugs and wants through the work tracker",
 ))
 EDITS.push(E(
   "references/routing.md",
-  "| something *wrong* the user wants recorded before it evaporates — a bug they just hit, not being fixed now | **`/kru-issue`** — user-invoked, same deal; mid-task it's your Step 4.5 `issues/` capture |",
-  "| something *wrong* the user wants recorded before it evaporates — a bug they just hit, not being fixed now | **`/kru-issue`** — user-invoked, same deal; mid-task it's your Step 4.5 capture on the work tracker (security stays in `issues/` on GitHub; on Linear it is *Security on Linear* in `TRACKER.md`, and what is filed follows *Tracker text*) |",
+  "| something *wrong* the PM wants recorded before it evaporates — a bug just hit, not being fixed now | **`skills/kru-issue/SKILL.md`** — same; mid-task it's your Step 4.5 `issues/` capture |",
+  "| something *wrong* the PM wants recorded before it evaporates — a bug just hit, not being fixed now | **`skills/kru-issue/SKILL.md`** — same; mid-task it's your Step 4.5 capture on the work tracker (security stays in `issues/` on GitHub; on Linear it is *Security on Linear* in `TRACKER.md`, and what is filed follows *Tracker text*) |",
   "tracker: routing sends bugs and wants through the work tracker",
 ))
 EDITS.push(E(
   "references/routing.md",
-  "| the user wants to work what's parked or what's broken — the `TODOS.md` lines, the open defect files | **`/kru-todos`** / **`/kru-issues`** — user-invoked; each reconciles the store against the code, scores, proposes a batch and waits for the pick before building. Name the one they want; only the user can fire them. Mid-task you already read the store directly when a step needs it |",
-  "| the user wants to work what's parked or what's broken — the `TODOS.md` lines, the open defect files, the work tracker's open bugs and wants | **`/kru-todos`** / **`/kru-issues`** — user-invoked; each reconciles the store and the work tracker against the code, scores, proposes a batch and waits for the pick before building. Name the one they want; only the user can fire them. Mid-task you already read the store directly when a step needs it |",
+  "| the PM wants to work what's parked or what's broken — the `TODOS.md` lines, the open defect files | **`skills/kru-todos/SKILL.md`** / **`skills/kru-issues/SKILL.md`** — each reconciles, scores, returns a batch as its result; the next task carries the pick. Mid-task you already read the store directly when a step needs it |",
+  "| the PM wants to work what's parked or what's broken — the `TODOS.md` lines, the open defect files, the work tracker's open bugs and wants | **`skills/kru-todos/SKILL.md`** / **`skills/kru-issues/SKILL.md`** — each reconciles the store and the work tracker against the code, scores, returns a batch as its result; the next task carries the pick. Mid-task you already read the store directly when a step needs it |",
   "tracker: routing sends bugs and wants through the work tracker",
 ))
 EDITS.push(E(
@@ -934,7 +894,7 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-to-spec/SKILL.md",
-  "The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.",
+  "The issue tracker and triage label vocabulary come from `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked*.",
   "The tracker for a spec is the store's `plan/<effort>/spec.md` (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"` is the work tracker for bugs and wants, not for a spec — `${CURSOR_PLUGIN_ROOT}/TRACKER.md`). Do not run `/setup-matt-pocock-skills`, and do not file the spec on GitHub or Linear.",
   "tracker: a spec stays in the plan store",
 ))
@@ -970,7 +930,7 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-wayfinder/SKILL.md",
-  "**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** The issue tracker should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`. Consult the tracker doc's \"Wayfinding operations\" section for how _this_ repo expresses them. If no tracker has been provided, default to the local-markdown tracker.",
+  "**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** Read `${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *Where each thing is tracked* and the tracker doc's \"Wayfinding operations\" section. If no tracker is configured, default to the local-markdown tracker.",
   "**Where the map, its child tickets, blocking, and frontier queries physically live is the store**, not the work tracker. `plan/<effort>/map.md` and `tickets/` (`${CURSOR_PLUGIN_ROOT}/TRACKER.md` → *wayfinder*). Do not run `/setup-matt-pocock-skills`, and do not file the map or its tickets on GitHub or Linear. `KRU_TRACKER` files bugs and product wants only (`bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\"`).",
   "tracker: the wayfinder map stays in the plan store",
 ))
@@ -1002,14 +962,14 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-brief/SKILL.md",
-  "One line in the shape \"Plan saved: <what's different for users>. Next I build it.\" — or, when it won't fit one session, \"…Next I break it into steps, then build it.\" When `Open questions` was written, the line names the count (\"3 questions still open\"). No path, no seat or step references. Which it is follows `lead` Step 2.6 (**`/kru-lead`** builds it, or **`planner`** slices it first).",
-  "On a re-run, print the drift report first, as `brief-drift.mjs` wrote it. One line in the shape \"Plan saved: <what's different for users>. Next I build it.\" — or, when it won't fit one session, \"…Next I break it into steps, then build it.\" When `Open questions` was written, the line names the count (\"3 questions still open\"). No path, no seat or step references. Which it is follows `lead` Step 2.6 (**`/kru-lead`** builds it, or **`planner`** slices it first).",
+  "One line in the shape \"Plan saved: <what's different for users>. Next I build it.\" — or, when it won't fit one session, \"…Next I break it into steps, then build it.\" When `Open questions` was written, the line names the count (\"3 questions still open\"). No path, no seat or step references. Which it is follows `lead` Step 2.6 (**`skills/kru-lead/SKILL.md`** builds it, or **`planner`** slices it first).",
+  "On a re-run, print the drift report first, as `brief-drift.mjs` wrote it. One line in the shape \"Plan saved: <what's different for users>. Next I build it.\" — or, when it won't fit one session, \"…Next I break it into steps, then build it.\" When `Open questions` was written, the line names the count (\"3 questions still open\"). No path, no seat or step references. Which it is follows `lead` Step 2.6 (**`skills/kru-lead/SKILL.md`** builds it, or **`planner`** slices it first).",
   "brief drift: the re-run prints the drift report, then the plan line",
 ))
 EDITS.push(E(
   "TRACKER.md",
-  "Prose, not typed: no frontmatter, no id, no status — its existence in the effort dir is the signal.",
-  "Prose, not typed: no frontmatter and no status. `## Tracker` stores the effort's issue ids; open or done lives only on the work tracker. Its existence in the effort dir is the signal.",
+  "Prose, not a command: no frontmatter, no id, no status — its existence in the effort dir is the signal.",
+  "Prose, not a command: no frontmatter and no status. `## Tracker` stores the effort's issue ids; open or done lives only on the work tracker. Its existence in the effort dir is the signal.",
   "brief drift: the brief stores issue ids; status stays on the tracker",
 ))
 EDITS.push(E(
@@ -1028,8 +988,8 @@ EDITS.push(E(
 // --- dispatch: Task subagent_type is kru-<seat> ------------------------
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "## Delegate on stack, not size\nA specialist's value is its official-source discipline \u2014 Svelte MCP and its autofixer, Better Auth's\nCLI schema, Next's cache semantics, parameterized SQL \u2014 not lines of code. A change routes to its\nstack's seat whenever getting it right needs that seat's source chain \u2014 its MCP, autofixer, CLI \u2014\nhowever small it is; a change fully specified and checkable inline (a reviewer's exact replacement\nafter the loop closed, a version pin) runs inline, on the seat's skills (below). A stack's own config file is that stack (`turbo.json`,\n`wrangler.jsonc`, `fly.toml` go to their seats), and a red or flaky suite no build is running is\n`test-writer`'s, however small the fix looks. A question with no code to write routes too when a\nseat owns the answer: where a seam goes is `architecture-reviewer`'s, even answered in prose.\nImplement inline for the genuinely stack-agnostic: a typo, a rename, a string the user dictates, a\ncomment, docs. Rewording in-product UI copy or flows is not an engineering inline fix \u2014 it belongs in the **design spec** from the designer; tell the PM. When in doubt, route.\n\nInline work runs on the seat's sources: before the edit, load every skill the definition of the seat\nthat would have taken the job names (`agents/<seat>.md` lists them), so inline work runs on the\nsources the seat would have. Inline work spawns no reviewer, so you are both halves of the gate.\n\n",
-  "## Delegate on stack, not size\nA specialist's value is its official-source discipline \u2014 Svelte MCP and its autofixer, Better Auth's\nCLI schema, Next's cache semantics, parameterized SQL \u2014 not lines of code. A change routes to its\nstack's seat whenever getting it right needs that seat's source chain \u2014 its MCP, autofixer, CLI \u2014\nhowever small it is. A stack's own config file is that stack (`turbo.json`,\n`wrangler.jsonc`, `fly.toml` go to their seats), and a red or flaky suite no build is running is\n`test-writer`'s, however small the fix looks. A question with no code to write routes too when a\nseat owns the answer: where a seam goes is `architecture-reviewer`'s, even answered in prose.\nImplement inline for the genuinely stack-agnostic: a typo, a rename, a string the user dictates, a\ncomment, docs. Rewording in-product UI copy or flows is not an engineering inline fix \u2014 it belongs in the **design spec** from the designer; tell the PM bot. When in doubt, route.\n\n**Dispatch is a Task tool call with `subagent_type` `kru-<seat>`.** That string is the seat's `name:` in `agents/<seat>.md` (`kru-code-reviewer`, `kru-react-ui-builder`). Prose may say the bare seat; the Task call uses `kru-<seat>`. Never do that seat's work in the main thread. Try the call. If the Task tool rejects `kru-<seat>` or does not offer it, report the types it offered and stop. Do not do the seat's work inline, and do not decide that from a directory listing.\n\n**Inline is a closed list, and the list does not depend on file type.** Only these edits run in the main thread: a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement after the loop closed. A typo or a comment in a CSS, component, route, or test file is still on this list. A behavior, CSS, component, route, or test change that is not on this list is dispatched. A detailed brief is not fully specified. Before that edit, load every skill the definition of the seat that would have taken the job names (`agents/<seat>.md` lists them), so the closed list still runs on the sources the seat would have. Inline work spawns no reviewer, so you are both halves of the gate.\n\n**Lead-owned work is not that list, and it is not a seat's job done inline.** It stays in the main thread because no seat owns it:\n- a user-named pass with no seat — `/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro`, `/kru-review-animations`, `/kru-improve-animations` — and only when the user names one (`references/screen-passes.md`)\n- the comment pass: read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I (`references/gates.md`). `/review` itself is a background subagent, not this pass\n- a scoped test-count check: run the slice's tests and read the count (`references/gates.md`); before any scoped run, `kru-test-writer` dispatch, or Browser check that needs secrets or a database, follow `references/test-credentials.md` and stop the slice on a failed guard. A red or flaky suite, a coverage sweep, and a long run are `kru-test-writer`\n\n**No covering seat: report and stop.** Hiring is the PM's. Until a seat exists, that slice stays parked. Do not implement it.\n\n",
+  "## Delegate on stack, not size\nA specialist's value is its official-source discipline — Svelte MCP and its autofixer, Better Auth's\nCLI schema, Next's cache semantics, parameterized SQL — not lines of code. A change routes to its\nstack's seat whenever getting it right needs that seat's source chain — its MCP, autofixer, CLI —\nhowever small it is; a change fully specified and checkable inline (a reviewer's exact replacement\nafter the loop closed, a version pin) runs inline, on the seat's skills (below). A stack's own config file is that stack (`turbo.json`,\n`wrangler.jsonc`, `fly.toml` go to their seats), and a red or flaky suite no build is running is\n`test-writer`'s, however small the fix looks. A question with no code to write routes too when a\nseat owns the answer: where a seam goes is settled in the brief or grill before build — load `codebase-design` on the main thread when the task asks, not a standing `architecture-reviewer` dispatch.\nImplement inline for the genuinely stack-agnostic: a typo, a rename, a string the user dictates, a\ncomment, docs. Rewording in-product UI copy or flows is not an engineering inline fix — it belongs in the **design spec** from the designer; tell the PM. When in doubt, route.\n\nInline work runs on the seat's sources: before the edit, load every skill the definition of the seat\nthat would have taken the job names (`agents/<seat>.md` lists them), so inline work runs on the\nsources the seat would have. Inline work spawns no review seat; you run Block I on the diff before Step 5.\n\n",
+  "## Delegate on stack, not size\nA specialist's value is its official-source discipline — Svelte MCP and its autofixer, Better Auth's\nCLI schema, Next's cache semantics, parameterized SQL — not lines of code. A change routes to its\nstack's seat whenever getting it right needs that seat's source chain — its MCP, autofixer, CLI —\nhowever small it is. A stack's own config file is that stack (`turbo.json`,\n`wrangler.jsonc`, `fly.toml` go to their seats), and a red or flaky suite no build is running is\n`test-writer`'s, however small the fix looks. A question with no code to write routes too when a\nseat owns the answer: where a seam goes is settled in the brief or grill before build — load `codebase-design` on the main thread when the task asks, not a standing `architecture-reviewer` dispatch.\nImplement inline for the genuinely stack-agnostic: a typo, a rename, a string the user dictates, a\ncomment, docs. Rewording in-product UI copy or flows is not an engineering inline fix — it belongs in the **design spec** from the designer; tell the PM bot. When in doubt, route.\n\n**Dispatch is a Task tool call with `subagent_type` `kru-<seat>`.** That string is the seat's `name:` in `agents/<seat>.md` (`kru-code-reviewer`, `kru-react-ui-builder`). Prose may say the bare seat; the Task call uses `kru-<seat>`. Never do that seat's work in the main thread. Try the call. If the Task tool rejects `kru-<seat>` or does not offer it, report the types it offered and stop. Do not do the seat's work inline, and do not decide that from a directory listing.\n\n**Inline is a closed list, and the list does not depend on file type.** Only these edits run in the main thread: a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement after the loop closed. A typo or a comment in a CSS, component, route, or test file is still on this list. A behavior, CSS, component, route, or test change that is not on this list is dispatched. A detailed brief is not fully specified. Before that edit, load every skill the definition of the seat that would have taken the job names (`agents/<seat>.md` lists them), so the closed list still runs on the sources the seat would have. Inline work spawns no review seat; you run Block I on the diff before Step 5.\n\n**Lead-owned work is not that list, and it is not a seat's job done inline.** It stays in the main thread because no seat owns it:\n- a user-named pass with no seat — `/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro`, `/kru-review-animations`, `/kru-improve-animations` — and only when the user names one (`references/screen-passes.md`)\n- the comment pass: read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I (`references/gates.md`). `/review` itself is a background subagent, not this pass\n- a scoped test-count check: run the slice's tests and read the count (`references/gates.md`); before any scoped run, `kru-test-writer` dispatch, or Browser check that needs secrets or a database, follow `references/test-credentials.md` and stop the slice on a failed guard. A red or flaky suite, a coverage sweep, and a long run are `kru-test-writer`\n\n**No covering seat: report and stop.** Hiring is the PM's. Until a seat exists, that slice stays parked. Do not implement it.\n\n\n",
   "dispatch: inline is a closed list; seat work is a Task call",
 ))
 EDITS.push(E(
@@ -1044,12 +1004,7 @@ EDITS.push(E(
   "Every specialist follows **official sources first** (`SOURCES.md`). Each specialist's Task `subagent_type` is `kru-<seat>`, the `name:` in `agents/<seat>.md`. The bare name in the table is the file stem.",
   "dispatch: the roster names the Task subagent_type beside the file stem",
 ))
-EDITS.push(E(
-  "skills/kru-lead/references/gates.md",
-  "(e.g. `code-reviewer` + `architecture-reviewer`)",
-  "(e.g. `kru-code-reviewer` + `kru-architecture-reviewer`)",
-  "dispatch: the batch example uses the Task name",
-))
+
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
   "The one seat Block O exempts (`test-writer`)",
@@ -1058,64 +1013,25 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
-  "spawn `architecture-reviewer`",
-  "spawn `kru-architecture-reviewer`",
-  "dispatch: spawn uses the Task name",
+  "The lead does **not** dispatch `code-reviewer`, `architecture-reviewer`, `visual-reviewer`, `accessibility-reviewer`, or `ux-auditor` in Step 4",
+  "The lead does **not** dispatch `kru-code-reviewer`, `kru-architecture-reviewer`, `kru-visual-reviewer`, `kru-accessibility-reviewer`, or `kru-ux-auditor` in Step 4",
+  "dispatch: Step 4 names the Task subagent_type when it names a review seat",
 ))
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
-  "spawn `code-reviewer`",
-  "spawn `kru-code-reviewer`",
-  "dispatch: spawn uses the Task name",
+  "- **Comment pass (lead-owned).** On inline edits and on any path where no review seat ran, read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I before Step 5.",
+  "- **Comment pass (lead-owned).** On inline edits and on any path where no review seat ran, the comment pass stays lead-owned, the list in `SKILL.md` → *Delegate on stack, not size*: read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I before Step 5.",
+  "dispatch: the comment pass stays lead-owned",
 ))
-EDITS.push(E(
-  "skills/kru-lead/references/gates.md",
-  "\u2014 `accessibility-reviewer`",
-  "\u2014 `kru-accessibility-reviewer`",
-  "dispatch: the screen pass uses the Task name",
-))
-EDITS.push(E(
-  "skills/kru-lead/references/gates.md",
-  ") and `visual-reviewer`",
-  ") and `kru-visual-reviewer`",
-  "dispatch: the screen pass uses the Task name",
-))
-EDITS.push(E(
-  "skills/kru-lead/references/gates.md",
-  "Brief `visual-reviewer` with mockup paths",
-  "Brief `kru-visual-reviewer` with mockup paths",
-  "dispatch: brief uses the Task name",
-))
-EDITS.push(E(
-  "skills/kru-lead/references/gates.md",
-  "as `code-reviewer`'s",
-  "as `kru-code-reviewer`'s",
-  "dispatch: the screen pass uses the Task name",
-))
-EDITS.push(E(
-  "skills/kru-lead/references/gates.md",
-  "or `test-writer`)",
-  "or `kru-test-writer`)",
-  "dispatch: the covering run uses the Task name",
-))
+
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
   "Spawn `test-writer`",
   "Spawn `kru-test-writer`",
   "dispatch: spawn uses the Task name",
 ))
-EDITS.push(E(
-  "skills/kru-lead/references/gates.md",
-  "spawn `ux-auditor`",
-  "spawn `kru-ux-auditor`",
-  "dispatch: spawn uses the Task name",
-))
-EDITS.push(E(
-  "skills/kru-lead/references/gates.md",
-  "and `ux-auditor` is the only one",
-  "and `kru-ux-auditor` is the only one",
-  "dispatch: the journey seat uses the Task name",
-))
+
+
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
   "every review seat — `code-reviewer`, `architecture-reviewer`, `accessibility-reviewer`, `visual-reviewer`, `ux-auditor` —",
@@ -1129,28 +1045,12 @@ EDITS.push(E(
   "Ambient binds you too on the closed inline list in *Delegate on stack, not size* (a typo, a rename, a string the user dictates, a comment, docs, a version pin, a reviewer's exact replacement): the same comment bar applies, canonical text at `skills/kru-roster/shared-blocks.md` → Block I.",
   "dispatch: ambient names the closed inline list",
 ))
+
+
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "a set of passes that stay the user's.**",
-  "a set of passes that are lead-owned.**",
-  "dispatch: user-named passes are lead-owned",
-))
-EDITS.push(E(
-  "skills/kru-lead/SKILL.md",
-  "`/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro` and the two animation passes run inline only when the user names one",
-  "`/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro` and the two animation passes are lead-owned, the list in *Delegate on stack, not size*, and they run in the main thread only when the user names one",
-  "dispatch: user-named passes are lead-owned",
-))
-EDITS.push(E(
-  "skills/kru-lead/SKILL.md",
-  "the full user-owned list:",
-  "the full lead-owned list:",
-  "dispatch: the screen-pass list is lead-owned",
-))
-EDITS.push(E(
-  "skills/kru-lead/SKILL.md",
-  "Ask it in outcomes — a specialist hired for the phone app, or the team builds it without one this time — and on the answer: mint it (`/kru-roster hire <name>` for a seat, `/kru-roster author <name>` for a skill; roster does the wiring, then route to it), or the general path (Explore conventions + implement, backed by Context7) for this slice, on their say-so.",
-  "Ask it in outcomes — a specialist hired for the phone app — and on the answer mint it (`/kru-roster hire <name>` for a seat, `/kru-roster author <name>` for a skill; roster does the wiring, then route to it). Until that seat exists, report and stop on the slice. Do not implement it, on the PM's say-so or otherwise. That is the same stop as *Delegate on stack, not size*.",
+  "Ask it in outcomes — a specialist hired for the phone app, or the team builds it without one this time — and on the answer: mint it (`skills/kru-roster/SKILL.md` (scope in the invoking task: hire <name>) for a seat, `skills/kru-roster/SKILL.md` (scope in the invoking task: author <name>) for a skill; roster does the wiring, then route to it), or the general path (Explore conventions + implement, backed by Context7) for this slice when the task approves it.",
+  "Ask it in outcomes — a specialist hired for the phone app — and on the answer mint it (`skills/kru-roster/SKILL.md` (scope in the invoking task: hire <name>) for a seat, `skills/kru-roster/SKILL.md` (scope in the invoking task: author <name>) for a skill; roster does the wiring, then route to it). Until that seat exists, report and stop on the slice. Do not implement it. That is the same stop as *Delegate on stack, not size*.",
   "dispatch: no covering seat reports and stops",
 ))
 EDITS.push(E(
@@ -1159,12 +1059,7 @@ EDITS.push(E(
   "These have no seat and you never dispatch them. They are lead-owned, the list in `SKILL.md` → *Delegate on stack, not size*: they run in the main thread when the user names one, and that does not open the closed inline list:",
   "dispatch: user-named passes are lead-owned",
 ))
-EDITS.push(E(
-  "skills/kru-lead/references/gates.md",
-  "so **that fork keeps the comment pass yours**: read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I before you call the slice reviewed.",
-  "so **the comment pass stays lead-owned**, the list in `SKILL.md` → *Delegate on stack, not size*: read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I before you call the slice reviewed. `/review` itself is a background subagent, not this pass.",
-  "dispatch: the comment pass is lead-owned",
-))
+
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
   "Either way, see the counts yourself, from a run scoped to the slice's changes — a builder's \"tests pass\" is a narrative until you have; a full suite runs only when the user asks, and a long run is dispatched, not run inline.",
@@ -1191,7 +1086,7 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "references/routing.md",
-  "| **no specialist matches** | the **user**, naming the seat it would need (*Handling gaps*); the general path only on their say-so |",
+  "| **no specialist matches** | **return to the caller**, naming the seat it would need (*Handling gaps*); the general path only when the task approves it |",
   "| **no specialist matches** | the **PM**, naming the seat it would need (*Handling gaps*); report and stop until that seat exists. Do not implement it |",
   "dispatch: an uncovered slice reports and stops",
 ))
@@ -1201,12 +1096,7 @@ EDITS.push(E(
   "Until a dedicated `astro-builder` exists, report and stop (`skills/kru-lead/SKILL.md` → *Handling gaps*). Context7 is the source that seat would use once hired.",
   "dispatch: Astro does not take the general path",
 ))
-EDITS.push(E(
-  "skills/kru-lead/SKILL.md",
-  "and the full user-owned list:",
-  "and the full lead-owned list:",
-  "dispatch: the screen-pass list is lead-owned",
-))
+
 EDITS.push(E(
   "skills/kru-lead/references/screen-passes.md",
   "## The user's passes",
@@ -1220,6 +1110,19 @@ EDITS.push(E(
   "brief drift: a brief has no frontmatter id; issue ids live in Tracker",
 ))
 
+
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "Taste passes (`skills/kru-seo-review`, `copywriting`, `copy-editing`, `cro`, animation skills) load only when the task names one.",
+  "Taste passes are lead-owned, the list in *Delegate on stack, not size*, and they load in the main thread only when the task names one.",
+  "dispatch: taste passes are lead-owned",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/screen-passes.md",
+  "# The screen passes — what they are, how to brief them, and what stays the user's",
+  "# The screen passes — what they are, how to brief them, and what stays lead-owned",
+  "dispatch: the screen-pass title is lead-owned",
+))
 // --- cursor: skill prose names Cursor cloud agents, not Claude Code ------
 EDITS.push(E(
   "skills/kru-writing-for-agents/CALIBRATION.md",
@@ -1233,24 +1136,8 @@ EDITS.push(E(
   "When you're adding a rule, a worked example, or a prose spec, read [`CALIBRATION.md`](CALIBRATION.md) — where a Cursor cloud agent wants judgment, an interface, or a reference instead. The model is whichever fits the task.",
   "cursor: the calibration pointer is model-agnostic",
 ))
-EDITS.push(E(
-  "skills/kru-lead/SKILL.md",
-  "(the user's `~/.claude/CLAUDE.md`)",
-  "(root `AGENTS.md`, or a `.cursor/rules` file with `alwaysApply: true`)",
-  "cursor: machine budget lives in rules or AGENTS.md",
-))
-EDITS.push(E(
-  "skills/kru-lead/references/gates.md",
-  "(the user's `~/.claude/CLAUDE.md`)",
-  "(root `AGENTS.md`, or a `.cursor/rules` file with `alwaysApply: true`)",
-  "cursor: machine budget lives in rules or AGENTS.md",
-))
-EDITS.push(E(
-  "skills/kru-update/SKILL.md",
-  "a machine constraint the user's `~/.claude/CLAUDE.md` sets",
-  "a machine constraint root `AGENTS.md` or an `alwaysApply: true` rule sets",
-  "cursor: machine budget lives in rules or AGENTS.md",
-))
+
+
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "every rule an always-loaded AGENTS.md carries — the working repo's, or the user's own `~/.claude/CLAUDE.md`: its machine budget, its comment standard, its dependency policy, whatever it states). Point at it or say nothing — and an AGENTS.md section, repo or user, loads into every seat on its own, so there saying nothing is the whole move",
@@ -1305,12 +1192,7 @@ EDITS.push(E(
   "Cursor has no plugin-eval runner, and this repo ships no eval suite. Do not install a runner. When a suite is already in the tree, the argument names its directory; grade it in place. The traps below are the whole checklist. Every trap below was reproduced against harness traces from 2.1.284 on 2026-09-29.",
   "cursor: eval-review grades an existing suite and does not start Claude Code",
 ))
-EDITS.push(E(
-  "skills/kru-eval-review/SKILL.md",
-  "argument-hint: \"[<eval dir> — omit for evals/]\"",
-  "argument-hint: \"[<eval dir>]\"",
-  "cursor: eval-review has no default evals/ directory",
-))
+
 EDITS.push(E(
   "skills/kru-eval-review/SKILL.md",
   "1. **Resolve the target**: the argument, else `evals/`, else the manifest's `experimental.evals`. Read every case's `prompt.md`, `case.yaml` and `graders/*.md`, and the suite's README if it has one.",
@@ -1319,7 +1201,7 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "ROSTER.md",
-  "It carries only the agent-plugin traps; the format is `code.claude.com/docs/en/plugin-evals.md` and the model-agnostic checklist is `/claude-api`'s `shared/evals/eval-audit.md`, both run beside it. Worked example: this repo's `evals/`.",
+  "Worked example: this repo's `evals/`.",
   "This repo ships no eval suite, so the argument names a suite already in the tree.",
   "cursor: the roster does not point at a checklist or an evals/ directory this repo does not ship",
 ))
@@ -1352,8 +1234,8 @@ EDITS.push(E(
 
 EDITS.push(E(
   "hooks/check-handoff.sh",
-  "# an always-loaded rule restated in the brief is a second source that drifts —\n# scan 2 says point at the file instead. the mechanizable half is the verbatim\n# one: a run of SHINGLE words from the brief found unchanged in a canonical\n# text. paraphrase stays a reading check; a shorter run would misfire on\n# ordinary phrasing, so the length is the fail-open margin. rule files are\n# terse, so the run shortens with them: six words from the repo's own\n# CLAUDE.md or rules, five from the user's, where the machine budget is the\n# text briefs re-type most.\nSHINGLE=8\nSHINGLE_REPO=6\nSHINGLE_USER=5\ncanon=\"\"\nrepo_canon=\"\"\nfor f in \"$cwd/CLAUDE.md\" \"$cwd/AGENTS.md\" \"$cwd\"/.cursor/rules/*.mdc; do\n  [ -f \"$f\" ] && canon=\"$canon $f\" && repo_canon=\"$repo_canon $f\"\ndone\nfor f in \"$USER_CANON\" \"$plugin_root/skills/kru-roster/shared-blocks.md\"; do\n  [ -f \"$f\" ] && canon=\"$canon $f\"\ndone\n# the plan store's contract is the file a planner brief re-types (lead step 2.6)\n[ \"$seat\" = \"planner\" ] && [ -f \"$plugin_root/TRACKER.md\" ] && canon=\"$canon $plugin_root/TRACKER.md\"\n# a path and a backticked identifier are the pointer scan 2 asks for in place\n# of the text, and stripping punctuation turns one of them into a six-word run\n# any repo's own path map already spends — the gate refusing its own remedy.\n# barrier each with a word no canon holds, so a pointer neither matches on its\n# own nor joins the prose on either side of it.\nBARRIER=' zzpointerzz '\npoint() { sed -E -e \"s/\\`[^\\`]*\\`/${BARRIER}/g\" \\\n  -e \"s#[A-Za-z0-9_@~.-]*/[A-Za-z0-9_@~./-]*#${BARRIER}#g\" \\\n  -e \"s/[A-Za-z0-9_-]+\\.(tsx?|jsx?|mjs|cjs|svelte|vue|astro|md|go|py|rs|css|scss|json|sql|html|ya?ml|toml|sh)/${BARRIER}/g\"; }\nnorm() { tr '[:upper:]' '[:lower:]' | tr -c '[:alnum:]\\n' ' ' | tr -s ' \\n' ' '; }\nshingle() { # files → \"file<TAB>run\" of the first verbatim hit\n  printf '%s' \"$prompt\" | point | norm | awk -v n=\"$SHINGLE\" -v nr=\"$SHINGLE_REPO\" -v ns=\"$SHINGLE_USER\" -v short=\"$USER_CANON\" -v repo=\" $repo_canon \" -v files=\"$1\" '\n    BEGIN {\n      split(files, fs, \" \")\n      for (i in fs) { f = fs[i]; if (f == \"\") continue\n        text = \"\"\n        while ((getline line < f) > 0) text = text \" \" tolower(line)\n        close(f)\n        gsub(/[^[:alnum:]]+/, \" \", text)\n        corpus[f] = text }\n    }\n    { for (f in corpus) { m = (f == short) ? ns : (index(repo, \" \" f \" \") ? nr : n)\n        for (i = 1; i + m - 1 <= NF; i++) {\n          s = $i; for (j = 1; j < m; j++) s = s \" \" $(i + j)\n          if (index(corpus[f], \" \" s \" \")) { print f \"\\t\" s; exit } } } }'\n}\nif [ -n \"$canon\" ]; then\n  hit=$(shingle \"$canon\")\n  [ -n \"$hit\" ] && reasons=\"${reasons}restates a file verbatim: \\\"${hit#*	}\\\" is in ${hit%%	*} — point at the file instead (scan 2). \"\nfi\n\n# planner reads a written brief.md (lead step 2.6)\nif [ \"$seat\" = \"planner\" ] && ! printf '%s' \"$prompt\" | grep -q 'brief\\.md'; then\n  reasons=\"${reasons}planner brief names no brief.md: run /kru-brief first and point the seat at the written file (step 2.6). \"\nfi\n\n# shadow scans — logged, never refused.\nshadow=\"\"\n",
-  "# an always-loaded rule restated in the brief is a second source that drifts —\n# scan 2 says point at the file instead. the mechanizable half is the verbatim\n# one: a run of SHINGLE words from the brief found unchanged in a canonical\n# text. paraphrase stays a reading check; a shorter run would misfire on\n# ordinary phrasing, so the length is the fail-open margin. rule files are\n# terse, so the run shortens with them: six words from root AGENTS.md or an\n# alwaysApply rule, five from ~/.claude/CLAUDE.md when it is the fallback,\n# where the machine budget is the text briefs re-type most.\nSHINGLE=8\nSHINGLE_REPO=6\nSHINGLE_USER=5\n# always_files is the budget's source set (always_loaded, above). a home file\n# in it is the fallback, so it keeps the shorter run; repo files keep six.\ncanon_files=()\nrepo_files=()\nif [ \"${#always_files[@]}\" -gt 0 ]; then\n  for f in \"${always_files[@]}\"; do\n    canon_files+=(\"$f\")\n    [ \"$f\" = \"$USER_CANON\" ] || repo_files+=(\"$f\")\n  done\nfi\nsb=\"$plugin_root/skills/kru-roster/shared-blocks.md\"\n[ -f \"$sb\" ] && canon_files+=(\"$sb\")\n# the plan store's contract is the file a planner brief re-types (lead step 2.6)\n[ \"$seat\" = \"planner\" ] && [ -f \"$plugin_root/TRACKER.md\" ] && canon_files+=(\"$plugin_root/TRACKER.md\")\n# a path and a backticked identifier are the pointer scan 2 asks for in place\n# of the text, and stripping punctuation turns one of them into a six-word run\n# any repo's own path map already spends — the gate refusing its own remedy.\n# barrier each with a word no canon holds, so a pointer neither matches on its\n# own nor joins the prose on either side of it.\nBARRIER=' zzpointerzz '\npoint() { sed -E -e \"s/\\`[^\\`]*\\`/${BARRIER}/g\" \\\n  -e \"s#[A-Za-z0-9_@~.-]*/[A-Za-z0-9_@~./-]*#${BARRIER}#g\" \\\n  -e \"s/[A-Za-z0-9_-]+\\.(tsx?|jsx?|mjs|cjs|svelte|vue|astro|md|go|py|rs|css|scss|json|sql|html|ya?ml|toml|sh)/${BARRIER}/g\"; }\nnorm() { tr '[:upper:]' '[:lower:]' | tr -c '[:alnum:]\\n' ' ' | tr -s ' \\n' ' '; }\nshingle() { # paths… → \"file<TAB>run\" of the first verbatim hit\n  local files_us repo_us\n  files_us=$(printf '%s\\036' \"$@\")\n  repo_us=\"\"\n  [ \"${#repo_files[@]}\" -gt 0 ] && repo_us=$(printf '%s\\036' \"${repo_files[@]}\")\n  printf '%s' \"$prompt\" | point | norm | awk -v n=\"$SHINGLE\" -v nr=\"$SHINGLE_REPO\" -v ns=\"$SHINGLE_USER\" -v short=\"$USER_CANON\" -v repo=\"$repo_us\" -v files=\"$files_us\" '\n    BEGIN {\n      nf = split(files, fs, \"\\036\")\n      nrp = split(repo, rs, \"\\036\")\n      for (i = 1; i <= nrp; i++) if (rs[i] != \"\") isrepo[rs[i]] = 1\n      for (i = 1; i <= nf; i++) { f = fs[i]; if (f == \"\") continue\n        text = \"\"\n        while ((getline line < f) > 0) text = text \" \" tolower(line)\n        close(f)\n        gsub(/[^[:alnum:]]+/, \" \", text)\n        corpus[f] = text }\n    }\n    { for (f in corpus) { m = (f == short) ? ns : (f in isrepo ? nr : n)\n        for (i = 1; i + m - 1 <= NF; i++) {\n          s = $i; for (j = 1; j < m; j++) s = s \" \" $(i + j)\n          if (index(corpus[f], \" \" s \" \")) { print f \"\\t\" s; exit } } } }'\n}\nif [ \"${#canon_files[@]}\" -gt 0 ]; then\n  hit=$(shingle \"${canon_files[@]}\")\n  [ -n \"$hit\" ] && reasons=\"${reasons}restates a file verbatim: \\\"${hit#*	}\\\" is in ${hit%%	*} — point at the file instead (scan 2). \"\nfi\n\n# planner reads a written brief.md (lead step 2.6)\nif [ \"$seat\" = \"planner\" ] && ! printf '%s' \"$prompt\" | grep -q 'brief\\.md'; then\n  reasons=\"${reasons}planner brief names no brief.md: run /kru-brief first and point the seat at the written file (step 2.6). \"\nfi\n\n# shadow scans — logged, never refused.\nshadow=\"\"\n",
+  "    printf '%s' \"$prompt\" | grep -q 'kru-review' ||\n      inject_report=\"\\n\\nkru hook — report: \\${TMPDIR:-/tmp}/kru-review/${cwd_slug:-repo}/${seat}${dslug:+-$dslug}.md. Write the long half of your return there; hand back the capped fix list plus that path (item 7, gates.md).\" ;;\nesac\n\n# an always-loaded rule restated in the brief is a second source that drifts —\n# scan 2 says point at the file instead. the mechanizable half is the verbatim\n# one: a run of SHINGLE words from the brief found unchanged in a canonical\n# text. paraphrase stays a reading check; a shorter run would misfire on\n# ordinary phrasing, so the length is the fail-open margin. rule files are\n# terse, so the run shortens with them: six words from the repo's own\n# CLAUDE.md or rules, five from the user's, where the machine budget is the\n# text briefs re-type most.\nSHINGLE=8\nSHINGLE_REPO=6\nSHINGLE_USER=5\ncanon=\"\"\nrepo_canon=\"\"\nfor f in \"$cwd/CLAUDE.md\" \"$cwd/AGENTS.md\" \"$cwd\"/.cursor/rules/*.mdc; do\n  [ -f \"$f\" ] && canon=\"$canon $f\" && repo_canon=\"$repo_canon $f\"\ndone\nfor f in \"$USER_CANON\" \"$plugin_root/skills/kru-roster/shared-blocks.md\"; do\n  [ -f \"$f\" ] && canon=\"$canon $f\"\ndone\n# the plan store's contract is the file a planner brief re-types (lead step 2.6)\n[ \"$seat\" = \"planner\" ] && [ -f \"$plugin_root/TRACKER.md\" ] && canon=\"$canon $plugin_root/TRACKER.md\"\n# a path and a backticked identifier are the pointer scan 2 asks for in place\n# of the text, and stripping punctuation turns one of them into a six-word run\n# any repo's own path map already spends — the gate refusing its own remedy.\n# barrier each with a word no canon holds, so a pointer neither matches on its\n# own nor joins the prose on either side of it.\nBARRIER=' zzpointerzz '\npoint() { sed -E -e \"s/\\`[^\\`]*\\`/${BARRIER}/g\" \\\n  -e \"s#[A-Za-z0-9_@~.-]*/[A-Za-z0-9_@~./-]*#${BARRIER}#g\" \\\n  -e \"s/[A-Za-z0-9_-]+\\.(tsx?|jsx?|mjs|cjs|svelte|vue|astro|md|go|py|rs|css|scss|json|sql|html|ya?ml|toml|sh)/${BARRIER}/g\"; }\nnorm() { tr '[:upper:]' '[:lower:]' | tr -c '[:alnum:]\\n' ' ' | tr -s ' \\n' ' '; }\nshingle() { # files → \"file<TAB>run\" of the first verbatim hit\n  printf '%s' \"$prompt\" | point | norm | awk -v n=\"$SHINGLE\" -v nr=\"$SHINGLE_REPO\" -v ns=\"$SHINGLE_USER\" -v short=\"$USER_CANON\" -v repo=\" $repo_canon \" -v files=\"$1\" '\n    BEGIN {\n      split(files, fs, \" \")\n      for (i in fs) { f = fs[i]; if (f == \"\") continue\n        text = \"\"\n        while ((getline line < f) > 0) text = text \" \" tolower(line)\n        close(f)\n        gsub(/[^[:alnum:]]+/, \" \", text)\n        corpus[f] = text }\n    }\n    { for (f in corpus) { m = (f == short) ? ns : (index(repo, \" \" f \" \") ? nr : n)\n        for (i = 1; i + m - 1 <= NF; i++) {\n          s = $i; for (j = 1; j < m; j++) s = s \" \" $(i + j)\n          if (index(corpus[f], \" \" s \" \")) { print f \"\\t\" s; exit } } } }'\n}\nif [ -n \"$canon\" ]; then\n  hit=$(shingle \"$canon\")\n  [ -n \"$hit\" ] && reasons=\"${reasons}restates a file verbatim: \\\"${hit#*\t}\\\" is in ${hit%%\t*} — point at the file instead (scan 2). \"\nfi\n\n# planner reads a written brief.md (lead step 2.6)\nif [ \"$seat\" = \"planner\" ] && ! printf '%s' \"$prompt\" | grep -q 'brief\\.md'; then\n  reasons=\"${reasons}planner brief names no brief.md: run `skills/kru-brief/SKILL.md` first and point the seat at the written file (step 2.6). \"\nfi\n\n# shadow scans — logged, never refused.\nshadow=\"\"",
+  "    printf '%s' \"$prompt\" | grep -q 'kru-review' ||\n      inject_report=\"\\n\\nkru hook — report: \\${TMPDIR:-/tmp}/kru-review/${cwd_slug:-repo}/${seat}${dslug:+-$dslug}.md. Write the long half of your return there; hand back the capped fix list plus that path (item 7, gates.md).\" ;;\nesac\n\n# an always-loaded rule restated in the brief is a second source that drifts —\n# scan 2 says point at the file instead. the mechanizable half is the verbatim\n# one: a run of SHINGLE words from the brief found unchanged in a canonical\n# text. paraphrase stays a reading check; a shorter run would misfire on\n# ordinary phrasing, so the length is the fail-open margin. rule files are\n# terse, so the run shortens with them: six words from root AGENTS.md or an\n# alwaysApply rule, five from ~/.claude/CLAUDE.md when it is the fallback,\n# where the machine budget is the text briefs re-type most.\nSHINGLE=8\nSHINGLE_REPO=6\nSHINGLE_USER=5\n# always_files is the budget's source set (always_loaded, above). a home file\n# in it is the fallback, so it keeps the shorter run; repo files keep six.\ncanon_files=()\nrepo_files=()\nif [ \"${#always_files[@]}\" -gt 0 ]; then\n  for f in \"${always_files[@]}\"; do\n    canon_files+=(\"$f\")\n    [ \"$f\" = \"$USER_CANON\" ] || repo_files+=(\"$f\")\n  done\nfi\nsb=\"$plugin_root/skills/kru-roster/shared-blocks.md\"\n[ -f \"$sb\" ] && canon_files+=(\"$sb\")\n# the plan store's contract is the file a planner brief re-types (lead step 2.6)\n[ \"$seat\" = \"planner\" ] && [ -f \"$plugin_root/TRACKER.md\" ] && canon_files+=(\"$plugin_root/TRACKER.md\")\n# a path and a backticked identifier are the pointer scan 2 asks for in place\n# of the text, and stripping punctuation turns one of them into a six-word run\n# any repo's own path map already spends — the gate refusing its own remedy.\n# barrier each with a word no canon holds, so a pointer neither matches on its\n# own nor joins the prose on either side of it.\nBARRIER=' zzpointerzz '\npoint() { sed -E -e \"s/\\`[^\\`]*\\`/${BARRIER}/g\" \\\n  -e \"s#[A-Za-z0-9_@~.-]*/[A-Za-z0-9_@~./-]*#${BARRIER}#g\" \\\n  -e \"s/[A-Za-z0-9_-]+\\.(tsx?|jsx?|mjs|cjs|svelte|vue|astro|md|go|py|rs|css|scss|json|sql|html|ya?ml|toml|sh)/${BARRIER}/g\"; }\nnorm() { tr '[:upper:]' '[:lower:]' | tr -c '[:alnum:]\\n' ' ' | tr -s ' \\n' ' '; }\nshingle() { # paths… → \"file<TAB>run\" of the first verbatim hit\n  local files_us repo_us\n  files_us=$(printf '%s\\036' \"$@\")\n  repo_us=\"\"\n  [ \"${#repo_files[@]}\" -gt 0 ] && repo_us=$(printf '%s\\036' \"${repo_files[@]}\")\n  printf '%s' \"$prompt\" | point | norm | awk -v n=\"$SHINGLE\" -v nr=\"$SHINGLE_REPO\" -v ns=\"$SHINGLE_USER\" -v short=\"$USER_CANON\" -v repo=\"$repo_us\" -v files=\"$files_us\" '\n    BEGIN {\n      nf = split(files, fs, \"\\036\")\n      nrp = split(repo, rs, \"\\036\")\n      for (i = 1; i <= nrp; i++) if (rs[i] != \"\") isrepo[rs[i]] = 1\n      for (i = 1; i <= nf; i++) { f = fs[i]; if (f == \"\") continue\n        text = \"\"\n        while ((getline line < f) > 0) text = text \" \" tolower(line)\n        close(f)\n        gsub(/[^[:alnum:]]+/, \" \", text)\n        corpus[f] = text }\n    }\n    { for (f in corpus) { m = (f == short) ? ns : (f in isrepo ? nr : n)\n        for (i = 1; i + m - 1 <= NF; i++) {\n          s = $i; for (j = 1; j < m; j++) s = s \" \" $(i + j)\n          if (index(corpus[f], \" \" s \" \")) { print f \"\\t\" s; exit } } } }'\n}\nif [ \"${#canon_files[@]}\" -gt 0 ]; then\n  hit=$(shingle \"${canon_files[@]}\")\n  [ -n \"$hit\" ] && reasons=\"${reasons}restates a file verbatim: \\\"${hit#*\t}\\\" is in ${hit%%\t*} — point at the file instead (scan 2). \"\nfi\n\n# planner reads a written brief.md (lead step 2.6)\nif [ \"$seat\" = \"planner\" ] && ! printf '%s' \"$prompt\" | grep -q 'brief\\.md'; then\n  reasons=\"${reasons}planner brief names no brief.md: run `skills/kru-brief/SKILL.md` first and point the seat at the written file (step 2.6). \"\nfi\n\n# shadow scans — logged, never refused.\nshadow=\"\"\n",
   "cursor: the verbatim shingle reads the same always-loaded set as the budget",
 ))
 
@@ -1379,8 +1261,8 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "ROSTER.md",
-  "`reliable-work`, `claude-code-delegation`, `/kru-roster`",
-  "`reliable-work`, `/kru-roster`",
+  "`reliable-work`, `claude-code-delegation`, `skills/kru-roster/SKILL.md`",
+  "`reliable-work`, `skills/kru-roster/SKILL.md`",
   "cursor: skills list drops claude-code-delegation",
 ))
 EDITS.push(E(
@@ -1421,7 +1303,7 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "references/ui-practice.md",
-  "design skills (`/kru-design`, `composition`",
+  "design skills (the `skills/kru-design/SKILL.md`, `composition`",
   "design skills (`skills/kru-design/SKILL.md`, `composition`",
   "design skill: ui-practice lists SKILL path for designer bot",
 ))

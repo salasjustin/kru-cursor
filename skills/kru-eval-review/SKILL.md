@@ -2,7 +2,6 @@
 name: kru-eval-review
 description: Audit an upstream plugin-eval suite already in the tree for checks that pass or fail for the wrong reason, and fix the eval files in place. Cursor has no eval runner; do not install one.
 disable-model-invocation: true
-argument-hint: "[<eval dir>]"
 ---
 
 A plugin eval is trustworthy when every grader can go **red** on the failure it names and stays green on every valid way of succeeding. A suite drifts off that by passing on the wrong evidence (the rule was read, not followed), crediting the wrong actor (the lead did what the seat was supposed to), or failing a correct answer written in a form the pattern didn't expect. This pass finds those and fixes them in the eval files; the plugin under test is out of scope.
@@ -38,4 +37,4 @@ Cursor has no plugin-eval runner, and this repo ships no eval suite. Do not inst
 
 ## Don't
 
-- Don't start a paid run without the user's go. Steps 1 to 4 cost nothing; a full pass of an agent-plugin suite is dozens of real builds, counted against their plan's usage.
+- Don't start a paid run without explicit approval in the invoking task. Steps 1 to 4 cost nothing; return the planned run and stop. A full pass of an agent-plugin suite is dozens of real builds, counted against their plan's usage.

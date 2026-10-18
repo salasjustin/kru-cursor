@@ -91,8 +91,8 @@ All three live under `${CURSOR_PLUGIN_ROOT}/skills/`.
 
 | | |
 |---|---|
-| headline formulas, section-type catalogue, CTA formula, page-type guidance | `copywriting/SKILL.md` and `copywriting/references/copy-frameworks.md` |
+| headline formulas, section-type catalogue, CTA formula, page-type guidance | `skills/kru-copywriting/SKILL.md` and `skills/kru-copywriting/references/copy-frameworks.md` |
 | the line edit over copy that exists | `copy-editing/SKILL.md` → *The Seven Sweeps Framework* |
 | the audit of a page already shipped | `cro/SKILL.md` → *CRO Analysis Framework* |
-| mockups drawn around this deck | external **designer** (`/kru-design`, `landing-page`, `composition` — `${CURSOR_PLUGIN_ROOT}/references/designer-handoff.md`) |
+| mockups drawn around this deck | external **designer** (the `skills/kru-design/SKILL.md`, `landing-page`, `composition` — `${CURSOR_PLUGIN_ROOT}/references/designer-handoff.md`) |
 | the price, the tiers, the research | the business |

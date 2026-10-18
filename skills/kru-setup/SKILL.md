@@ -1,8 +1,6 @@
 ---
 name: kru-setup
-description: Set the team up in a repo — derive its standing answers, run the bars over its AGENTS.md, and write the team into it in that file's own voice. A blank repo is grilled first. `prose` runs the pass alone. Re-run to re-derive.
-disable-model-invocation: true
-argument-hint: "[prose | <repo path> — omit for cwd]"
+description: Derive this repo's kru sheet when `AGENTS.md` has no `<!-- kru v` stamp, or when the task says to derive, re-derive, or run the `prose` pass alone.
 ---
 
 The plugin is the **fractional CTO**: one practice, carried across every engagement. What it cannot
@@ -11,7 +9,7 @@ carry is the engagement itself — this stack, this token file, this gate, this 
 again in the routing deliberation it spends reaching a conclusion this repo settled long ago.
 
 This skill runs that derivation once and writes the answers into the repo's `AGENTS.md`,
-which loads on every session there with nothing typed. **They arrive as prose in that file's own
+which loads on every session there with no setup stamp. **They arrive as prose in that file's own
 voice** — the file belongs to the repo, and a section that reads as a foreign object is one a human
 skips and a later hand-edit works around.
 
@@ -22,12 +20,12 @@ already carrying its own sediment does not get better because a good section was
 **The second job runs alone.** A file accretes between setups, and re-deriving a whole sheet to prune
 it is a bigger hammer than the pruning needs.
 
-| argument | run |
+| task scope | run |
 |---|---|
-| *(none)* | this repo, both jobs — every step below |
+| *(none named)* | this repo, both jobs — every step below |
 | a repo path | both jobs, there |
-| `prose` | the pass alone — every step below not marked *full run*. Read the surface, run the bars over every line already in it, propose the cuts. |
-| *(a blank repo)* | no manifest, lockfile or source to derive from — step 1b, then 1c–1e and steps 4–6 |
+| `prose` in the task | the pass alone — every step below not marked *full run*. Read the surface, run the bars over every line already in it, propose the cuts. |
+| blank repo / greenfield | no manifest, lockfile or source to derive from — step 1b, then 1c–1e and steps 4–6 |
 
 ## Do
 
@@ -91,29 +89,17 @@ plugin skill lacks has an inbox line; every package a major behind its skill's p
 every other outdated one is on the catch-up line or its own major's.
 
 ### 1b. Blank repo — grill, then deploy — *full run*
-Nothing on disk answers step 1, so the user does, and the sheet is written from the **decision**. Headless
-(`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), the brief's answers
-are the rounds: take the subject and the lanes it settles, deploy on those, and put each lane it left
-open under **Questions for the PM** with your recommendation instead of a round. Otherwise load
-**`grilling`**; its rounds are these three:
+Nothing on disk answers step 1, so the PM's task carries the subject and stack, or setup grills one
+round and **returns the frontier** for the next invocation. Headless
+(`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), take the lanes the task already settled and put each lane it left open under **Questions for the PM** with your recommendation instead of waiting on a round. Load **`grilling`**; each round is one
+numbered frontier with recommended answers — do not wait mid-run for replies that are not in the task.
 
-1. **What we are building** — the subject, who it is for, and the one job it has to do. Completion: one
-   paragraph the user has confirmed, in their words.
-2. **Suggest the stack** — one recommendation per lane, chosen from the lanes this team seats
-   (`${CURSOR_PLUGIN_ROOT}/references/routing.md`) and the from-scratch defaults
-   (`${CURSOR_PLUGIN_ROOT}/references/ui-practice.md`: `pnpm`, React where a design system will be
-   built), with the reason each fits *this* subject. A lane the subject needs and no seat covers is
-   named as exactly that — the gate line's case, put to the user now. Put each lane to the user in
-   outcome terms — what the choice means for cost, where it can be hosted, what the product can do —
-   with the library in parentheses. A pick with no effect they could feel (a form library, a test
-   runner, a formatter) is the team's: state it as a decision, not a question.
-3. **Finalize the stack** — the user accepts, swaps or strikes each lane put to them; the stack is
-   costly to undo, so it stays their call. Completion: every lane the subject needs has a named
-   library, or is struck.
+When the task already settled all three — **what we are building**, **stack lanes**, **finalize** —
+skip grilling and cite those decisions. Otherwise run **one round** per invocation, then return until
+the task carries the answers.
 
-Then **deploy the team**: 1c–1e and steps 4–6 as on a full run, each line citing the decision it came from
-(shape in `sheet.md`). The scaffold that follows is `lead`'s (its Step 2); the first re-run after it
-lands swaps each decision citation for the manifest that now carries it.
+When grilling is complete, **deploy the team**: 1c–1e and steps 4–6 as on a full run, each line citing
+the decision it came from (shape in `sheet.md`).
 
 Completion: the sheet holds the decided stack with its seats.
 
@@ -404,7 +390,7 @@ commands, a token file beside its gate — which leaves the team section holding
 **The stamp** is one HTML comment directly above that section:
 
 ```
-<!-- kru vX.Y.Z · derived YYYY-MM-DD · /kru-setup to re-derive -->
+<!-- kru vX.Y.Z · derived YYYY-MM-DD · `skills/kru-setup/SKILL.md` to re-derive -->
 ```
 
 It renders as nothing and does two jobs no prose does: it tells a later session the team was set up
@@ -414,17 +400,16 @@ rather than a fork.
 Completion: the section reads as though the file's own author wrote it, and the stamp carries the
 installed `VERSION`.
 
-### 5. Write, asking only before a cut of theirs
+### 5. Write, returning product cuts to the PM
 `AGENTS.md` is checked in and read by everyone who clones the repo — teammates without this
 plugin included, and the hand that wrote whatever you are proposing to cut. The sheet's lines and the
-pass's edits that cut a copy another file answers are the team's: write them. Ask first only before
-cutting a rule the user (or a teammate) authored whose only copy is here — one question, in their
-words, with what dropping it would cost. Everything the answer can't touch is written already.
-Headless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), keep the
-rule and return the question under **Questions for the PM**.
+pass's edits that cut a copy another file answers are the team's: write them. Before cutting a rule
+a human authored whose only copy is here, **return one question** — in their words, with what dropping
+it would cost — and apply only when the invoking task approves that cut. Everything else is written
+without waiting. Headless (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *A headless run never waits*), keep the rule and put that question under **Questions for the PM**.
 
-Completion: the file holds the pass and the sheet, and no rule the user authored left it without
-their yes.
+Completion: the file holds the pass and the sheet, and no human-authored rule left without explicit
+approval in the task.
 
 ### 6. Report
 A short paragraph, in the user's vocabulary: what the team now knows about this project and what it
@@ -441,12 +426,12 @@ content.
 ## Re-run — the full update path
 The file is a function of *(plugin version × repo state)*, so re-deriving from scratch settles both
 directions it goes stale from. One release's patch to what setup wrote, carried across every repo at
-once, is `/kru-propagate`'s; a change that needs the file re-derived comes here.
+once, is `skills/kru-propagate/SKILL.md`'s; a change that needs the file re-derived comes here.
 
 - **The repo moved** — a dependency swap, a new gate, a design system where there was none. The
   citations are the signal: a derived line that no longer matches disk is a line to re-derive.
-- **The plugin moved** — `/kru-roster learn` promoted a preference, a seat was hired or renamed. The
-  stamp is the signal: a stamp below the installed `VERSION` is behind.
+- **The plugin moved** — `skills/kru-roster/learn.md` (PM or lead loads) promoted a preference, a seat was hired or renamed. The
+  stamp is the signal: a stamp below the installed `VERSION` is behind — report that to the caller; re-derive only when the task says to.
 
 **The citations are what make a re-run an edit rather than a second copy.** Each derived line carries
 what it came from, so a re-run reads the file, re-derives, and edits the lines it can account for.
@@ -455,7 +440,7 @@ else's words is theirs — cite it and move on.
 
 ## The line between the plugin and the repo
 The repo's file holds the **engagement**; the plugin holds the **practice**. A rule that would still
-be true in the next repo belongs upstream — `/kru-remember` files it and `/kru-roster learn`
+be true in the next repo belongs upstream — `skills/kru-remember/SKILL.md` files it and `skills/kru-roster/learn.md` (PM or lead loads)
 gates it (`${CURSOR_PLUGIN_ROOT}/PREFERENCES.md`). A rule true only here stays in the repo.
 
 The plan store stays outside the working repo, its pointer included
