@@ -38,8 +38,8 @@ Plugin Imports** on, and a marketplace install of the same name takes precedence
 
 ## Requirements
 - **`jq` and `bash`**, for the hooks. Without `jq` every hook fails open: the team still runs, ungated.
-- **Model access** to the ids the seats pin — Claude Opus, Sonnet and Haiku 5.5, Kimi K3, Grok 4.7 and
-  Composer 2.5 ([`MODELS.md`](MODELS.md), which also records each seat's fallback). A model your plan or
+- **Model access** to the ids the seats pin (Claude Opus, Sonnet and Haiku 5.5, Kimi K3, Grok 4.7, and
+  Composer 2.5; see [`MODELS.md`](MODELS.md) for each seat's fallback). A model your plan or
   admin blocks falls back to a compatible one.
 - **The `chrome-devtools` MCP server**, for the visual and accessibility reviewers only; without it
   they audit from source. In `~/.cursor/mcp.json`:
@@ -64,16 +64,16 @@ the stack with you first.
 Then just ask: *"add feature Y"*, *"fix Z"*, *"build a landing page for X"*. The lead picks the seats.
 
 ## On cloud agents
-Cloud agents run the plugin from the marketplace (or team marketplace) it was installed from — never
+Cloud agents run the plugin from the marketplace (or team marketplace) it was installed from, never
 from a local copy. Three things behave differently there, by Cursor's design:
 
-- **No session-start hook.** Cloud agents skip `sessionStart`, so the once-per-conversation work —
-  syncing the store and the `/kru-setup` reminder — runs at the conversation's first tool call
+- **No session-start hook.** Cloud agents skip `sessionStart`, so the once-per-conversation work
+  (syncing the store and the `/kru-setup` reminder) runs at the conversation's first tool call
   instead, and an always-on rule (`rules/kru-setup-nudge.mdc`) carries the reminder too.
 - **No hooks in the first read-only turns.** Cursor sometimes starts a cloud agent read-only and runs
   no hooks until it can write; the gates start with the first write-capable turn.
 - **The plan store moves into the clone** (`<repo>/.kru`) and ships in the branch, because no home dir
-  survives the vm. Commit it, or set `KRU_STORE_REPO=<owner>/<repo>` — a private repo you own — as a
+  survives the vm. Commit it, or set `KRU_STORE_REPO=<owner>/<repo>` (a private repo you own) as a
   **cloud agent secret** (Dashboard → Cloud Agents → Secrets), and the whole store is cloned at the
   first tool call and pushed at every turn end. [`references/store.md`](references/store.md) → *The store repo*.
 
@@ -137,7 +137,7 @@ writes), and, on a cloud agent, the plan store. Everything else stays outside it
 resolved by `scripts/kru-store.sh`; `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh" where` says
 where yours is when it isn't the default.
 
-- `~/.kru/management/<project>/`: briefs, plans, tickets, todos, issues — kept at user level so your
+- `~/.kru/management/<project>/`: briefs, plans, tickets, todos, issues, kept at user level so your
   repo stays clean and the plan survives branch churn and a re-clone.
 - `~/.kru/inbox.md`, `patterns/`: preferences you bank with `/kru-remember`.
 - `~/.kru/refusals.jsonl`: dispatches the handoff gate refused, capped at 500 lines; `/kru-roster learn` reads it.
@@ -149,11 +149,11 @@ the project's store folder in place of the repo's folder name (so a laptop clone
 agree), **`KRU_PROJECT_STORE`** pins one project's plan store, and **`KRU_STORE_REPO`** syncs the
 store through a private git repo. [`references/store.md`](references/store.md) is the whole map.
 
-Bugs and product wants go to the work tracker. **`KRU_TRACKER`** is `github` (the default — unset and
+Bugs and product wants go to the work tracker. **`KRU_TRACKER`** is `github` (the default; unset and
 empty count the same) or `linear`. Nothing routes to Linear until a repo sets `KRU_TRACKER=linear`,
-**`KRU_LINEAR_TEAM`** to the team key, and **`KRU_LINEAR_PROJECT`** to the project name — for example
+**`KRU_LINEAR_TEAM`** to the team key, and **`KRU_LINEAR_PROJECT`** to the project name (for example
 `KRU_LINEAR_TEAM=BG` and `KRU_LINEAR_PROJECT=Connector`. Those names are the repo's; this plugin
-hard-codes none. When the agent has Linear MCP tools, it uses those. **`LINEAR_API_KEY`** is optional —
+hard-codes none. When the agent has Linear MCP tools, it uses those. **`LINEAR_API_KEY`** is optional:
 the script's API fallback when MCP is not connected, a cloud agent secret if you set one, never a
 committed key. Pull requests stay on GitHub and link the Linear issue id. On the GitHub tracker a
 security finding stays in the store's `issues/` or a GitHub private security advisory. On Linear it is

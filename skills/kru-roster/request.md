@@ -22,6 +22,6 @@ Done when [`audit`](audit.md) passes on the branch.
 
 The lead `commit`s on the branch locally (`audit` already passed in step 2); the PM bot pushes and opens the pull request (`skills/kru-lead/SKILL.md` → *Who acts at the door*).
 
-Tell the requester the name of the seat or skill, that their work lands through a pull request, and — once the maintainer has merged (and tagged only when the PM asked for a release) — the version to update the plugin to and then run `/kru-setup`.
+Tell the requester the name of the seat or skill, that their work lands through a pull request, and, once the maintainer has merged (and tagged only when the PM asked for a release), the version to update the plugin to and then run `/kru-setup`.
 
 Done when the requester knows the name, the pull-request path, and the post-merge update steps.
