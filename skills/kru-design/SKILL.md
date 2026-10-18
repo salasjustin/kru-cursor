@@ -31,7 +31,7 @@ Always draft self-contained `.dc.html` artboards. They are the re-seed and the t
 
 ## Publish with `/canvas`
 
-When `/canvas` is available, publish the directions as one live canvas the PM compares beside the chat. Invoke Cursor's built-in `/canvas` ([skills](https://cursor.com/docs/skills): "Creates interactive React artifacts that render alongside the conversation"; [canvas](https://cursor.com/docs/agent/tools/canvas)). A plugin packages that workflow as a skill — this file is that skill. There is no separate publish API.
+When `/canvas` is available, publish the directions as one live canvas and return the card to the lead; the PM compares it beside the chat after the layout gate. Invoke Cursor's built-in `/canvas` ([skills](https://cursor.com/docs/skills): "Creates interactive React artifacts that render alongside the conversation"; [canvas](https://cursor.com/docs/agent/tools/canvas)). A plugin packages that workflow as a skill — this file is that skill. There is no separate publish API.
 
 Layout: 2–4 directions the PM can compare, each named with its one-line thesis, each frame taken from the `.dc.html` you just wrote. Values stay literals. The card at the end of the response is the link ([canvas](https://cursor.com/docs/agent/tools/canvas) → *Opening a canvas*). The PM reshapes it by asking, by editing the source, or with Design Mode in the canvas ([changelog](https://cursor.com/changelog/canvas-improvements)). **Publish** on the toolbar is a read-only team link on paid plans ([canvas](https://cursor.com/docs/agent/tools/canvas) → *Sharing canvases*; [shared canvases](https://cursor.com/changelog/shared-canvases)). It is not a save that republishes a design project.
 

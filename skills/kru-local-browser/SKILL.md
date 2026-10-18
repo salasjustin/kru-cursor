@@ -13,7 +13,7 @@ The server runs **headless** on a persistent profile at `~/.cache/chrome-devtool
 
 ## 1. The dev server is the user's
 
-Starting it is the user's, never yours — you never run `python3 -m http.server` or any other server. For mockup layout the lead may hand you `http://localhost:4400/…`; probe that URL like any other — if nothing answers, stop and report that to the lead (the lead fixes reachability before re-dispatch). Probe the target URL first; if nothing responds, stop and report that, naming the URL — to the user inline, in your return as a seat. For every other target, a failed load is theirs to fix, not yours to route around.
+Starting it is the user's, never yours — you never run `python3 -m http.server` or any other server. For mockup layout the lead may hand you `http://localhost:4400/…`; probe that URL like any other — if nothing answers, stop and report that to the lead only (the lead fixes reachability before re-dispatch). For every other target, probe the URL first; if nothing responds, stop and report that, naming the URL — to the user inline, in your return as a seat. A failed load is theirs to fix, not yours to route around.
 
 One 500 is not the app's: a workspace package's new `exports` entry doesn't reach a running Vite dev server — Node caches the `package.json` it already resolved, so every import of the new subpath fails with *is not exported under the conditions […]* while `tsc` and vitest both pass. Read it as a restart, never as a bad `exports` entry, and ask for the restart in the same slice.
 
