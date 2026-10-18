@@ -1,11 +1,11 @@
 #!/bin/bash
-# preToolUse / beforeMCPExecution: block outbound team connector MCP on cloud agents.
+# preToolUse / beforeMCPExecution: block outbound team connector MCP when Cursor runs these hooks.
 # Project hooks (`.cursor/hooks.json`) invoke this from the repo root; plugin hooks use cursor-hook.sh.
 # Denylist: scripts/cursor/mcp-outbound-denylist.mjs
 # Kill switch: KRU_NO_MCP_OUTBOUND_GUARD=1
+# Cursor cloud agents do not currently run hooks for MCP connector calls (verified Oct 2026);
+# rules/kru-lead.mdc is the only guard there. Optional trace: set KRU_HOOK_TRACE to a log path.
 set -u
-
-KRU_HOOK_TRACE="${KRU_HOOK_TRACE:-/tmp/kru-hook-trace.log}"
 
 resolve_root() {
   if [ -n "${1:-}" ]; then
@@ -34,6 +34,7 @@ emit_deny() {
 }
 
 trace_line() {
+  [ -n "${KRU_HOOK_TRACE:-}" ] || return 0
   local kind=$1 payload=$2
   command -v jq >/dev/null 2>&1 || return 0
   local line

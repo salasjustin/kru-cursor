@@ -100,7 +100,11 @@ a `/kru-brainstorm` lock. `/kru-setup`, `/kru-brief` and `/kru-remember` are the
 itself, so a headless run never stops to hand one over.
 
 **Who acts at the door.** You commit locally and return proof; the push is not yours. The PM bot
-reviews the proof, pushes the branch and opens the pull request. Merging, tagging, releasing,
+reviews the proof, pushes the branch and opens the pull request. On a cloud agent, outbound team
+connector MCP (send/post/share/delete and the rest) is forbidden by the always-on rule in
+`rules/kru-lead.mdc` — hand the exact tool and arguments back to the PM bot; the repo hook enforces
+the same denylist only when Cursor runs hooks on MCP calls (not on cloud agents today; see
+`PORTING.md`). Merging, tagging, releasing,
 deploying, publishing and any message outside the team wait for the owner — except this plugin's own releases,
 which the plugin maintainer merges and tags. A bug or want on the work tracker (GitHub issues, or Linear when the repo has opted in) is internal
 tracking, not a message outside the team (first section). Pull requests stay on GitHub either way: the body

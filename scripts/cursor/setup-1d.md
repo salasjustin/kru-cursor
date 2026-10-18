@@ -84,7 +84,8 @@ file when the repo has none). Commands are repo-root paths such as `bash hooks/m
 (project hooks run with cwd = the repo root; do not use `${CURSOR_PLUGIN_ROOT}`). The guard denies
 send/post/share/delete and similar connector tools while allowing reads, drafts, and Linear
 `save_issue` — the denylist lives in `scripts/cursor/mcp-outbound-denylist.mjs`. Skip when the repo
-already carries the same matchers.
+already carries the same matchers. Cursor cloud agents do not currently run hooks for MCP connector
+calls (verified Oct 2026); the always-on rule is the only guard there (`rules/kru-lead.mdc`).
 
 **The seats' repo memory, ignored.** The seats carrying Block Q write what they learn about this
 repo to `.claude/agent-memory-local/<seat>/` — the path both forks of this team share, kept out of

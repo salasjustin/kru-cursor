@@ -3,11 +3,11 @@
 import { appendFileSync, readFileSync } from "node:fs"
 import { classifyMcpTool, extractMcpToolId } from "./mcp-outbound-denylist.mjs"
 
-const TRACE = process.env.KRU_HOOK_TRACE || "/tmp/kru-hook-trace.log"
-
 function trace(entry) {
+  const path = process.env.KRU_HOOK_TRACE
+  if (!path) return
   try {
-    appendFileSync(TRACE, `${JSON.stringify(entry)}\n`)
+    appendFileSync(path, `${JSON.stringify(entry)}\n`)
   } catch {
     // ignore trace failures
   }

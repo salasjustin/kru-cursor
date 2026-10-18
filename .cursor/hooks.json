@@ -3,11 +3,6 @@
   "hooks": {
     "preToolUse": [
       {
-        "command": "bash .cursor/hooks/hook-trace.sh preToolUse",
-        "matcher": "*",
-        "timeout": 5
-      },
-      {
         "command": "bash hooks/mcp-outbound-guard.sh",
         "matcher": "^(CallDynamicTool|MCP:.*)$",
         "timeout": 10,
@@ -15,11 +10,6 @@
       }
     ],
     "beforeMCPExecution": [
-      {
-        "command": "bash .cursor/hooks/hook-trace.sh beforeMCPExecution",
-        "matcher": "*",
-        "timeout": 5
-      },
       {
         "command": "bash hooks/mcp-outbound-guard.sh",
         "matcher": "*",

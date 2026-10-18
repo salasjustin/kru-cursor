@@ -163,7 +163,6 @@ const FORK_OWNED = new Set([
   "scripts/cursor/mcp-outbound-classify.mjs",
   "scripts/cursor/hooks.repo.mcp-guard.json",
   ".cursor/hooks.json",
-  ".cursor/hooks/hook-trace.sh",
   "skills/kru-design/SKILL.md",
 ])
 const FORK_OWNED_DIRS = /^(scripts\/cursor\/|\.cursor-plugin\/|rules\/|commands\/|\.github\/)/
@@ -1253,6 +1252,7 @@ function portRules(version) {
     "- The PM is the bot or person that briefed this session; the owner approves hard-to-reverse calls (the `kru-lead` skill says what reaches the owner). The PM bot's own operating rules govern escalation and approval; the plugin's generic default applies only when the PM has none.",
     "- Team skills are `kru-<name>` (`kru-testing`), and the PM's commands are `/kru-<name>` (`/kru-brief`, `/kru-setup`).",
     "- The install dir is `${CURSOR_PLUGIN_ROOT}`; the store resolver is `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\"`.",
+    "- **Cloud agents: no outbound connector MCP.** On a cloud agent, never send, post, reply, forward, share, publish, schedule, comment, react, or delete through team connectors (Gmail, Slack, Linear comments, Google Docs/Drive edits and shares, GitHub comments or merges via MCP). Reads and drafts are fine; filing or updating Linear issues with `save_issue` is fine. Hand any such action back to the PM bot with the exact tool and arguments. The repo hook enforces the same denylist when Cursor runs hooks on MCP calls; Cursor cloud agents do not currently run hooks for MCP connector calls (verified Oct 2026), so this rule is the only guard there.",
     "- **PR babysit loop.** After you open or own a pull request, subscribe to its reviews, comments, and CI and check. Clean means CI green and every review thread answered. On AngelProtocolFinance/better-giving, wait until Greptile's review is posted and no Greptile P0 or P1 is still open; never wait for Greptile on any other repo. Already clean: tell the PM that requested the work it is ready to merge. Not clean: fix a valid finding, reply on each thread — say why when the finding stands — and push; if nothing is left to fix, end the turn. Repeat on the next wake until it is clean. That report is the only message out; the owner merges.",
     "",
   ].join("\n")
