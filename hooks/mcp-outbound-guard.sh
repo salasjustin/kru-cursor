@@ -66,8 +66,13 @@ if [ "${KRU_NO_MCP_OUTBOUND_GUARD:-}" = "1" ]; then
   emit_allow
 fi
 
+is_mcp=0
+if looks_like_mcp "$input"; then
+  is_mcp=1
+fi
+
 if [ ! -f "$classify" ]; then
-  if looks_like_mcp "$input"; then
+  if [ "$is_mcp" = 1 ]; then
     emit_deny "kru: MCP outbound guard is misconfigured (missing classifier at scripts/cursor/mcp-outbound-classify.mjs). Denying connector MCP until project hooks point at the repo copy."
   fi
   emit_allow
@@ -81,6 +86,12 @@ rm -f "$errf"
 
 if [ "$code" = 2 ]; then
   msg=${err:-kru: this cloud agent cannot send, post, share, or delete through team connectors (MCP). Hand this action back to the PM bot to run outside the agent.}
+  trace_line "deny" "$(printf '%s' "$input" | jq -c --arg d "deny" '. + {decision:$d}' 2>/dev/null || printf '{}')"
+  emit_deny "$msg"
+fi
+
+if [ "$is_mcp" = 1 ] && [ "$code" != 0 ]; then
+  msg=${err:-kru: MCP outbound guard classifier failed (exit $code). Denying connector MCP.}
   trace_line "deny" "$(printf '%s' "$input" | jq -c --arg d "deny" '. + {decision:$d}' 2>/dev/null || printf '{}')"
   emit_deny "$msg"
 fi

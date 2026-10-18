@@ -42,12 +42,22 @@
       {
         "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" preToolUse mcp-outbound-guard.sh",
         "matcher": "^CallDynamicTool$",
-        "timeout": 10
+        "timeout": 10,
+        "failClosed": true
       },
       {
         "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" preToolUse mcp-outbound-guard.sh",
         "matcher": "^MCP:.*$",
-        "timeout": 10
+        "timeout": 10,
+        "failClosed": true
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" beforeMCPExecution mcp-outbound-guard.sh",
+        "matcher": "*",
+        "timeout": 10,
+        "failClosed": true
       }
     ],
     "subagentStart": [

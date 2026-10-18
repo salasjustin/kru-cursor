@@ -22,19 +22,19 @@
 #
 # fail open, like every upstream hook: a crash, a missing jq or a timeout is an
 # allow, never a block. KRU_HOOK_LOG=<file> appends one line per call (the
-# harness and the local smoke run read it).
+# harness reads it).
 event=${1:-}
 script=${2:-}
 shift 2 2>/dev/null
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
 case "$event" in
-  preToolUse|subagentStart|beforeShellExecution|beforeReadFile) perm=true ;;
+  preToolUse|subagentStart|beforeShellExecution|beforeReadFile|beforeMCPExecution) perm=true ;;
   *) perm=false ;;
 esac
 allow() {
   case "$event" in
-    preToolUse|subagentStart|beforeShellExecution|beforeReadFile) printf '{"permission":"allow"}\n' ;;
+    preToolUse|subagentStart|beforeShellExecution|beforeReadFile|beforeMCPExecution) printf '{"permission":"allow"}\n' ;;
     beforeSubmitPrompt) printf '{"continue":true}\n' ;;
     *) printf '{}\n' ;;
   esac
@@ -113,7 +113,7 @@ out=$(printf '%s' "$out" | jq -cs 'map(select(type == "object")) | last // empty
 [ -n "$out" ] || allow
 
 case "$event" in
-  preToolUse|subagentStart)
+  preToolUse|subagentStart|beforeMCPExecution)
     # rebuilt from named fields only, so a hook can never hand cursor a key or
     # a value outside the schema
     printf '%s' "$out" | jq -c --slurpfile o "$inf" '

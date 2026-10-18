@@ -137,7 +137,7 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "**A push is a one-way door, and most of the user's repos are public.** Read the repo's visibility\n(`gh repo view --json visibility`) before any push. A security fix stays local\nuntil the user OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` the session starts through the GitHub API, the workflow creating the tag\non its job token — the release is the session's to run end to end.",
-  "**Who acts at the door.** You commit locally and return proof; the push is not yours. The PM bot\nreviews the proof, pushes the branch and opens the pull request. On a cloud agent, outbound team\nconnector MCP (send/post/share/delete and the rest) is forbidden by the always-on rule in\n`rules/kru-lead.mdc` — hand the exact tool and arguments back to the PM bot; the repo hook enforces\nthe same denylist only when Cursor runs hooks on MCP calls (not on cloud agents today; see\n`PORTING.md`). Merging, tagging, releasing,\ndeploying, publishing and any message outside the team wait for the owner — except this plugin's own releases,\nwhich the plugin maintainer merges and tags. A bug or want on the work tracker (GitHub issues, or Linear when the repo has opted in) is internal\ntracking, not a message outside the team (first section). Pull requests stay on GitHub either way: the body\ncarries the line `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` prints. Most product repos are public, so the PM bot reads the\nrepo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local\nuntil the owner OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR and off Linear. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` started through the GitHub API, the workflow creating the tag on its\njob token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.",
+  "**Who acts at the door.** **Ordinary work** — review fixes, hire, author, retire, requester ships, ports: the lead `commit`s on the branch and returns proof; the lead never pushes and never waits for a PM ask (headless runs do not wait). The PM bot reviews the proof, pushes the branch and opens the pull request. On a cloud agent, outbound team connector MCP (send/post/share/delete and the rest) is forbidden by the always-on rule in `rules/kru-lead.mdc` — hand the exact tool and arguments back to the PM bot; the repo hook enforces the same denylist only when Cursor runs hooks on MCP calls (not on cloud agents today; see `PORTING.md`). **`/kru-roster learn` only:** the sweep leaves the diff uncommitted; the plugin maintainer reviews it; then the lead `commit`s when the PM asks; then the PM bot pushes and opens the pull request — \"when the PM asks\" appears only in learn contexts. **Merge:** in this plugin repo, the plugin maintainer merges after CI (`verify`) passes; in product repos, the owner merges. **Tag:** only when the PM asked for a release, per `skills/kru-roster/release.md`. The maintainer creates and pushes the tag from a checkout that has push rights (`git tag` + `git push origin <tag>`, or `gh release create`). A cloud session that cannot push a tag (403) stops and hands the tag step back to the PM bot with the exact commands. Deploying, publishing and any message outside the team wait for the owner. A bug or want on the work tracker (GitHub issues, or Linear when the repo has opted in) is internal tracking, not a message outside the team (first section). Pull requests stay on GitHub either way: the body carries the line `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` prints. Most product repos are public, so the PM bot reads the repo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local until the owner OKs it, then ships through a GitHub security advisory's temporary private fork, published on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays in `issues/`, off the PR and off Linear.",
   "t2: the lead commits, the PM pushes and opens the PR, the owner merges (the plugin maintainer for this plugin)",
 ))
 EDITS.push(E(
@@ -148,8 +148,8 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.",
-  "job token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.\n\n**PR babysit loop.** The loop is the always-on rule in `rules/kru-lead.mdc`.",
+  "in `issues/`, off the PR and off Linear.",
+  "in `issues/`, off the PR and off Linear.\n\n**PR babysit loop.** The loop is the always-on rule in `rules/kru-lead.mdc`.",
   "pr-babysit: one loop, in the lead contract cloud-skills.sh installs",
 ))
 EDITS.push(E(
@@ -161,8 +161,8 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-roster/SKILL.md",
   "| 9 | git | `commit` + `tag vX.Y.Z` — **only when the user asks** (team git rule) |",
-  "| 9 | git | `commit` locally when the PM asks; the PM bot pushes and opens the pull request; merging and `tag vX.Y.Z` are the plugin maintainer's — the plugin maintainer owns this plugin's releases (`skills/kru-lead/SKILL.md` → *Who acts at the door*) |",
-  "t2: this plugin's releases are the plugin maintainer's",
+  "| 9 | git | the lead `commit`s on the branch; the PM bot pushes and opens the pull request; merge and `tag` per `skills/kru-lead/SKILL.md` → *Who acts at the door* and `release.md` |",
+  "t2: git row matches release.md and kru-lead Who acts at the door",
 ))
 EDITS.push(E(
   "skills/kru-setup/SKILL.md",
@@ -233,6 +233,24 @@ EDITS.push(E(
   "If empty, ask one line (\"What should I bank — and is it design, code, or workflow?\") and stop.",
   "If empty, ask one line (\"What should I bank — and is it design, code, or workflow?\") and stop — or, headless, bank nothing and say so in the return.",
   "t3: headless never waits",
+))
+EDITS.push(E(
+  "skills/kru-roster/SKILL.md",
+  "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps + tags a version, which a subagent can't own. This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
+  "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own. Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*. This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
+  "t2: roster main thread bumps version; full door split in opener",
+))
+EDITS.push(E(
+  "skills/kru-roster/SKILL.md",
+  "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own; the lead `commit`s locally, and the plugin maintainer `tag`s on release (`release.md`). This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
+  "You run in the **main thread** (like `lead`) — minting a seat edits the orchestration contract (the `lead` routing table) and bumps the version, which a subagent can't own. Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*. This skill operationalizes `ROSTER.md` → *Growing the team* so every seat is wired **identically** and nothing drifts.",
+  "review PR21: roster opener full door split",
+))
+EDITS.push(E(
+  "skills/kru-roster/SKILL.md",
+  "It's the only verb that reads the cross-project store (`${CURSOR_PLUGIN_ROOT}/references/store.md`) and the one verb that decides on its own what to land — the user reviews the uncommitted diff.",
+  "It's the only verb that reads the cross-project store (`${CURSOR_PLUGIN_ROOT}/references/store.md`) and the one verb that decides on its own what to land — the plugin maintainer reviews the uncommitted diff before it ships (`learn.md`).",
+  "t2: learn diff reviewed by plugin maintainer",
 ))
 EDITS.push(E(
   "skills/kru-roster/SKILL.md",
@@ -377,14 +395,62 @@ EDITS.push(E(
 EDITS.push(E(
   "PREFERENCES.md",
   "Nothing is committed, so the uncommitted diff is the user's review.",
+  "Nothing is committed until the lead commits when the PM asks: the plugin maintainer reviews the uncommitted diff before it ships (`skills/kru-roster/learn.md`, `skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "t6: learn review + lead commit when PM asks",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
   "Nothing is committed: the plugin maintainer reviews the uncommitted diff from a checkout of this plugin, then commits, pushes, opens the pull request, merges and tags (the plugin maintainer owns this plugin's releases).",
-  "t6: learn's review and release are the plugin maintainer's",
+  "Nothing is committed until the lead commits when the PM asks: the plugin maintainer reviews the uncommitted diff before it ships (`skills/kru-roster/learn.md`, `skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "review PR21: PREFERENCES tier-2 step 3 door roles",
 ))
 EDITS.push(E(
   "PREFERENCES.md",
   "(run from the plugin source repo; decides, user reviews the diff)",
+  "(run from the plugin maintainer's checkout of this plugin; decides the promotion — the plugin maintainer reviews the uncommitted diff, and the lead commits when the PM asks)",
+  "t6: learn diagram door roles",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
   "(run from the plugin maintainer's checkout of this plugin; the plugin maintainer decides and reviews the diff)",
-  "t6",
+  "(run from the plugin maintainer's checkout of this plugin; decides the promotion — the plugin maintainer reviews the uncommitted diff, and the lead commits when the PM asks)",
+  "review PR21: PREFERENCES diagram learn caption",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
+  "                                → commit + tag  (minor bump)",
+  "                                → lead commit (PM asks) · PM push/PR · maintainer merge+tag after verify",
+  "t6: preference loop diagram release path",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
+  "5. Version-bumps (minor for new prefs/capability, patch for a tiny tweak), runs `audit`, hands off. Commit/tag left to the user (git rule).",
+  "5. Version-bumps (minor for new prefs/capability, patch for a tiny tweak), runs `audit`, hands off per `skills/kru-roster/learn.md` → §5 and `skills/kru-lead/SKILL.md` → *Who acts at the door*.",
+  "t6: learn tier-2 step 5 door roles",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
+  "then a **curated sweep** that edits the team and leaves the commit to the user (mirroring the `TODOS.md` → `/kru-brief` promotion the team already runs)",
+  "then a **curated sweep** that edits the team and hands off per steps 3 and 5 below (mirroring the `TODOS.md` → `/kru-brief` promotion the team already runs)",
+  "review PR21: PREFERENCES loop prose matches learn hand-off",
+))
+EDITS.push(E(
+  "PREFERENCES.md",
+  "Run it **from the plugin source repo** periodically (not from a product repo — it commits the plugin). It:",
+  "Run it **from the plugin maintainer's checkout of this plugin** periodically (not from a product repo — it changes the plugin). It:",
+  "review PR21: PREFERENCES tier-2 intro matches learn.md",
+))
+EDITS.push(E(
+  "agents/dispatch-auditor.md",
+  "/kru-roster learn` sweeps, dedupes, and decides the promotion; the user reviews its diff before any commit.",
+  "/kru-roster learn` sweeps, dedupes, and decides the promotion; the plugin maintainer reviews the uncommitted diff, and the lead `commit`s when the PM asks.",
+  "review PR21: dispatch-auditor learn hand-off",
+))
+EDITS.push(E(
+  "ROSTER.md",
+  "/kru-roster learn` decides the promotion and the user reviews its diff before any commit.",
+  "/kru-roster learn` decides the promotion; the plugin maintainer reviews the uncommitted diff, and the lead `commit`s when the PM asks.",
+  "review PR21: ROSTER dispatch-auditor learn hand-off",
 ))
 EDITS.push(E(
   "skills/kru-remember/SKILL.md",
@@ -404,11 +470,19 @@ EDITS.push(E(
   "- Don't promote it now — capture is lossless and untriaged; the sweep is the gated step that edits the team.\n- How a PM bot itself operates is not a team preference: it stays in that PM bot's own operating rules, never here. This inbox takes what the seats should carry.",
   "t6: two channels",
 ))
+const LEARN_INTRO_AFTER =
+  "The review is the uncommitted diff — the plugin maintainer reviews it before it ships, so an edit they disagree with is reverted first.\n\nRun this **from the plugin maintainer's checkout of this plugin** (it changes the plugin), not a product repo. The sweep leaves the diff uncommitted through review; hand off per `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door* (`/kru-roster learn`). The owner's words (`owner`) outrank a PM's (`pm`) in every verdict below. The inbox is user-global, so it's the same source wherever you run it."
 EDITS.push(E(
   "skills/kru-roster/learn.md",
-  "The review is the uncommitted diff — commit stays the user's, so an edit they disagree with is reverted before it ships.\n\nRun this **from the plugin source repo** (it commits the plugin), not a product repo.",
-  "The review is the uncommitted diff — the plugin maintainer's, so an edit they disagree with is reverted before it ships.\n\nRun this **from the plugin maintainer's checkout of this plugin** (it changes the plugin), not a product repo. The plugin maintainer reviews the diff, commits, pushes, opens the pull request, merges and tags — the plugin maintainer owns this plugin's releases. The owner's words (`owner`) outrank a PM's (`pm`) in every verdict below.",
+  "The review is the uncommitted diff — commit stays the user's, so an edit they disagree with is reverted before it ships.\n\nRun this **from the plugin source repo** (it commits the plugin), not a product repo. The inbox is user-global, so it's the same source wherever you run it.",
+  LEARN_INTRO_AFTER,
   "t6: learn runs from the plugin maintainer's checkout; the owner outranks",
+))
+EDITS.push(E(
+  "skills/kru-roster/learn.md",
+  "The review is the uncommitted diff — the plugin maintainer's, so an edit they disagree with is reverted before it ships.\n\nRun this **from the plugin maintainer's checkout of this plugin** (it changes the plugin), not a product repo. The plugin maintainer reviews the diff, commits, pushes, opens the pull request, merges and tags — the plugin maintainer owns this plugin's releases. The owner's words (`owner`) outrank a PM's (`pm`) in every verdict below.",
+  LEARN_INTRO_AFTER,
+  "review PR21: learn intro matches kru-lead Who acts at the door",
 ))
 EDITS.push(E(
   "skills/kru-roster/learn.md",
@@ -419,8 +493,14 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-roster/learn.md",
   "Leave `commit`+`tag` to the user (git rule).",
-  "`commit`, push, pull request, merge and `tag` are the plugin maintainer's (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` per `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*.",
   "t6",
+))
+EDITS.push(E(
+  "skills/kru-roster/learn.md",
+  "`commit`, push, pull request, merge and `tag` are the plugin maintainer's (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*).",
+  "The lead `commit`s locally on the branch when the PM asks; the PM bot pushes and opens the pull request; merge and `tag` per `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/SKILL.md` → *Who acts at the door*.",
+  "review PR21: learn §5 hand-off matches kru-lead Who acts at the door",
 ))
 EDITS.push(E(
   "hooks/check-handoff.sh",
@@ -1332,8 +1412,8 @@ EDITS.push(E(
 
 EDITS.push(E(
   "hooks/check-handoff.sh",
-  "# an always-loaded rule restated in the brief is a second source that drifts —\n# scan 2 says point at the file instead. the mechanizable half is the verbatim\n# one: a run of SHINGLE words from the brief found unchanged in a canonical\n# text. paraphrase stays a reading check; a shorter run would misfire on\n# ordinary phrasing, so the length is the fail-open margin. rule files are\n# terse, so the run shortens with them: six words from the repo's own\n# CLAUDE.md or rules, five from the user's, where the machine budget is the\n# text briefs re-type most.\nSHINGLE=8\nSHINGLE_REPO=6\nSHINGLE_USER=5\ncanon=\"\"\nrepo_canon=\"\"\nfor f in \"$cwd/CLAUDE.md\" \"$cwd/AGENTS.md\" \"$cwd\"/.cursor/rules/*.mdc; do\n  [ -f \"$f\" ] && canon=\"$canon $f\" && repo_canon=\"$repo_canon $f\"\ndone\nfor f in \"$USER_CANON\" \"$plugin_root/skills/kru-roster/shared-blocks.md\"; do\n  [ -f \"$f\" ] && canon=\"$canon $f\"\ndone\n# the plan store's contract is the file a planner brief re-types (lead step 2.6)\n[ \"$seat\" = \"planner\" ] && [ -f \"$plugin_root/TRACKER.md\" ] && canon=\"$canon $plugin_root/TRACKER.md\"\n# a file the brief names is only shadow canon: the seat doesn't load it on its\n# own, and a passage the slice edits or the invariant it codes against is quoted\n# from exactly that file — slice content, not a second source. resolved under\n# cwd, capped so a brief listing a tree doesn't turn the check into a\n# full-corpus read.\nnamed=\"\"\nif [ -n \"$cwd\" ]; then\n  for rel in $(printf '%s' \"$prompt\" | grep -oE '[A-Za-z0-9_./-]+\\.md\\b' | sed 's#^\\./##' | sort -u | head -10); do\n    f=\"$cwd/$rel\"\n    case \" $canon $named \" in *\" $f \"*) continue ;; esac\n    [ -f \"$f\" ] && named=\"$named $f\"\n  done\nfi\n# a path and a backticked identifier are the pointer scan 2 asks for in place\n# of the text, and stripping punctuation turns one of them into a six-word run\n# any repo's own path map already spends — the gate refusing its own remedy.\n# barrier each with a word no canon holds, so a pointer neither matches on its\n# own nor joins the prose on either side of it.\nBARRIER=' zzpointerzz '\npoint() { sed -E -e \"s/\\`[^\\`]*\\`/${BARRIER}/g\" \\\n  -e \"s#[A-Za-z0-9_@~.-]*/[A-Za-z0-9_@~./-]*#${BARRIER}#g\" \\\n  -e \"s/[A-Za-z0-9_-]+\\.(tsx?|jsx?|mjs|cjs|svelte|vue|astro|md|go|py|rs|css|scss|json|sql|html|ya?ml|toml|sh)/${BARRIER}/g\"; }\nnorm() { tr '[:upper:]' '[:lower:]' | tr -c '[:alnum:]\\n' ' ' | tr -s ' \\n' ' '; }\nshingle() { # files → \"file<TAB>run\" of the first verbatim hit\n  printf '%s' \"$prompt\" | point | norm | awk -v n=\"$SHINGLE\" -v nr=\"$SHINGLE_REPO\" -v ns=\"$SHINGLE_USER\" -v short=\"$USER_CANON\" -v repo=\" $repo_canon \" -v files=\"$1\" '\n    BEGIN {\n      split(files, fs, \" \")\n      for (i in fs) { f = fs[i]; if (f == \"\") continue\n        text = \"\"\n        while ((getline line < f) > 0) text = text \" \" tolower(line)\n        close(f)\n        gsub(/[^[:alnum:]]+/, \" \", text)\n        corpus[f] = text }\n    }\n    { for (f in corpus) { m = (f == short) ? ns : (index(repo, \" \" f \" \") ? nr : n)\n        for (i = 1; i + m - 1 <= NF; i++) {\n          s = $i; for (j = 1; j < m; j++) s = s \" \" $(i + j)\n          if (index(corpus[f], \" \" s \" \")) { print f \"\\t\" s; exit } } } }'\n}\nif [ -n \"$canon\" ]; then\n  hit=$(shingle \"$canon\")\n  [ -n \"$hit\" ] && reasons=\"${reasons}restates a file verbatim: \\\"${hit#*	}\\\" is in ${hit%%	*} — point at the file instead (scan 2). \"\nfi\n\n# planner reads a written brief.md (lead step 2.6)\nif [ \"$seat\" = \"planner\" ] && ! printf '%s' \"$prompt\" | grep -q 'brief\\.md'; then\n  reasons=\"${reasons}planner brief names no brief.md: run /kru-brief first and point the seat at the written file (step 2.6). \"\nfi\n\n# shadow scans — logged, never refused.\nshadow=\"\"\n# the named-file shingle: a brief quoting a file it names is usually the passage\n# under edit, so a hit is shadow only until its rate against real paraphrase is proven.\nif [ -n \"$named\" ]; then\n  nhit=$(shingle \"$named\")\n  [ -n \"$nhit\" ] && shadow=\"${shadow}quotes a named file: \\\"${nhit#*	}\\\" is in ${nhit%%	*} — fine for a passage the slice edits or its invariant; a rule the seat already loads is a pointer (scan 2). \"\nfi\n",
-  "# an always-loaded rule restated in the brief is a second source that drifts —\n# scan 2 says point at the file instead. the mechanizable half is the verbatim\n# one: a run of SHINGLE words from the brief found unchanged in a canonical\n# text. paraphrase stays a reading check; a shorter run would misfire on\n# ordinary phrasing, so the length is the fail-open margin. rule files are\n# terse, so the run shortens with them: six words from root AGENTS.md or an\n# alwaysApply rule, five from ~/.claude/CLAUDE.md when it is the fallback,\n# where the machine budget is the text briefs re-type most.\nSHINGLE=8\nSHINGLE_REPO=6\nSHINGLE_USER=5\n# always_files is the budget's source set (always_loaded, above). a home file\n# in it is the fallback, so it keeps the shorter run; repo files keep six.\ncanon_files=()\nrepo_files=()\nif [ \"${#always_files[@]}\" -gt 0 ]; then\n  for f in \"${always_files[@]}\"; do\n    canon_files+=(\"$f\")\n    [ \"$f\" = \"$USER_CANON\" ] || repo_files+=(\"$f\")\n  done\nfi\nsb=\"$plugin_root/skills/kru-roster/shared-blocks.md\"\n[ -f \"$sb\" ] && canon_files+=(\"$sb\")\n# the plan store's contract is the file a planner brief re-types (lead step 2.6)\n[ \"$seat\" = \"planner\" ] && [ -f \"$plugin_root/TRACKER.md\" ] && canon_files+=(\"$plugin_root/TRACKER.md\")\n# a file the brief names is only shadow canon: the seat doesn't load it on its\n# own, and a passage the slice edits or the invariant it codes against is quoted\n# from exactly that file — slice content, not a second source. resolved under\n# cwd, capped so a brief listing a tree doesn't turn the check into a\n# full-corpus read.\nnamed_files=()\nif [ -n \"$cwd\" ]; then\n  for rel in $(printf '%s' \"$prompt\" | grep -oE '[A-Za-z0-9_./-]+\\.md\\b' | sed 's#^\\./##' | sort -u | head -10); do\n    f=\"$cwd/$rel\"\n    skip=false\n    for x in \"${canon_files[@]}\" \"${named_files[@]}\"; do\n      [ \"$x\" = \"$f\" ] && { skip=true; break; }\n    done\n    $skip && continue\n    [ -f \"$f\" ] && named_files+=(\"$f\")\n  done\nfi\n# a path and a backticked identifier are the pointer scan 2 asks for in place\n# of the text, and stripping punctuation turns one of them into a six-word run\n# any repo's own path map already spends — the gate refusing its own remedy.\n# barrier each with a word no canon holds, so a pointer neither matches on its\n# own nor joins the prose on either side of it.\nBARRIER=' zzpointerzz '\npoint() { sed -E -e \"s/\\`[^\\`]*\\`/${BARRIER}/g\" \\\n  -e \"s#[A-Za-z0-9_@~.-]*/[A-Za-z0-9_@~./-]*#${BARRIER}#g\" \\\n  -e \"s/[A-Za-z0-9_-]+\\.(tsx?|jsx?|mjs|cjs|svelte|vue|astro|md|go|py|rs|css|scss|json|sql|html|ya?ml|toml|sh)/${BARRIER}/g\"; }\nnorm() { tr '[:upper:]' '[:lower:]' | tr -c '[:alnum:]\\n' ' ' | tr -s ' \\n' ' '; }\nshingle() { # paths… → \"file<TAB>run\" of the first verbatim hit\n  local files_us repo_us\n  files_us=$(printf '%s\\036' \"$@\")\n  repo_us=\"\"\n  [ \"${#repo_files[@]}\" -gt 0 ] && repo_us=$(printf '%s\\036' \"${repo_files[@]}\")\n  printf '%s' \"$prompt\" | point | norm | awk -v n=\"$SHINGLE\" -v nr=\"$SHINGLE_REPO\" -v ns=\"$SHINGLE_USER\" -v short=\"$USER_CANON\" -v repo=\"$repo_us\" -v files=\"$files_us\" '\n    BEGIN {\n      nf = split(files, fs, \"\\036\")\n      nrp = split(repo, rs, \"\\036\")\n      for (i = 1; i <= nrp; i++) if (rs[i] != \"\") isrepo[rs[i]] = 1\n      for (i = 1; i <= nf; i++) { f = fs[i]; if (f == \"\") continue\n        text = \"\"\n        while ((getline line < f) > 0) text = text \" \" tolower(line)\n        close(f)\n        gsub(/[^[:alnum:]]+/, \" \", text)\n        corpus[f] = text }\n    }\n    { for (f in corpus) { m = (f == short) ? ns : (f in isrepo ? nr : n)\n        for (i = 1; i + m - 1 <= NF; i++) {\n          s = $i; for (j = 1; j < m; j++) s = s \" \" $(i + j)\n          if (index(corpus[f], \" \" s \" \")) { print f \"\\t\" s; exit } } } }'\n}\nif [ \"${#canon_files[@]}\" -gt 0 ]; then\n  hit=$(shingle \"${canon_files[@]}\")\n  [ -n \"$hit\" ] && reasons=\"${reasons}restates a file verbatim: \\\"${hit#*	}\\\" is in ${hit%%	*} — point at the file instead (scan 2). \"\nfi\n\n# planner reads a written brief.md (lead step 2.6)\nif [ \"$seat\" = \"planner\" ] && ! printf '%s' \"$prompt\" | grep -q 'brief\\.md'; then\n  reasons=\"${reasons}planner brief names no brief.md: run /kru-brief first and point the seat at the written file (step 2.6). \"\nfi\n\n# shadow scans — logged, never refused.\nshadow=\"\"\n# the named-file shingle: a brief quoting a file it names is usually the passage\n# under edit, so a hit is shadow only until its rate against real paraphrase is proven.\nif [ \"${#named_files[@]}\" -gt 0 ]; then\n  nhit=$(shingle \"${named_files[@]}\")\n  [ -n \"$nhit\" ] && shadow=\"${shadow}quotes a named file: \\\"${nhit#*	}\\\" is in ${nhit%%	*} — fine for a passage the slice edits or its invariant; a rule the seat already loads is a pointer (scan 2). \"\nfi\n",
+  "# an always-loaded rule restated in the brief is a second source that drifts —\n# scan 2 says point at the file instead. the mechanizable half is the verbatim\n# one: a run of SHINGLE words from the brief found unchanged in a canonical\n# text. paraphrase stays a reading check; a shorter run would misfire on\n# ordinary phrasing, so the length is the fail-open margin. rule files are\n# terse, so the run shortens with them: six words from the repo's own\n# CLAUDE.md or rules, five from the user's, where the machine budget is the\n# text briefs re-type most.\nSHINGLE=8\nSHINGLE_REPO=6\nSHINGLE_USER=5\ncanon=\"\"\nrepo_canon=\"\"\nfor f in \"$cwd/CLAUDE.md\" \"$cwd/AGENTS.md\" \"$cwd\"/.cursor/rules/*.mdc; do\n  [ -f \"$f\" ] && canon=\"$canon $f\" && repo_canon=\"$repo_canon $f\"\ndone\nfor f in \"$USER_CANON\" \"$plugin_root/skills/kru-roster/shared-blocks.md\"; do\n  [ -f \"$f\" ] && canon=\"$canon $f\"\ndone\n# the plan store's contract is the file a planner brief re-types (lead step 2.6)\n[ \"$seat\" = \"planner\" ] && [ -f \"$plugin_root/TRACKER.md\" ] && canon=\"$canon $plugin_root/TRACKER.md\"\n# a path and a backticked identifier are the pointer scan 2 asks for in place\n# of the text, and stripping punctuation turns one of them into a six-word run\n# any repo's own path map already spends — the gate refusing its own remedy.\n# barrier each with a word no canon holds, so a pointer neither matches on its\n# own nor joins the prose on either side of it.\nBARRIER=' zzpointerzz '\npoint() { sed -E -e \"s/\\`[^\\`]*\\`/${BARRIER}/g\" \\\n  -e \"s#[A-Za-z0-9_@~.-]*/[A-Za-z0-9_@~./-]*#${BARRIER}#g\" \\\n  -e \"s/[A-Za-z0-9_-]+\\.(tsx?|jsx?|mjs|cjs|svelte|vue|astro|md|go|py|rs|css|scss|json|sql|html|ya?ml|toml|sh)/${BARRIER}/g\"; }\nnorm() { tr '[:upper:]' '[:lower:]' | tr -c '[:alnum:]\\n' ' ' | tr -s ' \\n' ' '; }\nshingle() { # files → \"file<TAB>run\" of the first verbatim hit\n  printf '%s' \"$prompt\" | point | norm | awk -v n=\"$SHINGLE\" -v nr=\"$SHINGLE_REPO\" -v ns=\"$SHINGLE_USER\" -v short=\"$USER_CANON\" -v repo=\" $repo_canon \" -v files=\"$1\" '\n    BEGIN {\n      split(files, fs, \" \")\n      for (i in fs) { f = fs[i]; if (f == \"\") continue\n        text = \"\"\n        while ((getline line < f) > 0) text = text \" \" tolower(line)\n        close(f)\n        gsub(/[^[:alnum:]]+/, \" \", text)\n        corpus[f] = text }\n    }\n    { for (f in corpus) { m = (f == short) ? ns : (index(repo, \" \" f \" \") ? nr : n)\n        for (i = 1; i + m - 1 <= NF; i++) {\n          s = $i; for (j = 1; j < m; j++) s = s \" \" $(i + j)\n          if (index(corpus[f], \" \" s \" \")) { print f \"\\t\" s; exit } } } }'\n}\nif [ -n \"$canon\" ]; then\n  hit=$(shingle \"$canon\")\n  [ -n \"$hit\" ] && reasons=\"${reasons}restates a file verbatim: \\\"${hit#*	}\\\" is in ${hit%%	*} — point at the file instead (scan 2). \"\nfi\n\n# planner reads a written brief.md (lead step 2.6)\nif [ \"$seat\" = \"planner\" ] && ! printf '%s' \"$prompt\" | grep -q 'brief\\.md'; then\n  reasons=\"${reasons}planner brief names no brief.md: run /kru-brief first and point the seat at the written file (step 2.6). \"\nfi\n\n# shadow scans — logged, never refused.\nshadow=\"\"\n",
+  "# an always-loaded rule restated in the brief is a second source that drifts —\n# scan 2 says point at the file instead. the mechanizable half is the verbatim\n# one: a run of SHINGLE words from the brief found unchanged in a canonical\n# text. paraphrase stays a reading check; a shorter run would misfire on\n# ordinary phrasing, so the length is the fail-open margin. rule files are\n# terse, so the run shortens with them: six words from root AGENTS.md or an\n# alwaysApply rule, five from ~/.claude/CLAUDE.md when it is the fallback,\n# where the machine budget is the text briefs re-type most.\nSHINGLE=8\nSHINGLE_REPO=6\nSHINGLE_USER=5\n# always_files is the budget's source set (always_loaded, above). a home file\n# in it is the fallback, so it keeps the shorter run; repo files keep six.\ncanon_files=()\nrepo_files=()\nif [ \"${#always_files[@]}\" -gt 0 ]; then\n  for f in \"${always_files[@]}\"; do\n    canon_files+=(\"$f\")\n    [ \"$f\" = \"$USER_CANON\" ] || repo_files+=(\"$f\")\n  done\nfi\nsb=\"$plugin_root/skills/kru-roster/shared-blocks.md\"\n[ -f \"$sb\" ] && canon_files+=(\"$sb\")\n# the plan store's contract is the file a planner brief re-types (lead step 2.6)\n[ \"$seat\" = \"planner\" ] && [ -f \"$plugin_root/TRACKER.md\" ] && canon_files+=(\"$plugin_root/TRACKER.md\")\n# a path and a backticked identifier are the pointer scan 2 asks for in place\n# of the text, and stripping punctuation turns one of them into a six-word run\n# any repo's own path map already spends — the gate refusing its own remedy.\n# barrier each with a word no canon holds, so a pointer neither matches on its\n# own nor joins the prose on either side of it.\nBARRIER=' zzpointerzz '\npoint() { sed -E -e \"s/\\`[^\\`]*\\`/${BARRIER}/g\" \\\n  -e \"s#[A-Za-z0-9_@~.-]*/[A-Za-z0-9_@~./-]*#${BARRIER}#g\" \\\n  -e \"s/[A-Za-z0-9_-]+\\.(tsx?|jsx?|mjs|cjs|svelte|vue|astro|md|go|py|rs|css|scss|json|sql|html|ya?ml|toml|sh)/${BARRIER}/g\"; }\nnorm() { tr '[:upper:]' '[:lower:]' | tr -c '[:alnum:]\\n' ' ' | tr -s ' \\n' ' '; }\nshingle() { # paths… → \"file<TAB>run\" of the first verbatim hit\n  local files_us repo_us\n  files_us=$(printf '%s\\036' \"$@\")\n  repo_us=\"\"\n  [ \"${#repo_files[@]}\" -gt 0 ] && repo_us=$(printf '%s\\036' \"${repo_files[@]}\")\n  printf '%s' \"$prompt\" | point | norm | awk -v n=\"$SHINGLE\" -v nr=\"$SHINGLE_REPO\" -v ns=\"$SHINGLE_USER\" -v short=\"$USER_CANON\" -v repo=\"$repo_us\" -v files=\"$files_us\" '\n    BEGIN {\n      nf = split(files, fs, \"\\036\")\n      nrp = split(repo, rs, \"\\036\")\n      for (i = 1; i <= nrp; i++) if (rs[i] != \"\") isrepo[rs[i]] = 1\n      for (i = 1; i <= nf; i++) { f = fs[i]; if (f == \"\") continue\n        text = \"\"\n        while ((getline line < f) > 0) text = text \" \" tolower(line)\n        close(f)\n        gsub(/[^[:alnum:]]+/, \" \", text)\n        corpus[f] = text }\n    }\n    { for (f in corpus) { m = (f == short) ? ns : (f in isrepo ? nr : n)\n        for (i = 1; i + m - 1 <= NF; i++) {\n          s = $i; for (j = 1; j < m; j++) s = s \" \" $(i + j)\n          if (index(corpus[f], \" \" s \" \")) { print f \"\\t\" s; exit } } } }'\n}\nif [ \"${#canon_files[@]}\" -gt 0 ]; then\n  hit=$(shingle \"${canon_files[@]}\")\n  [ -n \"$hit\" ] && reasons=\"${reasons}restates a file verbatim: \\\"${hit#*	}\\\" is in ${hit%%	*} — point at the file instead (scan 2). \"\nfi\n\n# planner reads a written brief.md (lead step 2.6)\nif [ \"$seat\" = \"planner\" ] && ! printf '%s' \"$prompt\" | grep -q 'brief\\.md'; then\n  reasons=\"${reasons}planner brief names no brief.md: run /kru-brief first and point the seat at the written file (step 2.6). \"\nfi\n\n# shadow scans — logged, never refused.\nshadow=\"\"\n",
   "cursor: the verbatim shingle reads the same always-loaded set as the budget",
 ))
 
@@ -1342,4 +1422,62 @@ EDITS.push(E(
   "check allow kru-fly-platform-engineer \"Resize the Machine to 8 GB in fly.toml.\"\n\n",
   "check allow kru-fly-platform-engineer \"Resize the Machine to 8 GB in fly.toml.\"\n\n# root AGENTS.md and an alwaysApply rule are budget canon; a rule without it is not.\n# the legacy home file stays the fallback (the cases above). cwd is the repo, not /x.\nbudget_repo=$sandbox/budget\nmkdir -p \"$budget_repo/.cursor/rules/nested\" \"$budget_repo/pkg\"\ngit -C \"$budget_repo\" init -q\nprintf '%s\\n' 'The dev box has 16 GB.' > \"$budget_repo/AGENTS.md\"\nprintf '%s\\n' '---' 'alwaysApply: true' '---' 'One suite: 32 GB is the cap.' > \"$budget_repo/.cursor/rules/nested/budget.mdc\"\nprintf '%s\\n' '---' 'alwaysApply: false' '---' 'The laptop has 64 GB.' > \"$budget_repo/.cursor/rules/optional.mdc\"\nbudget_check() {\n  local expect=$1 seat=$2 prompt=$3 needle=${4:-} cwd=${5:-$budget_repo}\n  local input out code\n  input=$(jq -nc --arg s \"$seat\" --arg p \"$prompt inbox.md\" --arg c \"$cwd\" \\\n    '{session_id:\"test\", cwd:$c, tool_input:{subagent_type:$s, prompt:$p, description:\"t\"}}')\n  out=$(cd \"$sandbox/cwd\" && printf '%s' \"$input\" | env -u KRU_HOME -u KRU_PROJECT_STORE -u KRU_STORE_URL -u KRU_NO_GATE -u CURSOR_PLUGIN_ROOT HOME=\"$sandbox/home\" bash \"$hook\" \"$root\" 2>&1)\n  code=$?\n  local ok=true\n  if [ \"$expect\" = refuse ]; then\n    [ \"$code\" -eq 2 ] || ok=false\n    [ -n \"$needle\" ] && ! printf '%s' \"$out\" | grep -qF \"$needle\" && ok=false\n  else\n    [ \"$code\" -eq 0 ] || ok=false\n  fi\n  if $ok; then pass=$((pass + 1)); else\n    fail=$((fail + 1))\n    printf 'FAIL (%s, exit %s): %s\\n  %s\\n' \"$expect\" \"$code\" \"$prompt\" \"$out\"\n  fi\n}\nbudget_check refuse $ui \"The box has 16 GB so be careful.\" \"machine budget\" \"$budget_repo/pkg\"\nbudget_check refuse $ui \"Stay under 32 GB.\" \"machine budget\"\nbudget_check allow $ui \"The laptop has 64 GB.\"\n# the home file is a fallback, not a second canon: its 8 GB must not refuse a\n# brief once the repo has an AGENTS.md or an alwaysApply rule.\nbudget_check allow $ui \"The box has 8 GB so be careful.\"\nrules_only=$sandbox/rules-only\nmkdir -p \"$rules_only/.cursor/rules\"\ngit -C \"$rules_only\" init -q\nprintf '%s\\n' '---' 'alwaysApply: true' '---' 'One suite: 32 GB is the cap.' > \"$rules_only/.cursor/rules/budget.mdc\"\nbudget_check allow $ui \"The box has 8 GB so be careful.\" \"\" \"$rules_only\"\nbudget_check refuse $ui \"Stay under 32 GB.\" \"machine budget\" \"$rules_only\"\nbare=$sandbox/bare\nmkdir -p \"$bare\"\ngit -C \"$bare\" init -q\nbudget_check refuse $ui \"The box has 8 GB so be careful.\" \"machine budget\" \"$bare\"\n# a space in the repo path, and in a rule's filename, still reaches the figure\nspace_repo=\"$sandbox/budget box\"\nmkdir -p \"$space_repo/.cursor/rules\"\ngit -C \"$space_repo\" init -q\nprintf '%s\\n' 'The workstation has 24 GB.' > \"$space_repo/AGENTS.md\"\nprintf '%s\\n' '---' 'alwaysApply: true' '---' 'Cap the suite at 48 GB.' > \"$space_repo/.cursor/rules/my budget.mdc\"\nbudget_check refuse $ui \"The workstation has 24 GB.\" \"machine budget\" \"$space_repo\"\nbudget_check refuse $ui \"Cap the suite at 48 GB.\" \"machine budget\" \"$space_repo\"\nbudget_check allow $ui \"The box has 8 GB so be careful.\" \"\" \"$space_repo\"\n\n# verbatim shingle uses the same always-loaded set as the budget: a rule\n# without alwaysApply is not canon, a nested alwaysApply rule is, and\n# ~/.claude/CLAUDE.md is scanned only when the repo has neither.\nprintf '%s\\n' 'Purple kettles never boil on tuesdays in the annex.' >> \"$sandbox/home/.claude/CLAUDE.md\"\nshingle_repo=$sandbox/shingle\nmkdir -p \"$shingle_repo/.cursor/rules/nested\" \"$shingle_repo/pkg\"\ngit -C \"$shingle_repo\" init -q\nprintf '%s\\n' 'Root agents prose stays the shingle canon for this repo.' > \"$shingle_repo/AGENTS.md\"\nprintf '%s\\n' '---' 'alwaysApply: true' '---' 'Nested amber rule text loads with every session.' > \"$shingle_repo/.cursor/rules/nested/amber.mdc\"\nprintf '%s\\n' '---' 'alwaysApply: false' '---' 'Optional crimson rule text stays out of the brief scan.' > \"$shingle_repo/.cursor/rules/optional.mdc\"\nprintf '%s\\n' 'Root claude file text must not count as shingle canon.' > \"$shingle_repo/CLAUDE.md\"\nbudget_check refuse $ui \"Root agents prose stays the shingle canon for this repo.\" \"AGENTS.md\" \"$shingle_repo/pkg\"\nbudget_check refuse $ui \"Nested amber rule text loads with every session.\" \"nested/amber.mdc\" \"$shingle_repo\"\nbudget_check allow $ui \"Optional crimson rule text stays out of the brief scan.\" \"\" \"$shingle_repo\"\nbudget_check allow $ui \"Root claude file text must not count as shingle canon.\" \"\" \"$shingle_repo\"\nbudget_check allow $ui \"Purple kettles never boil on tuesdays in the annex.\" \"\" \"$shingle_repo\"\n# a non-alwaysApply rule is not primary, so the home file is the fallback\nshingle_optional=$sandbox/shingle-optional\nmkdir -p \"$shingle_optional/.cursor/rules\"\ngit -C \"$shingle_optional\" init -q\nprintf '%s\\n' '---' 'alwaysApply: false' '---' 'Optional crimson rule text stays out of the brief scan.' > \"$shingle_optional/.cursor/rules/optional.mdc\"\nbudget_check allow $ui \"Optional crimson rule text stays out of the brief scan.\" \"\" \"$shingle_optional\"\nbudget_check refuse $ui \"Purple kettles never boil on tuesdays in the annex.\" \".claude/CLAUDE.md\" \"$shingle_optional\"\nshingle_bare=$sandbox/shingle-bare\nmkdir -p \"$shingle_bare\"\ngit -C \"$shingle_bare\" init -q\nbudget_check refuse $ui \"Purple kettles never boil on tuesdays in the annex.\" \".claude/CLAUDE.md\" \"$shingle_bare\"\n\n",
   "cursor: the handoff gate reads root AGENTS.md and alwaysApply rules",
+))
+
+// --- cursor: no claude-code-delegation skill (cloud agents use roster request.md) -
+EDITS.push(E(
+  "ROSTER.md",
+  "`claude-code-delegation` and `skills/kru-roster/request.md` both point here for the brief.",
+  "`skills/kru-roster/request.md` points here for the brief.",
+  "cursor: delegation skill dropped; request.md is the path",
+))
+EDITS.push(E(
+  "ROSTER.md",
+  "- **`claude-code-delegation`** (`skills/kru-claude-code-delegation/`) — model-invoked. A build, fix, refactor or review handed to Cursor runs in the cloud or local headless, then meets an independent review before a merge.\n",
+  "",
+  "cursor: claude-code-delegation skill is not ported",
+))
+EDITS.push(E(
+  "ROSTER.md",
+  "`reliable-work`, `claude-code-delegation`, `/kru-roster`",
+  "`reliable-work`, `/kru-roster`",
+  "cursor: skills list drops claude-code-delegation",
+))
+EDITS.push(E(
+  "ROSTER.md",
+  "5. `bash scripts/verify.sh` passes (`PORTING.md` — the verify gate at the top), then `git add -A && git commit && git tag vX.Y.Z`.",
+  "5. `bash scripts/verify.sh` passes (`PORTING.md` — the verify gate at the top), then `git add -A && git commit` on the branch (the lead); the PM bot pushes and opens the pull request; merge and `tag vX.Y.Z` per `skills/kru-lead/SKILL.md` → *Who acts at the door* and `skills/kru-roster/release.md`.",
+  "review PR21: git row matches release.md and kru-lead Who acts at the door",
+))
+EDITS.push(E(
+  "skills/kru-setup/SKILL.md",
+  "The Svelte seats name\n  `*` (`svelte` MCP) the same way",
+  "The Svelte seats name `list-sections`, `get-documentation`, and `svelte-autofixer` (`svelte` MCP) the same way",
+  "review PR21: Svelte seats name real MCP tools, not a wildcard",
+))
+EDITS.push(E(
+  "skills/kru-roster/hire.md",
+  "Report the new seat + its boundary. Leave `commit`+`tag` to the user unless they asked (git rule). Then route work to the seat.",
+  "Report the new seat + its boundary. Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*. Then route work to the seat.",
+  "review PR21: hire hand-off matches kru-lead Who acts at the door",
+))
+EDITS.push(E(
+  "skills/kru-roster/author.md",
+  "Leave commit/tag to the user (git rule).",
+  "Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*.",
+  "review PR21: author hand-off matches kru-lead Who acts at the door",
+))
+EDITS.push(E(
+  "skills/kru-roster/retire.md",
+  "Leave commit/tag to the user (git rule).",
+  "Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*.",
+  "review PR21: retire hand-off matches kru-lead Who acts at the door",
+))
+
+// --- review PR21: canonical door spec (skills/kru-lead/SKILL.md → Who acts at the door) ---
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "**Who acts at the door.** You commit locally and return proof; the push is not yours. The PM bot\nreviews the proof, pushes the branch and opens the pull request. Merging, tagging, releasing,\ndeploying, publishing and any message outside the team wait for the owner — except this plugin's own releases,\nwhich the plugin maintainer merges and tags. A bug or want on the work tracker (GitHub issues, or Linear when the repo has opted in) is internal\ntracking, not a message outside the team (first section). Pull requests stay on GitHub either way: the body\ncarries the line `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh\" link --id <id>` prints. Most product repos are public, so the PM bot reads the\nrepo's visibility (`gh repo view --json visibility`) before a push. A security fix stays local\nuntil the owner OKs it, then ships through a GitHub security advisory's temporary private fork,\npublished on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays\nin `issues/`, off the PR and off Linear. A cloud session pushes branches but gets a 403 on a tag push, so a release\nruns as a `workflow_dispatch` started through the GitHub API, the workflow creating the tag on its\njob token — started by whoever owns that release: the owner, or the plugin maintainer for this plugin.",
+  '**Who acts at the door.** **Ordinary work** — review fixes, hire, author, retire, requester ships, ports: the lead `commit`s on the branch and returns proof; the lead never pushes and never waits for a PM ask (headless runs do not wait). The PM bot reviews the proof, pushes the branch and opens the pull request. On a cloud agent, outbound team connector MCP (send/post/share/delete and the rest) is forbidden by the always-on rule in `rules/kru-lead.mdc` — hand the exact tool and arguments back to the PM bot; the repo hook enforces the same denylist only when Cursor runs hooks on MCP calls (not on cloud agents today; see `PORTING.md`). **`/kru-roster learn` only:** the sweep leaves the diff uncommitted; the plugin maintainer reviews it; then the lead `commit`s when the PM asks; then the PM bot pushes and opens the pull request — "when the PM asks" appears only in learn contexts. **Merge:** in this plugin repo, the plugin maintainer merges after CI (`verify`) passes; in product repos, the owner merges. **Tag:** only when the PM asked for a release, per `skills/kru-roster/release.md`. The maintainer creates and pushes the tag from a checkout that has push rights (`git tag` + `git push origin <tag>`, or `gh release create`). A cloud session that cannot push a tag (403) stops and hands the tag step back to the PM bot with the exact commands. Deploying, publishing and any message outside the team wait for the owner. A bug or want on the work tracker (GitHub issues, or Linear when the repo has opted in) is internal tracking, not a message outside the team (first section). Pull requests stay on GitHub either way: the body carries the line `bash "${CURSOR_PLUGIN_ROOT}/scripts/kru-tracker.sh" link --id <id>` prints. Most product repos are public, so the PM bot reads the repo\'s visibility (`gh repo view --json visibility`) before a push. A security fix stays local until the owner OKs it, then ships through a GitHub security advisory\'s temporary private fork, published on merge. Its PR body summarizes the fix without exploit detail; the defect write-up stays in `issues/`, off the PR and off Linear.',
+  "review PR21: canonical Who acts at the door (migration)",
 ))

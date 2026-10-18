@@ -32,4 +32,4 @@ Minor bump: `VERSION`, `.cursor-plugin/plugin.json` `version`, the `.cursor-plug
 Completion: **run `audit` (see `audit.md`) — it must pass.**
 
 ## 5. Hand off
-Report the new seat + its boundary. Leave `commit`+`tag` to the user unless they asked (git rule). Then route work to the seat.
+Report the new seat + its boundary. Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*. Then route work to the seat.
