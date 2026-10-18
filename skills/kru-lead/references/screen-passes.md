@@ -10,6 +10,10 @@ Detail behind `SKILL.md` → Step 4, *Screen passes*. Reached on UI work; a non-
 
 What that reversal does **not** touch is what a pass may conclude. `visual-reviewer` returns **breakage and causes, never a verdict on intent** — whether the build looks like the design stays the user's glance, and it's prevented upstream by a closed token file (*Conformance is prevented, not detected*, `${CURSOR_PLUGIN_ROOT}/references/ui-handoff.md`). Dispatching the pass buys you coverage and rule violations; it does not buy you the design gate, and it never replaces the user's look.
 
+## Mockup layout (before the PM)
+
+When the target is a **mockup** — `.dc.html`, a `/canvas` publish, or a screen draft not yet in the app — brief `kru-visual-reviewer` for **mockup layout**, not the Step 4 coverage matrix. Viewports: **1440 and 375** only unless the brief names more. The drafter already ran `composition` → *The pass*; this seat **renders and measures independently** — verify the pass **done-when** and every **Check** in the loaded `skills/kru-composition/reference/` entries, cited by section name. Every finding names **selector or `file:line`** and **measured px**. The lead serves artboards read-only if needed; the seat still never starts a server. On **FIX**, route defects to `kru-ui-designer` and re-dispatch (three rounds, `gates.md`). This pass does not judge whether the design is right — only whether composition checks fail.
+
 ## Brief them for coverage and cause, because that's the only part they win
 
 The user has already seen the happy path in their own window. What nobody has rendered is the empty state, the error state, loading, disabled, focus-visible, 375, and the row with the 90-character string — so **name the states you want reached** in the handoff, and treat "no one has ever seen this screen" as a finding when it comes back.

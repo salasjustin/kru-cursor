@@ -34,10 +34,12 @@ Run it on every artboard before a canvas publishes, and on any screen or section
 
 **Done when** every node in the tree has a gap to its siblings larger than any gap inside it, no view has more than one distinct primary action, and every entry in the loaded files has been checked against the draft.
 
+**Self-check is not the gate.** The drafter runs this pass before publish; the lead still dispatches **`kru-visual-reviewer`** to render each artboard and **measure the same entries independently** before the PM sees the mockup (`skills/kru-lead/references/gates.md` → *Mockup layout gate*). The reviewer cites the **`layout.md` / `hierarchy.md` / `text.md` entry** violated, with selector or `file:line` and measured px — it does not invent a parallel rule set.
+
 ## Owned elsewhere
 
 - **Whether a ladder has a rule for each step** — `design-system` (`audit`).
 - **How a component behaves** — `ui-patterns`.
 - **Charts and their colours** — `dataviz`.
 - **Words on the screen** — `ux-copy`, and `ui-patterns` → `reference/text-and-icons.md` for which prose earns a place.
-- **Whether a rendered state breaks, ambiguous grouping included** — `visual-reviewer`.
+- **Whether a rendered state breaks in the shipped app** — `kru-visual-reviewer` (Step 4). Mockup layout before the PM uses the same relation entries, independently measured.

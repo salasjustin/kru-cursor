@@ -24,6 +24,9 @@ The sweep is browser-driven and pins a thread for minutes (viewport drives, stat
 
 **Two callers, one body.** The user runs `/kru-visual-review` and lands here; the lead dispatches `visual-reviewer`, which reads this same file and executes every section but this one (it *is* what gets dispatched, and subagents can't spawn subagents). `disable-model-invocation` still holds on the skill, so the slash command stays the user's front door and nothing fires this ambiently.
 
+## Mockup layout — artboards and canvas previews
+When the brief is **mockup layout** (lead gate before the PM, or an explicit `/kru-visual-review` on drafts), the target is a `.dc.html` artboard or a `/canvas` URL — not the app dev server. Viewports: **1440** and **375** (`emulate`). The lead serves `.design-work/` read-only when `file://` blocks assets; **you still never start a server** — unreachable targets return as the result. Scope to the named artboards. **Source of truth:** `skills/kru-composition` — verify *The pass* **done-when** and every **Check** in the entries the drafter loaded (`reference/layout.md`, and `hierarchy.md` / `text.md` when relevant). Cite the **section name** violated, plus **selector or `file:line`**, **measured px**, and screenshot path. Do not restate or extend those rules here.
+
 ## Drive the browser via local-browser
 Invoke and follow the **`local-browser`** skill — it wraps the `chrome-devtools` MCP server, headless, on a profile that keeps the login. Its rules bind you:
 - **The dev server must already be running — never start it.** If nothing responds at the target URL, stop and report that, naming the URL — to the user inline, in your return as a seat.
@@ -53,7 +56,7 @@ Everything here is **plainly visible in a capture** — that's the bar.
 - **Missing or broken states**: no empty state, no loading indicator, an error that renders as a blank page, focus that produces nothing visible, a disabled control that looks enabled. Layout shift between states.
 - **Overflow/clipping**: horizontal scroll at any breakpoint, clipped text/controls, content escaping containers, `100vh` vs `100dvh` mobile cutoff.
 - **Breakage in the pixels**: overlapping elements, an element rendering unstyled, a broken grid, content collapsing at one breakpoint, text unreadable over the image or gradient behind it (report it as unreadable breakage; contrast is the design's).
-- **Ambiguous grouping**: a label as close to the field above as to its own box, a heading equidistant from the section above and the content below, card padding at or above the gutter between cards, a wrapped list item that reads as two — any group whose gap to its siblings is no larger than a gap inside it (`${CURSOR_PLUGIN_ROOT}/skills/kru-composition/reference/layout.md`). The pair of gaps is the one number; the cause is usually one container spending a single `gap` across two depths.
+- **Ambiguous grouping / composition relations**: sibling gap ≤ internal gap, failed pass done-when, or any other violated **`composition` entry** (`layout.md` · `hierarchy.md` · `text.md`) — cite the section and measured px; the cause is usually one container spending a single `gap` across two depths.
 - **Responsive**: does each breakpoint reflow, or is a desktop layout leaking into mobile?
 - **Asset render**: blurry/stretched images, wrong aspect ratio, missing art, icon misalignment.
 - **Motion/keyboard**: `prefers-reduced-motion` honored; keyboard focus visible and ordered; no motion-only affordances.

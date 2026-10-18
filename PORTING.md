@@ -133,6 +133,7 @@ one is overwritten by the next port, and `scripts/verify.sh`'s fresh-port check 
 | `scripts/asset/xai.mjs`, `scripts/asset/xai.test.mjs` | the asset generator's xAI backend and its tests; port rules hook it into upstream's `gen-asset.ts` and copy it in `run.sh` (`MODELS.md`) |
 | `scripts/cursor/sources-harness-row.md` | `SOURCES.md` → *Orchestration / harness mechanics* |
 | `scripts/cursor/ui-canvas.md` | `references/ui-practice.md` → *The canvas*, pulled in by a port rule |
+| `scripts/cursor/mockup-layout-gate.md` | `skills/kru-lead/references/gates.md` → *Mockup layout gate*, pulled in by a port rule |
 | `scripts/cursor/update-sweep.md` | `skills/kru-update/claude.md`, the Cursor changelog sweep, pulled in by a port rule (the file keeps the name `claude.md`) |
 | `skills/kru-design/SKILL.md` | the design skill: `.dc.html` artboards plus Cursor's `/canvas`. Listed in `FORK_OWNED` so a new file inside `skills/` survives the port |
 | `skills/kru-update/claude.md`, `reviewed.md` | `claude.md` is the Cursor changelog sweep (the block above); `reviewed.md` keeps the closed Claude Code ledger and a Cursor mark. Layout rules only, plus that one edit |

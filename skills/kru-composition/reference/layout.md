@@ -4,7 +4,18 @@
 
 **Default it corrects:** one gap for everything — a `gap` or `space-y` on a parent whose children are themselves groups, so the label sits as close to the previous field as to its own box, and the list reads as a flat run of equals.
 **Instances that recur:** a section heading equidistant from the section above and the content below (it belongs to what follows, so more space above than below); list items spaced at the text's own line-height, so a wrapped item reads as two; a meta row where the date sits as close to the next card's title as to its own; a button cluster the same distance from the field above as the buttons are from each other; card-internal padding equal to or larger than the gutter between cards. The compact form case is `ui-patterns` → `reference/forms-and-mutations.md`.
-**Check:** for each node, measure the smallest gap to a sibling and the largest gap inside it. Sibling gap ≤ internal gap is the defect, horizontal and vertical alike.
+**Check:** for each node, measure the smallest gap to a sibling and the largest gap inside it. Sibling gap ≤ internal gap is the defect, horizontal and vertical alike. Where both gaps are measurable at a group boundary, **gap_between < 1.5 × gap_within** is also a defect (the pass's done-when is the strict case; this is the measurable target ratio). Report **gap_between**, **gap_within**, and **heading-to-own-content vs heading-to-previous-section** in px when the instances above apply.
+
+## Shared column alignment (desktop grid)
+
+**Default it corrects:** sections or blocks that share a page but use different `max-width`, horizontal padding, or margin — so sibling content edges do not sit on the same column lines on desktop (margins and column edges that look "almost" aligned).
+**Rule:** one page shell `max-width` and one horizontal gutter tier across sections at the same level unless the brief names an intentional full-bleed band.
+**Check:** at desktop (~1440), for each pair of adjacent section **content roots** at the same hierarchy level, measure left and right edges (`getBoundingClientRect`). Report when |Δleft| > 2px or |Δright| > 2px. Report inconsistent shell `max-width` or horizontal padding (name each value in px). Each finding cites a **selector or `file:line`** and the **measured offsets**.
+
+## Squint (blur) grouping
+
+**Default it corrects:** groups that read as separate at full resolution but merge when the eye squints — the squint test for *which block belongs to which group*.
+**Check:** squint or ~4px blur on a capture (same technique as `hierarchy.md` → *One clear primary per view*). If two sibling groups read as one, or a heading attaches to the wrong block, file a defect under *The space around a group is larger than the space inside it* with blur as evidence and the unblurred px gaps.
 
 ## Separate with space first, then a background step, then a border
 
