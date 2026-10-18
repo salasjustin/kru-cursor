@@ -61,7 +61,7 @@ The plugin maintainer reviews this pull request, and merges and tags this plugin
   port's *surfaces cursor lacks* count; record it in `PORTING.md` → *Known gaps*.
 - **Merge with a merge commit** (`gh pr merge --merge`), never squash or rebase. Squash drops
   upstream as a parent while `VERSION` still names the new kru release; `verify.sh` then fails
-  (fresh port, sync tests, and the tree version check). The weekly sync script already records
+  (fresh port, sync tests, and the version check in `scripts/verify-tree.mjs`). The weekly sync script already records
   upstream with `git merge -s ours`; a hand port pull request needs the same shape — either run
   `bash scripts/sync-upstream.sh` on a branch, or finish with `git merge -s ours --no-ff
   <upstream-sha>` so history carries upstream's commit without changing the ported tree.

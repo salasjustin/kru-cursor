@@ -263,7 +263,7 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
   else if (upstream !== version.split("+kru")[1])
     fail(
       "version",
-      `VERSION pins kru ${version.split("+kru")[1]}, the newest upstream commit in history says ${upstream} — upstream must be recorded as a merge parent (never squash or rebase a port/sync pull request; see fork-sync.md)`,
+      `VERSION pins kru ${version.split("+kru")[1]}, the newest upstream commit in history says ${upstream} — upstream must be recorded as a merge parent (never squash or rebase a port/sync pull request; see skills/kru-roster/fork-sync.md)`,
     )
 }
 
