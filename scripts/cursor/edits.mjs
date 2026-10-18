@@ -1131,7 +1131,7 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "`/seo-review`, `/copywriting`, `/copy-editing`, `/cro` and the two animation passes run inline only when the user names one",
+  "`/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro` and the two animation passes run inline only when the user names one",
   "`/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro` and the two animation passes are lead-owned, the list in *Delegate on stack, not size*, and they run in the main thread only when the user names one",
   "dispatch: user-named passes are lead-owned",
 ))
