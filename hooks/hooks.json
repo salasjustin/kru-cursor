@@ -35,7 +35,7 @@
         "timeout": 10
       },
       {
-        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" preToolUse seat-guard.sh accessibility-reviewer architecture-reviewer code-reviewer conversion-copywriter dispatch-auditor planner ux-auditor ux-designer visual-reviewer",
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" preToolUse seat-guard.sh accessibility-reviewer architecture-reviewer code-reviewer conversion-copywriter dispatch-auditor planner ux-auditor visual-reviewer",
         "matcher": "^(Write|Delete)$",
         "timeout": 10
       },
@@ -62,7 +62,7 @@
     ],
     "subagentStart": [
       {
-        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" subagentStart seat-guard.sh accessibility-reviewer architecture-reviewer code-reviewer conversion-copywriter dispatch-auditor planner ux-auditor ux-designer visual-reviewer",
+        "command": "bash \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-hook.sh\" subagentStart seat-guard.sh accessibility-reviewer architecture-reviewer code-reviewer conversion-copywriter dispatch-auditor planner ux-auditor visual-reviewer",
         "timeout": 10
       }
     ],

@@ -48,7 +48,7 @@ re-run has no way to check it.
 | project seats | `.cursor/skills/*`, `.cursor/agents/*` | seats this plugin has no way to know exist |
 | `skills` | the same manifests, run through **`${CURSOR_PLUGIN_ROOT}/references/routing.md`** → *Conditional skills* | a seat reading `package.json` for its libraries on every dispatch — and the silence when a seat that never carried the skill writes against the library anyway |
 | `tokens` | the design system's file, and the gate that closes it (hook config, test script) | a builder's hunt for the `## Design system` pointer — and the from-scratch design chain, since a system already exists |
-| `screens` | whether this repo renders UI, and what starts its dev server | the screen passes and the design gate |
+| `screens` | whether this repo renders UI, and what starts its dev server | the screen passes and the PM's design-spec gate |
 | `test` | the runner, its command, and **what a run costs** | rediscovering the repo's testing conventions |
 | `verify` | typecheck and lint commands | the behavior gate's generic form |
 | `mcp` | `agent mcp list` and the plugins under **Customize**, against the seats the rows above named and their **`${CURSOR_PLUGIN_ROOT}/SOURCES.md`** rows | a seat reaching mid-run for a server this repo never enabled, and a dispatch spent finding that out |

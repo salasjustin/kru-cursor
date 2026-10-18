@@ -1,40 +1,38 @@
 # The sync lane — designing out of the repo's real components
 
-**Cursor has no claude.ai/design project, so do not run this lane.** The in-session surface is `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`, with `.dc.html` artboards when `/canvas` isn't available. The procedure below stays so a repo that already has a `.design-sync/` can still be read. Standing a new one up is a gap (`PORTING.md`).
+**Cursor has no claude.ai/design project — engineering does not run this lane.** External designers on Cursor use `/kru-design` with `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)). The procedure below stays so a repo that already has a `.design-sync/` can still be read.
 
-Behind `ui-practice.md` → *The sync lane*. Do not stand one up. Design in this session with `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`. Read the procedure below only to understand a `.design-sync/` that is already in the tree.
+For the **designer** maintaining a React design bundle — not the engineering lead. Read when the tree has a `.design-sync/`, or before standing one up. Engineering builds components; the designer publishes and designs against the bundle (`references/designer-handoff.md`).
 
-`/design-sync` publishes a bundle of the repo's **real** components to a claude.ai/design project, where screens get designed out of the actual parts. It is the only surface that does, and everything it buys is paid for in maintenance.
+`/design-sync` publishes a bundle of the repo's **real** components to a claude.ai/design project. Everything it buys is paid for in maintenance.
 
 ## The entry bar
 
-Do not stand up a bundle. Upstream's entry bar was a recurring turn where **someone who doesn't write code designs against the system** — a marketing team shipping pages, a designer working screens between engineering slices. That turn has no Cursor host. Point it at `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`, with `.dc.html` artboards when `/canvas` isn't available.
+Stand up a bundle where **someone who doesn't write code designs against the system** on a recurring basis. That recurring designer turn pays for the lane.
 
 Two conditions gate it:
 
-- **React.** The converter takes React components (a Storybook or a bare package). Another stack gets the canvas, the token file and its gate, and settles a look there.
-- **A maintained build.** A bundle is a workspace package with a preview harness, an export surface, a stylesheet build and a notes file — its own piece of work, on its own maintenance schedule (*The bundle*, below).
+- **React.** The converter takes React components.
+- **A maintained build.** A bundle is a workspace package with a preview harness, export surface, stylesheet build and notes file.
 
-Where every design turn is an engineer's own, `/kru-design` with `/canvas` is the whole practice: it reads the tree fresh each time, so there is nothing to push and nothing to go stale.
+Where every design turn reads the tree fresh in `/kru-design`, there is nothing to push and nothing to go stale.
 
 ## The loop
 
-Two steps wrap `ui-practice.md` → *Steady state*, around its design → pull → land:
+Two steps wrap steady-state design → PM handoff → engineering land:
 
-- **Push, first.** The bundle is built from the tree and synced. Its stylesheet is the repo's own compiled CSS and its component list is the repo's own components; the only prose a person authors is the conventions file, in its **header** era.
-- **Rebuild and resync, last.** The design project then holds what the repo holds. **Rebuild means the app's stylesheet, not just the bundle** (*The bundle*, below).
+- **Push, first.** Build from the tree and sync. Stylesheet is the repo's compiled CSS; component list is the repo's; prose is the conventions file in **header** era.
+- **Rebuild and resync, last.** After engineering lands component or token changes, refresh the bundle so the next design session sees real parts.
 
-The repo is upstream in both senses: a component deleted from the tree comes off the remote on the next resync, so a sync that produces deletes is the practice working.
+The repo is upstream: a deleted component comes off the remote on the next resync.
 
-## The bundle — what the design agent actually gets
+## The bundle — what the designer actually gets
 
-Four facts decide whether a design comes back composable, and none of them is visible from inside a design session.
-
-- **The stylesheet is the app's prebuilt CSS, not the token file.** The bundle ships whatever `cfg.cssEntry` points at — a compiled artifact. Under a JIT engine (Tailwind v4 and kin) that sheet contains **only the utilities the app already writes**: the gaps are not symmetric between axes, arbitrary values exist only where some call site wrote that exact string, and **a missing utility fails silently** — no error, just a rule that doesn't exist and a layout that ignores the design. That constraint is the single most decision-relevant fact for a design session, and the header is the only place it can be stated.
-- **That artifact is content-hashed and goes stale.** A new app build changes the filename; a `cfg.cssEntry` still pointing at the old one is skipped, and every preview renders unstyled. Refreshing it is a repo-specific procedure — invoke the framework's builder directly rather than the `build` script, whose lifecycle hooks may do things a sync has no business triggering.
-- **Prop contracts are generated, and degrade to nothing by default.** The converter's extractor reads `.d.ts`. A repo whose components live in an app rather than a built package ships none, so every published contract collapses to `[key: string]: unknown` unless something regenerates it from source types. A component published with no props is a component the design agent guesses at.
-- **The export surface is hand-maintained and easy to break.** A star-export over a source tree collides (two files exporting `Content`) and drags in assets no loader handles, so the entry file is explicit, one named export per published component, pointing at implementation files and never at directory barrels. It and the config's component map are **one artifact in two files** — regenerate them together.
+- **Stylesheet is the app's prebuilt CSS, not the token file.** Under JIT, missing utilities fail silently — state this in the header.
+- **Artifact is content-hashed and goes stale** after app builds — refresh `cfg.cssEntry` per repo procedure.
+- **Prop contracts** from `.d.ts` or regenerated from source — empty props force guesswork.
+- **Export surface** is explicit, one named export per published component.
 
 ## The notes file
 
-Every sync accumulates repo-specific truth that is nowhere else: converter bugs worked around and why the obvious fix is wrong, warnings triaged as expected, components with no intrinsic size, overlays that need opening synthetically, a fixed clock in the capture harness. It lives beside the config (`.design-sync/NOTES.md`), it is the UI builder's, and it is written **as each thing is discovered**. Skip it and the next sync re-derives all of it from scratch — at full cost, in a fresh context, usually wrong the first time.
+`.design-sync/NOTES.md` accumulates repo-specific truth: converter workarounds, overlay capture, fixed clock in harness. Written as discovered; the designer owns it, with UI builders fixing the underlying components when needed.

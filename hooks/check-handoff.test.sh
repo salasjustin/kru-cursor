@@ -255,10 +255,6 @@ sheet_check kru-react-ui-builder "Build the card in \`packages/ui/card.tsx\` and
 # a version or a passage the brief names is slice content: no shadow line
 printf 'routes     kru-react-router-builder ← react-router 8.3.0 framework mode\n' >> "$sandbox/sheet/AGENTS.md"
 sheet_check kru-react-router-builder "Fix the loader in \`apps/console/src/routes/home.tsx\` — it runs on 8.3.0." 0
-mkdir -p "$sandbox/sheet/design"
-printf '# conventions\nPrimary actions sit at the bottom right of every dialog footer on desktop.\n' > "$sandbox/sheet/design/conventions.md"
-sheet_check kru-ux-designer "In design/conventions.md, replace \"Primary actions sit at the bottom right of every dialog footer on desktop\" with the mobile rule." 0
-
 # the gate stays out of unknown seats
 check allow general-purpose "Preserve existing comments in the file."
 
