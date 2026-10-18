@@ -13,16 +13,15 @@ file is edited by hand. `node scripts/port.mjs --list-models --seats` prints the
 | seat | model | fallback | why | source |
 |---|---|---|---|---|
 | `code-reviewer`, `architecture-reviewer`, `planner`, `ux-auditor` | `claude-opus-5-5[effort=high]` | `gpt-5.6-sol` | judgment seats: what they return *is* the judgment, so they get the strongest tier at high effort (upstream's reasoning, unchanged). Fable 5.1 stays unpinned for upstream's reason (2.5× the price). Fallback: GPT-5.6 Sol is the same price band ($4 / $20) from another provider | [opus-5-5](https://cursor.com/docs/models/claude-opus-5-5), [gpt-5-6-sol](https://cursor.com/docs/models/gpt-5-6-sol) |
-| the other 26 seats on upstream's Opus pin — builders, data, auth, payments, platform, `brand-designer`, `conversion-copywriter`, `svelte-ui-builder` | `claude-opus-5-5` | `gpt-5.6-sol` | correctness on money, auth, migrations and deploys; upstream's per-seat case in `ROSTER.md` holds | [opus-5-5](https://cursor.com/docs/models/claude-opus-5-5), [gpt-5-6-sol](https://cursor.com/docs/models/gpt-5-6-sol) |
-| `ui-designer`, `ux-designer`, `react-ui-builder`, `web-components-builder` | `kimi-k3` | `claude-opus-5-5` | the design and component seats move to Kimi K3 (Moonshot, Cursor's *Other Models* pool, $3 / $15 — under Opus's $4 / $20). `web-components-builder` writes a public API, so a defect it ships re-pins it to the fallback | [kimi-k3](https://cursor.com/docs/models/kimi-k3) |
+| the other 25 seats on upstream's Opus pin — builders, data, auth, payments, platform, `conversion-copywriter`, `svelte-ui-builder` | `claude-opus-5-5` | `gpt-5.6-sol` | correctness on money, auth, migrations and deploys; upstream's per-seat case in `ROSTER.md` holds | [opus-5-5](https://cursor.com/docs/models/claude-opus-5-5), [gpt-5-6-sol](https://cursor.com/docs/models/gpt-5-6-sol) |
+| `react-ui-builder`, `web-components-builder` | `kimi-k3` | `claude-opus-5-5` | the component seats move to Kimi K3 (Moonshot, Cursor's *Other Models* pool, $3 / $15 — under Opus's $4 / $20). `web-components-builder` writes a public API, so a defect it ships re-pins it to the fallback | [kimi-k3](https://cursor.com/docs/models/kimi-k3) |
 | `test-writer` | `grok-4.7` | `claude-sonnet-5-5` | coverage sweeps and suite repair: long, bounded, self-checking work. Grok 4.7 draws from the *Cursor Models* pool ($2 / $6, more included usage, no Cursor Token Rate on Teams) | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
 | `toolchain-engineer`, `vercel-perf-optimizer` | `grok-4.7[effort=medium]` | `claude-sonnet-5-5[effort=medium]` | checklist work against documented conventions; medium effort as upstream pins it. Grok 4.7 lists `medium` among its four effort levels | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
-| `graphic-designer` | `composer-2.5[fast=false]` | `claude-sonnet-5-5` | the seat drives the asset generator, and the generation model makes the image; Composer 2.5 is the cheapest capable tool user ($0.50 / $2.50, *Cursor Models* pool). `[fast=false]` because bare `composer-2.5` selects the fast variant at $3 / $15 | [composer-2-5](https://cursor.com/docs/models/cursor-composer-2-5), [subagents → Model parameters](https://cursor.com/docs/subagents) |
 | `accessibility-reviewer`, `visual-reviewer` | `claude-sonnet-5-5` | `grok-4.7` | upstream's tier: restraint-heavy review. `visual-reviewer` stays off Kimi K3 — it judges screenshots, and Kimi K3's page doesn't claim vision beyond the generic "images for vision-capable models" line | [sonnet-5-5](https://cursor.com/docs/models/claude-sonnet-5-5) |
 | `dispatch-auditor` | `claude-haiku-5-5[effort=medium]` | `composer-2.5[fast=false]` | checklist seat that fires every turn: the cheapest model on the list ($0.10 / $0.50) | [haiku-5-5](https://cursor.com/docs/models/claude-haiku-5-5) |
 | the lead (`kru-lead` skill) | the conversation's model | — | main thread, not settable from a file | — |
 
-`svelte-ui-builder` stays on Opus: it is outside the four design seats the fork moved, and its
+`svelte-ui-builder` stays on Opus: it is outside the two component seats the fork moved to Kimi K3, and its
 loop runs on the Svelte MCP's autofixer, which the model doesn't change. Moving it is one line in
 `SEAT_MODELS`.
 
@@ -90,7 +89,7 @@ levels:
 
 ## The asset generator's xAI backend
 
-`graphic-designer`'s generator (`scripts/asset/gen-asset.ts`) gains an xAI backend for stills and
+The asset generator (`scripts/asset/gen-asset.ts`) gains an xAI backend for stills and
 edits (`scripts/asset/xai.mjs`, hand-owned; the hook into the generator is port rules):
 
 - **Endpoint and models**, from docs.x.ai → *Inference API → Images* and *Model Capabilities → Image

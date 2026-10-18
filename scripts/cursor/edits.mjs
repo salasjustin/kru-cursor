@@ -1413,3 +1413,15 @@ EDITS.push(E(
   "Hand off per `skills/kru-lead/SKILL.md` → *Who acts at the door*.",
   "review PR21: retire hand-off matches kru-lead Who acts at the door",
 ))
+EDITS.push(E(
+  "skills/kru-update/vendored.md",
+  "the `ux-designer` trio",
+  "the removed design seats (pre-v0.156)",
+  "reflect v0.156: design seats removed upstream",
+))
+EDITS.push(E(
+  "skills/kru-update/reviewed.md",
+  "`accessibility-reviewer`, `graphic-designer` moved down from opus",
+  "`accessibility-reviewer` moved down from opus (upstream v0.156 removed `graphic-designer`)",
+  "reflect v0.156: ledger row matches removed graphic-designer seat",
+))

@@ -28,7 +28,7 @@ const PLUGIN = {
   name: "kru-cursor",
   displayName: "kru for Cursor",
   description:
-    "kru, ported to Cursor: an engineering lead plus 41 specialist subagents, the skills they load, and the hooks that keep handoffs honest. A port of github.com/ap-justin/kru.",
+    "kru, ported to Cursor: an engineering lead plus 37 specialist subagents, the skills they load, and the hooks that keep handoffs honest. A port of github.com/ap-justin/kru.",
   author: { name: "ap-justin" },
   repository: "https://github.com/salasjustin/kru-cursor",
   homepage: "https://github.com/salasjustin/kru-cursor",

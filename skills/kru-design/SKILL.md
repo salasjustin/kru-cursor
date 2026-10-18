@@ -3,7 +3,7 @@ name: kru-design
 description: Draft .dc.html artboards and publish them with Cursor's /canvas so the PM can settle a look. Use when a look is unsettled — 2-4 directions at bootstrap, screen mockups after, or a re-draft after the PM's verdict. The local files are the surface when /canvas is not available.
 ---
 
-The artboard and publish mechanics `ui-designer` draws on. The look is decided on the canvas. The verdict is the PM's. Practice: `${CURSOR_PLUGIN_ROOT}/references/ui-practice.md` → *The canvas*.
+The artboard and publish mechanics for an external designer session (`/kru-design`). The look is decided on the canvas. The verdict is the PM's. Practice: `${CURSOR_PLUGIN_ROOT}/references/ui-practice.md` and `${CURSOR_PLUGIN_ROOT}/references/designer-handoff.md`.
 
 ## Draft the files first
 
@@ -21,7 +21,7 @@ Always draft self-contained `.dc.html` artboards. They are the re-seed and the t
 - **Absolute paths in the return.**
 - **Inline everything.** A `<style>` block, values as literals. Every value is a literal. The token file is a builder's to write, once.
 - **One viewport per file, stated.** 1280 for desktop, 375 for mobile. A direction that only makes sense at both is two files.
-- **Real content.** The copy `ux-designer` wrote. Placeholder text hides the decision.
+- **Real content.** Copy from the build spec (or `conversion-copywriter`'s SECTION deck on marketing pages). Placeholder text hides the decision.
 - **The states the screen has**, stacked under small labels, where the brief names them.
 - **Web-safe faces, or a `<link>` to a font host.** Those are the file's outside loads. Everything else is local.
 - **Label every artboard in the file** — the direction's name and its one-line thesis.

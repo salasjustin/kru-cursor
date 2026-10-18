@@ -4,14 +4,14 @@
     "name": "ap-justin"
   },
   "metadata": {
-    "description": "kru, ported to Cursor: an engineering lead plus 41 specialist subagents, the skills they load, and the hooks that keep handoffs honest. A port of github.com/ap-justin/kru.",
+    "description": "kru, ported to Cursor: an engineering lead plus 37 specialist subagents, the skills they load, and the hooks that keep handoffs honest. A port of github.com/ap-justin/kru.",
     "version": "0.1.0+kru0.156.0"
   },
   "plugins": [
     {
       "name": "kru-cursor",
       "source": "./",
-      "description": "kru, ported to Cursor: an engineering lead plus 41 specialist subagents, the skills they load, and the hooks that keep handoffs honest. A port of github.com/ap-justin/kru.",
+      "description": "kru, ported to Cursor: an engineering lead plus 37 specialist subagents, the skills they load, and the hooks that keep handoffs honest. A port of github.com/ap-justin/kru.",
       "version": "0.1.0+kru0.156.0",
       "author": {
         "name": "ap-justin"

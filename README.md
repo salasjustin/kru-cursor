@@ -7,8 +7,8 @@
 *(said “crew”)*
 
 **kru for Cursor.** Your engineering department as a Cursor plugin: an engineering lead that scopes,
-routes and verifies, 41 specialist subagents it dispatches (React, SvelteKit, Next.js, Postgres,
-Stripe, Cloudflare, reviewers, designers…), the skills they work from, and hooks that keep every
+routes and verifies, 37 specialist subagents it dispatches (React, SvelteKit, Next.js, Postgres,
+Stripe, Cloudflare, reviewers…), the skills they work from, and hooks that keep every
 handoff honest.
 
 This is a port of [kru](https://github.com/ap-justin/kru) (built for Claude Code) to the
@@ -49,7 +49,7 @@ Plugin Imports** on, and a marketplace install of the same name takes precedence
 - **Context7** (`https://mcp.context7.com/mcp`) as an MCP server named `context7`: most seats' official-source chain starts there.
 - **Optional, for generated image/video assets:** `GOOGLE_API_KEY` (or `XAI_API_KEY` for stills and
   edits through xAI's Grok Imagine) and Node.js on PATH. Without them
-  the `graphic-designer` seat says what's missing and offers a fallback instead of a placeholder.
+  the asset generator says what's missing and offers a fallback instead of a placeholder.
 
 ## First run: `/kru-setup`
 In the repo you want the team to work on, type:
