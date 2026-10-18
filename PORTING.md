@@ -9,6 +9,11 @@ bash scripts/sync-upstream.sh    # merge upstream/main and regenerate the tree (
 bash scripts/verify.sh           # every static check (CI runs it on each pull request and push to main)
 ```
 
+Port and sync pull requests **must merge with a merge commit** (`gh pr merge --merge`), not squash
+or rebase. The tree is a function of the newest upstream commit **in git history**; squash leaves
+`VERSION` ahead of history and CI fails until upstream is re-recorded (`git merge -s ours --no-ff
+<upstream-sha>`). Details: `skills/kru-roster/fork-sync.md`.
+
 `.github/workflows/sync-upstream.yml` runs the first two weekly and opens the result as a pull
 request (an issue when the port can't take the new upstream); `skills/kru-roster/fork-sync.md` is
 the runbook and `skills/kru-roster/release.md` the release steps.
