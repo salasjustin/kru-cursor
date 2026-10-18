@@ -275,7 +275,7 @@ EDITS.push(E(
 EDITS.push(E(
   "hooks/setup-nudge.sh",
   "no kru sheet in .claude/CLAUDE.md. Once this session, Read \\${CURSOR_PLUGIN_ROOT}/skills/kru-setup/SKILL.md (${setup_path}) and run it when the task is to derive the sheet — otherwise carry on:",
-  "no kru sheet in AGENTS.md. Once this session, name /kru-setup to the PM (the PM bot runs it itself; a headless run says it in its return) — otherwise carry on:",
+  "no kru sheet in AGENTS.md. Once this session, name /kru-setup to the PM (the PM bot runs it itself; a headless run says it in its return). Read \\${CURSOR_PLUGIN_ROOT}/skills/kru-setup/SKILL.md (${setup_path}) when the task is to derive the sheet — otherwise carry on:",
   "t3: the PM bot runs /kru-setup; the sheet is AGENTS.md here",
 ))
 
@@ -1011,7 +1011,18 @@ EDITS.push(E(
   "The one seat Block O exempts (`kru-test-writer`)",
   "dispatch: Block O names the Task name",
 ))
-
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "The lead does **not** dispatch `code-reviewer`, `architecture-reviewer`, `visual-reviewer`, `accessibility-reviewer`, or `ux-auditor` in Step 4",
+  "The lead does **not** dispatch `kru-code-reviewer`, `kru-architecture-reviewer`, `kru-visual-reviewer`, `kru-accessibility-reviewer`, or `kru-ux-auditor` in Step 4",
+  "dispatch: Step 4 names the Task subagent_type when it names a review seat",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
+  "- **Comment pass (lead-owned).** On inline edits and on any path where no review seat ran, read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I before Step 5.",
+  "- **Comment pass (lead-owned).** On inline edits and on any path where no review seat ran, the comment pass stays lead-owned, the list in `SKILL.md` → *Delegate on stack, not size*: read the diff's added comments against `skills/kru-roster/shared-blocks.md` → Block I before Step 5.",
+  "dispatch: the comment pass stays lead-owned",
+))
 
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
@@ -1103,7 +1114,7 @@ EDITS.push(E(
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
   "Taste passes (`skills/kru-seo-review`, `copywriting`, `copy-editing`, `cro`, animation skills) load only when the task names one.",
-  "Taste passes (`skills/kru-seo-review`, `copywriting`, `copy-editing`, `cro`, animation skills) are lead-owned, the list in *Delegate on stack, not size*, and they load in the main thread only when the task names one.",
+  "Taste passes are lead-owned, the list in *Delegate on stack, not size*, and they load in the main thread only when the task names one.",
   "dispatch: taste passes are lead-owned",
 ))
 EDITS.push(E(

@@ -915,13 +915,13 @@ for f in skills/kru-lead/SKILL.md skills/kru-lead/references/reconcile.md TRACKE
 done
 rule_count=$(grep -cF "$RULE" "$repo/TRACKER.md" || true)
 report "TRACKER.md states the rule once" "$([ "$rule_count" = 1 ] && echo true || echo false)" "count $rule_count"
-report "lead line 9 states the rule" "$(sed -n '9p' "$repo/skills/kru-lead/SKILL.md" | grep -qF "$RULE" && echo true || echo false)" "line 9"
+report "lead line 8 states the rule" "$(sed -n '8p' "$repo/skills/kru-lead/SKILL.md" | grep -qF "$RULE" && echo true || echo false)" "line 8"
 report "reconcile line 12 states the rule" "$(sed -n '12p' "$repo/skills/kru-lead/references/reconcile.md" | grep -qF "$RULE" && echo true || echo false)" "line 12"
-report "kru-issue line 18 states the rule" "$(sed -n '18p' "$repo/skills/kru-issue/SKILL.md" | grep -qF "$RULE" && echo true || echo false)" "line 18"
-report "kru-issue line 43 states the rule" "$(sed -n '43p' "$repo/skills/kru-issue/SKILL.md" | grep -qF "$RULE" && echo true || echo false)" "line 43"
+report "kru-issue line 17 states the rule" "$(sed -n '17p' "$repo/skills/kru-issue/SKILL.md" | grep -qF "$RULE" && echo true || echo false)" "line 17"
+report "kru-issue line 42 states the rule" "$(sed -n '42p' "$repo/skills/kru-issue/SKILL.md" | grep -qF "$RULE" && echo true || echo false)" "line 42"
 header=$(sed -n '1,7p' "$repo/scripts/kru-tracker.test.sh" | sed 's/^# *//')
 report "the test header states the rule" "$(printf '%s\n' "$header" | grep -qF "$RULE" && echo true || echo false)" "header [$header]"
-report "the lead puts a period after the tracker-text rule" "$(sed -n '9p' "$repo/skills/kru-lead/SKILL.md" | grep -qF 'hand. It never' && echo true || echo false)" "missing period"
+report "the lead puts a period after the tracker-text rule" "$(sed -n '8p' "$repo/skills/kru-lead/SKILL.md" | grep -qF 'hand. It never' && echo true || echo false)" "missing period"
 report "the lead fork edit puts a period after the tracker-text rule" "$(grep -qF 'hand. It never' "$repo/scripts/cursor/edits.mjs" && echo true || echo false)" "missing period"
 report "TRACKER.md keeps comments on a security issue pointer-only" "$(grep -qF 'A comment or an update on a security issue stays pointer-only' "$repo/TRACKER.md" && echo true || echo false)" "missing"
 report "the lead no longer keeps security off Linear" "$(grep -qF "or to Linear" "$repo/skills/kru-lead/SKILL.md" && echo false || echo true)" "still says or to Linear"

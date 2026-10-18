@@ -26,7 +26,7 @@ top=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || exit 0
 grep -q '<!-- kru v' "$top/AGENTS.md" 2>/dev/null && exit 0
 
 setup_path="${plugin_root}/skills/setup/SKILL.md"
-msg="kru: this repo has no kru sheet in AGENTS.md. Once this session, name /kru-setup to the PM (the PM bot runs it itself; a headless run says it in its return) — otherwise carry on: brainstorming, briefs and grilling need no setup, and on a blank repo setup is where the stack gets settled."
+msg="kru: this repo has no kru sheet in AGENTS.md. Once this session, name /kru-setup to the PM (the PM bot runs it itself; a headless run says it in its return). Read \${CURSOR_PLUGIN_ROOT}/skills/kru-setup/SKILL.md (${setup_path}) when the task is to derive the sheet — otherwise carry on: brainstorming, briefs and grilling need no setup, and on a blank repo setup is where the stack gets settled."
 
 jq -n --arg ctx "$msg" '{
   hookSpecificOutput: {
