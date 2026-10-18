@@ -14,7 +14,7 @@ mkdir -p "$home"
 repo() { mkdir -p "$sandbox/$1" && git -C "$sandbox/$1" init -q; }
 repo bare
 repo stamped; mkdir -p "$sandbox/stamped/.claude"
-printf '# notes\n\n<!-- kru v0.141.0 · derived 2026-10-01 · /kru-setup to re-derive -->\n' > "$sandbox/stamped/AGENTS.md"
+printf '# notes\n\n<!-- kru v0.141.0 · derived 2026-10-01 · skills/kru-setup/SKILL.md to re-derive -->\n' > "$sandbox/stamped/AGENTS.md"
 repo unstamped; mkdir -p "$sandbox/unstamped/.claude"
 printf '# notes\nno team section\n' > "$sandbox/unstamped/AGENTS.md"
 repo plugin; mkdir -p "$sandbox/plugin/.cursor-plugin"; printf '{}' > "$sandbox/plugin/.cursor-plugin/plugin.json"
@@ -32,7 +32,9 @@ check() {
   code=$?
   [ "$code" -eq 0 ] || ok=false
   if [ "$expect" = nudge ]; then
-    printf '%s' "$out" | jq -e '.hookSpecificOutput.additionalContext | test("/kru-setup")' >/dev/null 2>&1 || ok=false
+    ctx=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext // empty' 2>/dev/null)
+    printf '%s' "$ctx" | grep -qF '${CURSOR_PLUGIN_ROOT}/skills/kru-setup/SKILL.md' || ok=false
+    printf '%s' "$ctx" | grep -qF "$root/skills/setup/SKILL.md" || ok=false
   else
     [ -z "$out" ] || ok=false
   fi

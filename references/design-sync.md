@@ -4,7 +4,7 @@
 
 For the **designer** maintaining a React design bundle — not the engineering lead. Read when the tree has a `.design-sync/`, or before standing one up. Engineering builds components; the designer publishes and designs against the bundle (`references/designer-handoff.md`).
 
-`/design-sync` publishes a bundle of the repo's **real** components to a claude.ai/design project. Everything it buys is paid for in maintenance.
+The designer's the canvas **`design-sync` command** publishes a bundle of the repo's **real** components to a claude.ai/design project. Everything it buys is paid for in maintenance.
 
 ## The entry bar
 
@@ -15,7 +15,7 @@ Two conditions gate it:
 - **React.** The converter takes React components.
 - **A maintained build.** A bundle is a workspace package with a preview harness, export surface, stylesheet build and notes file.
 
-Where every design turn reads the tree fresh in `/kru-design`, there is nothing to push and nothing to go stale.
+Where every design turn reads the tree fresh in the `skills/kru-design/SKILL.md`, there is nothing to push and nothing to go stale.
 
 ## The loop
 

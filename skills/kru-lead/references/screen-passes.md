@@ -1,10 +1,10 @@
-# The screen passes — what they are, how to brief them, and what stays the user's
+# The screen passes — what they are, how to brief them, and what stays lead-owned
 
-Detail behind `SKILL.md` → Step 4, *Screen passes*. Reached on UI work; a non-UI change never loads this.
+Detail for **PM-named** screen passes and Step 5 acceptance checks. The lead **does not** dispatch these in Step 4; list screens and flows for the PM on the preview unless the **task names** a pass or seat explicitly.
 
-## The two passes have seats, and you dispatch them
+## The two passes have seats — PM or task invokes them
 
-`visual-reviewer` and `accessibility-reviewer` are review-only agents whose entire body is the corresponding skill file — same rules, same output, same boundaries, read from the one copy. **Two callers, one body:** the user still types `/kru-visual-review` · `/kru-accessibility-review` and gets the pass inline; you spawn the seat and get it in an isolated context, after the source-reading gates and one browser at a time (`gates.md` → the batch).
+`visual-reviewer` and `accessibility-reviewer` are review-only agents whose entire body is the corresponding skill file — same rules, same output, same boundaries, read from the one copy. **Two callers, one body:** the PM types `skills/kru-visual-review/SKILL.md` · `skills/kru-accessibility-review/SKILL.md` for an inline sweep, or names the seat in the task for an isolated run — not an automatic Step 4 batch.
 
 **Conformance is the repo's own gate**, written in Phase 0 and run at every commit (`${CURSOR_PLUGIN_ROOT}/references/ui-handoff.md` → *Conformance is prevented, not detected*) — so an off-token value is already a failing test by the time a pass could look, and neither seat here is briefed for one.
 
@@ -33,8 +33,8 @@ Three things bound the batch:
 
 These have no seat and you never dispatch them. They are lead-owned, the list in `SKILL.md` → *Delegate on stack, not size*: they run in the main thread when the user names one, and that does not open the closed inline list:
 
-- `/kru-seo-review` — technical SEO/AEO audit, markup fixes on request.
-- `/kru-copywriting` · `/kru-copy-editing` · `/kru-cro` — on copy that already ships. A page not yet written is `conversion-copywriter`'s, routed before design (to the external designer) or build.
-- `/kru-review-animations` · `/kru-improve-animations` — motion craft review · roadmap.
+- `skills/kru-seo-review/SKILL.md` — technical SEO/AEO audit, markup fixes on request.
+- `skills/kru-copywriting/SKILL.md` (PM loads when the task names it) · `skills/kru-copy-editing/SKILL.md` (PM loads when the task names it) · `skills/kru-cro/SKILL.md` (PM loads when the task names it) — on copy that already ships. A page not yet written is `conversion-copywriter`'s, routed before design (to the external designer) or build.
+- `skills/kru-review-animations/SKILL.md` · `skills/kru-improve-animations/SKILL.md` — motion craft review · roadmap (PM or lead `Read` when the task names that pass).
 
-Marketing copy for new pages: `conversion-copywriter` → PM → designer mockups → PM spec → engineering. In-product microcopy and flows: design spec only; technical SEO: `/kru-seo-review`.
+Marketing copy for new pages: `conversion-copywriter` → PM → designer mockups → PM spec → engineering. In-product microcopy and flows: design spec only; technical SEO: `skills/kru-seo-review/SKILL.md`.

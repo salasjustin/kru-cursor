@@ -11,7 +11,7 @@
 # is the one item it supplies rather than refuses over (see the tail). fail open on anything that isn't a clear hit — a gate that misfires
 # costs more than one it lets through.
 # a new scan lands in shadow: its hits go to the refusal log marked shadow and
-# the dispatch goes through, until /roster learn reads them clean across repos
+# the dispatch goes through, until `skills/kru-roster/learn.md` (PM or lead loads) reads them clean across repos
 # and moves the scan into reasons.
 command -v jq >/dev/null 2>&1 || exit 0
 plugin_root="${1:-$CURSOR_PLUGIN_ROOT}"
@@ -32,7 +32,7 @@ prompt=$(printf '%s' "$input" | jq -r '.tool_input.prompt // empty' 2>/dev/null)
 [ -z "$prompt" ] && exit 0
 
 cwd=$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null)
-# the engagement stamp /roster learn counts distinct repos with — the last path
+# the engagement stamp `skills/kru-roster/learn.md` (PM or lead loads) counts distinct repos with — the last path
 # segment names whichever subdirectory the lead ran from, so one repo reads as
 # several engagements and a team-wide preference grades as one client's.
 cwd_slug=""
@@ -271,11 +271,12 @@ fi
 
 # planner reads a written brief.md (lead step 2.6)
 if [ "$seat" = "planner" ] && ! printf '%s' "$prompt" | grep -q 'brief\.md'; then
-  reasons="${reasons}planner brief names no brief.md: run /kru-brief first and point the seat at the written file (step 2.6). "
+  reasons="${reasons}planner brief names no brief.md: run `skills/kru-brief/SKILL.md` first and point the seat at the written file (step 2.6). "
 fi
 
 # shadow scans — logged, never refused.
 shadow=""
+
 # grouping: a sheet line names the directories its seat owns in backticks, so a
 # file under another seat's directory rides in the wrong brief. only a seat the
 # sheet gives directories to is checked, and only a seat that edits — a
@@ -310,7 +311,7 @@ if [ -n "$lanes" ] && ! $readonly_seat && printf '%s' "$lanes" | awk -v s="$seat
   [ -n "$misroute" ] && shadow="${shadow}grouping: ${misroute} per the sheet — split it into that seat's brief (step 3). "
 fi
 
-# the cross-session log /roster learn sweeps for misfires, reading each quoted
+# the cross-session log `skills/kru-roster/learn.md` (PM or lead loads) sweeps for misfires, reading each quoted
 # span against the sentence around it — so the log stores those windows, and
 # the prompt head, most of its bytes, stays in the session ledger where
 # dispatch-auditor grades the brief's own text.
@@ -353,7 +354,7 @@ if [ -n "$reasons" ]; then
   # a refused dispatch never reaches the posttooluse ledger writer, so this
   # branch writes the catch twice: to the session ledger, where dispatch-auditor
   # sees a scan the lead keeps walking past, and to a cross-session log
-  # /roster learn sweeps for misfires. log-dispatch.sh's record plus session and
+  # `skills/kru-roster/learn.md` (PM or lead loads) sweeps for misfires. log-dispatch.sh's record plus session and
   # reasons; a logging miss still refuses.
   record=$(make_record true "$reasons")
   adir=$(kru_path audit)

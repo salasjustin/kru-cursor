@@ -8,9 +8,9 @@ The team's UI doctrine, read by the three UI component builders, `design-system`
 
 **The approved spec is authoritative.** Every value it settled ships as authored. The repo's token file is where values live in code, transcribed from the build spec.
 
-**The foundation is the shape the values land in.** Seven foundations — color · typography · size · elevation · motion · primitives · shells — each answered by a closed **set**, a **rule** for picking a step, and a **consumer** spending it: `skills/kru-design-system/SKILL.md`, the user's `/kru-design-system` (audit and coverage reads — not engineering bootstrap). `create` emits an unset skeleton for greenfield repos that have no token architecture yet; values always come from the approved spec, not from engineering choosing a look.
+**The foundation is the shape the values land in.** Seven foundations — color · typography · size · elevation · motion · primitives · shells — each answered by a closed **set**, a **rule** for picking a step, and a **consumer** spending it: `skills/kru-design-system/SKILL.md`, the user's `skills/kru-design-system/SKILL.md` (audit and coverage reads — not engineering bootstrap). `create` emits an unset skeleton for greenfield repos that have no token architecture yet; values always come from the approved spec, not from engineering choosing a look.
 
-**The gallery is the builder's local loop.** `skills/kru-design-gallery/SKILL.md`, the user's `/kru-design-gallery`.
+**The gallery is the builder's local loop.** `skills/kru-design-gallery/SKILL.md`, the user's `skills/kru-design-gallery/SKILL.md`.
 
 ## Who owns what
 
@@ -30,8 +30,8 @@ The team's UI doctrine, read by the three UI component builders, `design-system`
 ## Bootstrap — no components exist yet
 
 1. **PM brings an approved design spec** — mockups + build spec from the designer (`design-spec.md`). Without it, engineering stops and asks the PM to get design first.
-2. **Builder Phase 0** — transcribe token values from the build spec into `design-system.ts`, emit the token file, ship the **conformance gate** in the same slice (see *The conformance gate*). Do **not** invoke `/kru-design-system create` to invent values — either the spec supplies the tokens or the builder implements the mapping the spec names. First components; conventions file turns to header era when applicable.
-3. **Feature slices** — builders implement screens to the spec; Step 4 runs `visual-reviewer` against the same mockups.
+2. **Builder Phase 0** — transcribe token values from the build spec into `design-system.ts`, emit the token file, ship the **conformance gate** in the same slice (see *The conformance gate*). Do **not** invoke `skills/kru-design-system/SKILL.md` (scope in the invoking task: create) to invent values — either the spec supplies the tokens or the builder implements the mapping the spec names. First components; conventions file turns to header era when applicable.
+3. **Feature slices** — builders implement screens to the spec; **PM acceptance** (Step 5) compares the preview to the same mockups (or a task-named `visual-reviewer` pass).
 
 Greenfield team defaults (`pnpm`, React when unstated) apply when scaffolding; brownfield matches the repo.
 
@@ -39,7 +39,7 @@ Greenfield team defaults (`pnpm`, React when unstated) apply when scaffolding; b
 
 1. **PM attaches the design spec** for the slice (or points at an unchanged spec already on the brief).
 2. **Build** — component + token edits in the repo, to the closed set (`references/ui-handoff.md`).
-3. **Verify** — repo gate every commit; `visual-reviewer` + `accessibility-reviewer` (+ `ux-auditor` on multi-screen flows) at Step 4.
+3. **Verify** — repo gate every commit; lead Step 4 is builder tests and evidence. **PM acceptance** on the preview covers `visual-reviewer` + `accessibility-reviewer` (+ `ux-auditor` on multi-screen flows) unless the task names those passes earlier.
 
 A **named gap** — the spec lacks a value the slice needs — goes to the **PM** with the token name; no seat invents it.
 
@@ -48,7 +48,7 @@ A **named gap** — the spec lacks a value the slice needs — goes to the **PM*
 Most trips round the loop compose a screen out of parts that already exist and settle no new value. A **system change** is the other kind: the token file itself moves. Two things start one — a builder's **named gap**, blocked and reported (*The conformance gate*, below), or a deliberate improvement the owner approves through an **updated design spec** from the designer. Both run the same steps; what differs is what the landing step lands and what closes it.
 
 - **The token edit is its own slice, and it lands first.** A value that is retuned, renamed or retired reaches every consumer in the tree, so it goes in ahead of the components that consume it rather than riding along inside one of them. Where the repo generates its token file from `design-system.ts`, the edit is to `design-system.ts` and the emitted CSS rides along in the same commit — never the reverse.
-- **A change to a ladder's *shape* is a different animal from a change to a value in it.** Adding a step, splitting a ladder, or restating what a step is for changes what every future value choice resolves against, so it runs `/kru-design-system audit` first and lands as its own slice ahead of any value edit.
+- **A change to a ladder's *shape* is a different animal from a change to a value in it.** Adding a step, splitting a ladder, or restating what a step is for changes what every future value choice resolves against, so it runs `skills/kru-design-system/SKILL.md` (scope in the invoking task: audit) first and lands as its own slice ahead of any value edit.
 - **The gate runs over the whole tree on that slice**, not over the components that changed. Whether the rest of the tree still resolves is the question a system change asks, and a repo-wide sweep is what answers it — a name that stopped resolving is a rename that stranded its consumers, and it is a finding on the slice that renamed it.
 - **A type-stack swap is a repo-wide grep on both ends, and the second one reads the built CSS.** A `font-family` literal inside a component-scoped style block survives the swap in silence — no build, lint or type error, just the wrong face resolving from a system fallback — so the slice greps the whole tree for family literals rather than the token file alone, then greps the *emitted* stylesheet for the outgoing family names. Zero hits there is the proof the swap landed. The same slice re-measures anything sized in `ch`: a `ch` is that face's own `0` advance, so a fixed `Nch` rail holds a different number of characters under the new face (a 1.33 vs 1.27 `0`-to-average-lowercase ratio moved a `60ch` measure from ~75 characters to ~80). Measure the incoming face in the browser — x-height scales the wrong quantity.
 - **The conventions file moves in the same change** when the designer's updated build spec says so. A header that lags the system sends the next design session at constraints the repo no longer holds.
@@ -71,7 +71,7 @@ The **names** sweep is the one nothing else catches. A class name borrowed from 
 
 A value the system cannot express is a **named gap** — reported to the **PM**, with the token name it would need. One line, not a round trip.
 
-A gate runs in no context window, at every commit, and can't be skipped because the review batch was busy.
+A gate runs in no context window, at every commit, and can't be skipped because a review pass was deferred.
 
 Handoff detail: `references/ui-handoff.md` → *Conformance is prevented, not detected*.
 
@@ -90,7 +90,7 @@ What stays banned is a **review seat computing a ratio to overturn the spec**: `
 What runs, and when:
 
 - **Every commit, mechanical:** the gate above — whatever the build enforces structurally, plus the sweeps in the suite.
-- **At Step 4, in the parallel batch:** `visual-reviewer` — **spec match at 1440 and 375** plus states nobody opens and defect root cause; `accessibility-reviewer`; `ux-auditor` on a named flow.
+- **At PM acceptance (Step 5), on the preview:** `visual-reviewer` when named — **spec match at 1440 and 375** plus states nobody opens and defect root cause; `accessibility-reviewer`; `ux-auditor` on a named flow.
 - **Outside kru:** the designer bot may compare the finished UI to her mockups after ship.
 
 ## Team defaults (greenfield only)

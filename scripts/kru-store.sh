@@ -46,7 +46,7 @@ kru_repo_root() {
   printf '%s' "${CURSOR_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-$PWD}}"
 }
 
-# one name identifies a project across both stores — the inbox line /remember
+# one name identifies a project across both stores — the inbox line `skills/kru-remember/SKILL.md`
 # stamps and the plan dir the planner writes carry the same slug. the dir name
 # differs by machine — a cloud vm names the clone after the github repo — so
 # KRU_PROJECT pins it; set in the repo's committed .claude/settings.json `env`,
