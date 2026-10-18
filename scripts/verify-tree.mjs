@@ -28,6 +28,7 @@ const TOOL_NAME = "[A-Za-z][A-Za-z0-9:_-]*"
 const ANCHORED = new RegExp(`^\\^(?:(${TOOL_NAME})|\\((${TOOL_NAME}(?:\\|${TOOL_NAME})*)\\))\\$$`)
 function matcherNames(m) {
   if (m === "*") return ["*"]
+  if (m === "^MCP:.*$") return ["MCP:*"]
   try { new RegExp(m) } catch { return null }
   const a = ANCHORED.exec(m)
   return a ? (a[1] ?? a[2]).split("|") : null
@@ -209,7 +210,7 @@ for (const f of yamlFiles) if (parsed[f]?.error) fail("json/yaml", `${f}: ${pars
 
 // --- hooks.json ----------------------------------------------------------------------------------
 const EVENTS = new Set(["sessionStart", "sessionEnd", "preToolUse", "postToolUse", "postToolUseFailure", "subagentStart", "subagentStop", "beforeShellExecution", "afterShellExecution", "beforeMCPExecution", "afterMCPExecution", "beforeReadFile", "afterFileEdit", "beforeSubmitPrompt", "preCompact", "stop", "afterAgentResponse", "afterAgentThought", "beforeTabFileRead", "afterTabFileEdit", "workspaceOpen"])
-const TOOL_MATCHERS = new Set(["Shell", "Read", "Write", "Grep", "Delete", "Task", "*"])
+const TOOL_MATCHERS = new Set(["Shell", "Read", "Write", "Grep", "Delete", "Task", "CallDynamicTool", "*"])
 let hooks = {}
 try {
   hooks = JSON.parse(read("hooks/hooks.json"))
@@ -230,7 +231,9 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
       const m = String(e.matcher)
       const names = matcherNames(m)
       if (!names) fail("hooks", `${event}: matcher ${m} is not anchored (^Name$ or ^(A|B)$) — cursor reads it as an unanchored regex`)
-      else for (const n of names) if (!TOOL_MATCHERS.has(n) && !/^MCP:/.test(n)) fail("hooks", `${event}: matcher ${n} is not a cursor tool (claude's Bash/Edit/Agent?)`)
+      else for (const n of names)
+        if (!TOOL_MATCHERS.has(n) && !/^MCP:/.test(n) && n !== "MCP:*")
+          fail("hooks", `${event}: matcher ${n} is not a cursor tool (claude's Bash/Edit/Agent?)`)
     }
     for (const s of String(e.command).match(/[a-z0-9-]+\.sh/g) ?? []) if (!existsSync(join(ROOT, "hooks", s))) fail("hooks", `${event}: ${s} is not in hooks/`)
     if (!/^bash "\$\{CURSOR_PLUGIN_ROOT\}\/hooks\/cursor-hook\.sh" /.test(e.command)) fail("hooks", `${event}: ${e.command} skips the adapter`)
@@ -263,7 +266,7 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
   else if (upstream !== version.split("+kru")[1])
     fail(
       "version",
-      `VERSION pins kru ${version.split("+kru")[1]}, the newest upstream commit in history says ${upstream} — upstream must be recorded as a merge parent (never squash or rebase a port/sync pull request; see fork-sync.md)`,
+      `VERSION pins kru ${version.split("+kru")[1]}, the newest upstream commit in history says ${upstream} — upstream must be recorded as a merge parent (never squash or rebase a port/sync pull request; see skills/kru-roster/fork-sync.md)`,
     )
 }
 
