@@ -32,21 +32,40 @@ Always draft self-contained `.dc.html` artboards. They are the re-seed and the t
 
 ## Publish with `/canvas`
 
-When `/canvas` is available, publish the directions as one live canvas the PM compares beside the chat. Invoke Cursor's built-in `/canvas` ([skills](https://cursor.com/docs/skills): "Creates interactive React artifacts that render alongside the conversation"; [canvas](https://cursor.com/docs/agent/tools/canvas)). A plugin packages that workflow as a skill — this file is that skill. There is no separate publish API.
-
-Layout: 2–4 directions the PM can compare, each named with its one-line thesis, each frame taken from the `.dc.html` you just wrote. Values stay literals. The card at the end of the response is the link ([canvas](https://cursor.com/docs/agent/tools/canvas) → *Opening a canvas*). The PM reshapes it by asking, by editing the source, or with Design Mode in the canvas ([changelog](https://cursor.com/changelog/canvas-improvements)). **Publish** on the toolbar is a read-only team link on paid plans ([canvas](https://cursor.com/docs/agent/tools/canvas) → *Sharing canvases*; [shared canvases](https://cursor.com/changelog/shared-canvases)). It is not a save that republishes a design project.
+Publish the directions as one live canvas the PM compares beside the chat. Layout is the same on every host: **2–4 directions**, each named with its one-line thesis, each frame taken from the `.dc.html` you just wrote. Values stay literals.
 
 The canvas is a React artifact ([skills](https://cursor.com/docs/skills)). It does not host the `.dc.html` file, and it has no design-system token layer. A builder still transcribes every value once into the repo's token file.
 
-Canvases are the interactive artifacts introduced for the Agents Window ([changelog, 2026-04-15](https://cursor.com/changelog/04-15-26); [announcement](https://cursor.com/blog/canvas)).
+### Cloud agent
 
-If `/canvas` is not offered, or creating the canvas fails, do not invent a publish. Return the absolute `.dc.html` paths and say the canvas was not available.
+On a **Cursor cloud agent**, Cursor's built-in **`canvas` skill** is present (`~/.cursor/skills-cursor/canvas/SKILL.md`), with **`WriteCanvas`** and **`ReadCanvas`** tools. Call them directly — not via MCP.
+
+1. **`WriteCanvas`** with the full `.canvas.tsx` `contents` and a `title`; omit `canvas_id` to create.
+2. The tool returns a **`canvas_id`** and a **`url`** (`https://cursor.com/canvas/<store>/<id>`). Hand the PM that **url** as the canvas link. No toolbar **Publish** click is required on cloud agents.
+3. The link opens for **signed-in team members** — do not call it a public link.
+4. **Update an existing canvas:** `ReadCanvas` with `canvas_id` or the canvas `url`, then `WriteCanvas` again with the **same `canvas_id`** and the full new `contents` (per the canvas skill — there is no on-disk source path).
+
+### Cursor IDE
+
+When `/canvas` is available in the IDE, invoke it ([skills](https://cursor.com/docs/skills); [canvas](https://cursor.com/docs/agent/tools/canvas)). This file is the designer workflow around that built-in. The **canvas card** at the end of the response is the link ([canvas](https://cursor.com/docs/agent/tools/canvas) → *Opening a canvas*). The PM reshapes it by asking, by editing the source, or with Design Mode ([changelog](https://cursor.com/changelog/canvas-improvements)). **Publish** on the canvas toolbar is the read-only **team share** link on paid plans ([canvas](https://cursor.com/docs/agent/tools/canvas) → *Sharing canvases*; [shared canvases](https://cursor.com/changelog/shared-canvases)).
+
+### Fallback
+
+If neither cloud **`WriteCanvas`** nor IDE `/canvas` is available, or creating the canvas fails, do not invent a publish. Return the absolute `.dc.html` paths and say the canvas was not available.
+
+## Canvas vs approved mockups
+
+The canvas is for **comparing directions** before the PM picks one. **Approved mockups** are still **PNG exports at 1440 and 375** (and the build spec). They attach to the **Linear issue** and are what the layout gate and `visual-reviewer` compare against at build time.
+
+Put the canvas **`url`** on the Linear issue as an **extra link** for direction review. It **never replaces** the PNG mockups.
 
 ## The handoff
 
 You talk to the **PM**, not the engineering lead. The return carries what the PM needs to approve and attach to the engineering brief (`references/design-spec.md`):
 
-- the canvas card, when one was created; otherwise the absolute path of each artboard and the index, marked uncommitted
+- **canvas** — the `url` and `canvas_id` when one was created; on IDE sessions, the canvas card counts as the link
+- **approved mockups** — absolute paths to the **1440** and **375** PNG exports per screen and state
+- **artboards** — absolute paths to each `.dc.html` and the index, marked uncommitted
 - each direction's name and one-line thesis
 - the one line saying what you matched from the repo
 - design questions for the PM (static mockups or working controls, and anything the brief left open)

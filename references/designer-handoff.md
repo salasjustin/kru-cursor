@@ -14,7 +14,17 @@ Working files (artboards, `canvas.json`, images) stay **local and uncommitted** 
 
 ## Canvas and the design skill
 
-Load **`skills/kru-design/SKILL.md`** (`${CURSOR_PLUGIN_ROOT}/skills/kru-design/SKILL.md`, designer bot only — no engineering slash command) and publish with Cursor's `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) for artboards:
+Load **`skills/kru-design/SKILL.md`** (`${CURSOR_PLUGIN_ROOT}/skills/kru-design/SKILL.md`, designer bot only — no engineering slash command). Publish directions on a canvas; draft `.dc.html` artboards first (same skill).
+
+**Cloud agent.** The built-in `canvas` skill and **`WriteCanvas`** / **`ReadCanvas`** are available. `WriteCanvas` returns a `canvas_id` and `url` (`https://cursor.com/canvas/<store>/<id>`) — that url is the link to hand back to the PM. No toolbar **Publish** is needed. The link is for **signed-in team members**, not a public page. To revise: `ReadCanvas`, then `WriteCanvas` with the same `canvas_id` and full new `contents`.
+
+**Cursor IDE.** Use `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)); the canvas card is the link. **Publish** on the toolbar is the team share link on paid plans.
+
+**Neither host.** Return absolute `.dc.html` paths (see the design skill).
+
+**Canvas vs mockups.** The canvas compares directions. **Approved mockups** stay **1440** and **375** PNG exports on the **Linear issue** — what the layout gate and `visual-reviewer` use. Add the canvas `url` on Linear as an extra link; it does not replace the PNGs.
+
+**Return to the PM:** canvas `url` + `canvas_id` (or IDE canvas card), PNG export paths, `.dc.html` paths, build spec, approval line.
 
 - Match the existing app from the repo when brownfield — token file, stylesheets, closest screens — and say in one line what you matched.
 - **Directions at bootstrap, screen mockups after** — 2–4 genuinely different directions when the look is unsettled; compose from real parts once a system exists.
