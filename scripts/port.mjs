@@ -501,7 +501,7 @@ const RULES = [
   R(/ and the claude\.ai connector to `MCP claude_ai_Context7__\*` —\n  either leaves those seats holding entries that resolve to nothing\./g, " —\n  that leaves those seats holding entries that resolve to nothing. The claude.ai connector (`MCP claude_ai_Context7__*`) is Claude-only and is not a Cursor failure mode.", { md: true, files: /^skills\/kru-setup\/SKILL\.md$/, required: /is Claude-only and is not a Cursor failure mode/ }),
   R(/ the same way, and the `svelte@svelte` plugin namespaces its server to\n  `\*` \(`plugin_svelte_svelte` MCP\) — a Svelte repo registers a bare `svelte` entry in its `\.mcp\.json`\n  \(http `https:\/\/mcp\.svelte\.dev\/mcp`\)\./g,
     " the same way — a Svelte repo registers a bare `svelte` entry in `.cursor/mcp.json` (http `https://mcp.svelte.dev/mcp`) for local Cursor use. Cloud agents only get it once it is added as a team MCP server in the Cursor dashboard (they ignore the repo's `.cursor/mcp.json`).",
-    { md: true, files: /^skills\/kru-setup\/SKILL\.md$/ }),
+    { md: true, files: /^skills\/kru-setup\/SKILL\.md$/, required: /Cloud agents only get it once it is added as a team MCP server/ }),
   R(/\(`TESTING\.md` → \*Verify before shipping\*\)/g, "(`PORTING.md` — the verify gate at the top)", { md: true, required: /`PORTING\.md` — the verify gate at the top/ }),
   R(/\| `mcp` \| `agent mcp list` and the plugins under \*\*Customize\*\*,/g, "| `mcp` | `agent mcp list` and the plugins under **Customize**,", { md: true }),
   R(/`claude plugin details kru`/g, "the plugin's entry under **Customize**", { md: true }),

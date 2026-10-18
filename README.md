@@ -152,7 +152,7 @@ store through a private git repo. [`references/store.md`](references/store.md) i
 Bugs and product wants go to the work tracker. **`KRU_TRACKER`** is `github` (the default; unset and
 empty count the same) or `linear`. Nothing routes to Linear until a repo sets `KRU_TRACKER=linear`,
 **`KRU_LINEAR_TEAM`** to the team key, and **`KRU_LINEAR_PROJECT`** to the project name (for example
-`KRU_LINEAR_TEAM=BG` and `KRU_LINEAR_PROJECT=Connector`. Those names are the repo's; this plugin
+`KRU_LINEAR_TEAM=BG` and `KRU_LINEAR_PROJECT=Connector`). Those names are the repo's; this plugin
 hard-codes none. When the agent has Linear MCP tools, it uses those. **`LINEAR_API_KEY`** is optional:
 the script's API fallback when MCP is not connected, a cloud agent secret if you set one, never a
 committed key. Pull requests stay on GitHub and link the Linear issue id. On the GitHub tracker a
