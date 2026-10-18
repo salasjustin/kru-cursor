@@ -1727,11 +1727,25 @@ EDITS.push(E(
   "**Rule:** give a component a `max-width` and let it shrink only once the viewport is narrower than that; fixed-width sidebars sized to their contents, a fluid main area with its own inner layout. A narrow thing that looks lost in a wide layout is split into columns (the supporting text beside the form), never stretched. Section **shell** widths are *Shared column alignment (desktop grid)*; this entry is **inner elements inside a shell** only — forms, cards, and text blocks size to their content, not the viewport.",
   "mockup layout gate r3: element width scoped to inner content",
 ))
+const VISUAL_REVIEW_DEV_SERVER_BULLET =
+  "- **The dev server must already be running — never start it.** For mockup layout the lead may hand you `http://localhost:4400/…`; probe that URL like any other — if nothing answers, stop and report that to the lead only (the lead fixes reachability before re-dispatch). For every other target, probe the URL first; if nothing responds, stop and report that, naming the URL — to the user inline, in your return as a seat."
 EDITS.push(E(
   "skills/kru-visual-review/SKILL.md",
   "- **The dev server must already be running — never start it.** If nothing responds at the target URL, stop and report that, naming the URL — to the user inline, in your return as a seat.",
-  "- **The dev server must already be running — never start it.** If nothing responds at the target URL, stop and report that, naming the URL — to the user inline, in your return as a seat. **Mockup layout** (the brief names it): return the gap to the lead; the lead serves artboards at `http://localhost:4400/…` (`python3 -m http.server 4400 -d .design-work`).",
+  VISUAL_REVIEW_DEV_SERVER_BULLET,
   "mockup layout gate r3: visual-review mockup reachability to lead",
+))
+EDITS.push(E(
+  "skills/kru-visual-review/SKILL.md",
+  "- **The dev server must already be running — never start it.** If nothing responds at the target URL, stop and report that, naming the URL — to the user inline, in your return as a seat. **Mockup layout** (the brief names it): return the gap to the lead; the lead serves artboards at `http://localhost:4400/…` (`python3 -m http.server 4400 -d .design-work`).",
+  VISUAL_REVIEW_DEV_SERVER_BULLET,
+  "mockup layout gate r5: visual-review dev-server bullet matches local-browser split",
+))
+EDITS.push(E(
+  "skills/kru-visual-review/SKILL.md",
+  `${VISUAL_REVIEW_DEV_SERVER_BULLET} **Mockup layout** (the brief names it): return the gap to the lead; the lead serves artboards at \`http://localhost:4400/…\` (\`python3 -m http.server 4400 -d .design-work\`).`,
+  VISUAL_REVIEW_DEV_SERVER_BULLET,
+  "mockup layout gate r5: visual-review dev-server bullet dedupe partial r5 port",
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
@@ -1744,4 +1758,12 @@ EDITS.push(E(
   "and a seat that finds no page falls back to a static read that verifies no rendered criterion). **Mockup layout** uses the lead-served artboard URL from step 1 above — if `http://localhost:4400/…` does not answer, the seat returns that to the lead; the lead runs `python3 -m http.server 4400 -d .design-work` and fixes reachability before re-dispatch. They are report-only",
   "and a seat that finds no page falls back to a static read that verifies no rendered criterion). They are report-only",
   "mockup layout gate r3: mockup reachability stays on mockup gate not Step 4",
+))
+
+// --- mockup layout gate: round-5 review fixes --------------------------------
+EDITS.push(E(
+  "references/ui-practice.md",
+  "| the user | the design gate — the eye on the render, which is the only design verdict on this team |",
+  "| the PM | the design gate — the eye on the render, which is the only design verdict on this team |",
+  "mockup layout gate r5: ui-practice who owns what PM design gate row",
 ))

@@ -24,7 +24,7 @@ The look is made on **the canvas**, which invents one better than a plan written
 | `ux-designer` | flows, IA, the screen + state inventory, the product's own strings — and **the conventions file**, in both its eras (*The conventions file*, below) |
 | `conversion-copywriter` | a marketing route's argument and its strings — the SECTION deck an artboard is drawn around and a builder mounts verbatim |
 | the UI builder | the token file, the **conformance gate**, the components — and the bundle's machinery where the repo runs the sync lane |
-| the user | the design gate — the eye on the render, which is the only design verdict on this team |
+| the PM | the design gate — the eye on the render, which is the only design verdict on this team |
 
 ## The conventions file
 
