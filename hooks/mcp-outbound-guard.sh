@@ -29,9 +29,12 @@ emit_deny() {
   printf '%s\n' "$msg" >&2
   if command -v jq >/dev/null 2>&1; then
     jq -nc --arg m "$msg" '{permission: "deny", user_message: $m, agent_message: $m}'
-  else
-    # fail-closed when jq is missing; still emit valid JSON
+  elif command -v node >/dev/null 2>&1; then
     node -e 'const m=process.argv[1]; process.stdout.write(JSON.stringify({permission:"deny",user_message:m,agent_message:m})+"\n")' "$msg"
+  else
+    local esc=${msg//\\/\\\\}
+    esc=${esc//\"/\\\"}
+    printf '{"permission":"deny","user_message":"%s","agent_message":"%s"}\n' "$esc" "$esc"
   fi
   exit 2
 }
@@ -46,8 +49,26 @@ trace_line() {
   printf '%s\n' "$line" >>"$KRU_HOOK_TRACE" 2>/dev/null || true
 }
 
+# Whitespace-tolerant grep when JSON does not parse (or jq/node are absent). Fail-closed:
+# invalid prose that merely contains "tool_name":"CallDynamicTool" is treated as MCP-shaped.
+mcp_shape_grep_heuristic() {
+  local s=$1
+  if printf '%s' "$s" | grep -Eq '"tool_name"[[:space:]]*:[[:space:]]*"CallDynamicTool"'; then
+    case "$s" in
+      *'"namespace"[[:space:]]*:[[:space:]]*"cursor"'*|*'"namespace" : "cursor"'*) return 1 ;;
+    esac
+    return 0
+  fi
+  printf '%s' "$s" | grep -Eq '"tool_name"[[:space:]]*:[[:space:]]*"MCP:' && return 0
+  if printf '%s' "$s" | grep -Eq '"mcp_server_name"[[:space:]]*:[[:space:]]*"'; then
+    printf '%s' "$s" | grep -Eq '"mcp_server_name"[[:space:]]*:[[:space:]]*"cursor"' && return 1
+    return 0
+  fi
+  return 1
+}
+
 looks_like_mcp() {
-  # when the classifier is missing, fail closed for MCP-shaped payloads only (tool_name / mcp_server_name — never body substrings)
+  # MCP-shaped: tool_name / mcp_server_name fields only — not arbitrary body substrings on valid JSON
   if command -v jq >/dev/null 2>&1; then
     printf '%s' "$1" | jq -e '
       def dyn_cursor: (.tool_name == "CallDynamicTool") and (.tool_input.namespace? == "cursor");
@@ -60,20 +81,40 @@ looks_like_mcp() {
     ' >/dev/null 2>&1
     return $?
   fi
-  node -e '
-    let p; try { p = JSON.parse(process.argv[1]); } catch { process.exit(1); }
-    const raw = String(p.tool_name ?? "");
-    const ns = p.tool_input?.namespace;
-    if (raw === "CallDynamicTool" && typeof ns === "string" && ns.toLowerCase() === "cursor") process.exit(1);
-    if (raw === "CallDynamicTool") process.exit(0);
-    if (/^MCP:/.test(raw)) {
-      const server = (raw.replace(/^MCP:/i, "").split(/[:/]/)[0] ?? "").toLowerCase();
-      process.exit(server === "cursor" ? 1 : 0);
-    }
-    const srv = p.mcp_server_name;
-    if (typeof srv === "string" && srv.length > 0) process.exit(srv.toLowerCase() === "cursor" ? 1 : 0);
-    process.exit(1);
-  ' "$1"
+  if command -v node >/dev/null 2>&1; then
+    node -e '
+      let p; try { p = JSON.parse(process.argv[1]); } catch { process.exit(1); }
+      const raw = String(p.tool_name ?? "");
+      const ns = p.tool_input?.namespace;
+      if (raw === "CallDynamicTool" && typeof ns === "string" && ns.toLowerCase() === "cursor") process.exit(1);
+      if (raw === "CallDynamicTool") process.exit(0);
+      if (/^MCP:/.test(raw)) {
+        const server = (raw.replace(/^MCP:/i, "").split(/[:/]/)[0] ?? "").toLowerCase();
+        process.exit(server === "cursor" ? 1 : 0);
+      }
+      const srv = p.mcp_server_name;
+      if (typeof srv === "string" && srv.length > 0) process.exit(srv.toLowerCase() === "cursor" ? 1 : 0);
+      process.exit(1);
+    ' "$1"
+    return $?
+  fi
+  mcp_shape_grep_heuristic "$1"
+}
+
+json_object_parses() {
+  if command -v node >/dev/null 2>&1; then
+    node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const v=JSON.parse(s);process.exit(typeof v==="object"&&v!==null&&!Array.isArray(v)?0:1)}catch{process.exit(1)}})' <<<"$1"
+    return $?
+  fi
+  if command -v jq >/dev/null 2>&1; then
+    printf '%s' "$1" | jq -e 'type == "object"' >/dev/null 2>&1
+    return $?
+  fi
+  return 1
+}
+
+can_run_classifier() {
+  command -v node >/dev/null 2>&1 && [ -f "$classify" ]
 }
 
 root=$(resolve_root "${1:-}")
@@ -85,12 +126,10 @@ if [ ! -t 0 ]; then
 fi
 [ -n "$input" ] || emit_allow
 
-if ! node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{JSON.parse(s);process.exit(0)}catch{process.exit(1)}})' <<<"$input"; then
-  case "$input" in
-    *'"tool_name":"CallDynamicTool"'*|*'"tool_name": "CallDynamicTool"'*|*'"tool_name":"MCP:'*|*'"tool_name": "MCP:'*)
-      emit_deny "kru: MCP outbound guard received invalid JSON. Denying connector MCP."
-      ;;
-  esac
+if ! json_object_parses "$input"; then
+  if mcp_shape_grep_heuristic "$input"; then
+    emit_deny "kru: MCP outbound guard received invalid JSON. Denying connector MCP."
+  fi
   emit_allow
 fi
 
@@ -103,21 +142,11 @@ if looks_like_mcp "$input"; then
   is_mcp=1
 fi
 
-if [ ! -f "$classify" ]; then
+if ! can_run_classifier; then
   if [ "$is_mcp" = 1 ]; then
-    emit_deny "kru: MCP outbound guard is misconfigured (missing classifier at scripts/cursor/mcp-outbound-classify.mjs). Denying connector MCP until project hooks point at the repo copy."
+    emit_deny "kru: MCP outbound guard is misconfigured (missing node or classifier at scripts/cursor/mcp-outbound-classify.mjs). Denying connector MCP."
   fi
   emit_allow
-fi
-
-if [ "$is_mcp" = 1 ]; then
-  if command -v jq >/dev/null 2>&1; then
-    if ! printf '%s' "$input" | jq -e 'type == "object"' >/dev/null 2>&1; then
-      emit_deny "kru: MCP outbound guard received invalid JSON. Denying connector MCP."
-    fi
-  elif ! node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const v=JSON.parse(s);process.exit(typeof v==="object"&&v!==null&&!Array.isArray(v)?0:1)}catch{process.exit(1)}})' <<<"$input"; then
-    emit_deny "kru: MCP outbound guard received invalid JSON. Denying connector MCP."
-  fi
 fi
 
 errf=$(mktemp 2>/dev/null) || {

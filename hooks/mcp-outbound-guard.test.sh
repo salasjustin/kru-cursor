@@ -208,16 +208,20 @@ resp=$(printf '%s' '{"tool_name":"CallDynamicTool","tool_input":{"namespace":"Li
 if printf '%s' "$resp" | jq -e '.permission == "deny"' >/dev/null 2>&1; then pass=$((pass + 1)); else
   fail=$((fail + 1)); echo "FAIL: MCP invalid JSON should deny"; echo "  resp: $resp"
 fi
+resp=$(printf '%s' '{"tool_name" : "CallDynamicTool","tool_input":{"namespace":"Linear"' | bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "deny"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: spaced CallDynamicTool invalid JSON should deny"; echo "  resp: $resp"
+fi
+resp=$(printf '%s' '{"tool_name":"delete_comment","mcp_server_name":"Linear"' | bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "deny"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: truncated native MCP JSON should deny"; echo "  resp: $resp"
+fi
 
 # missing jq: classifier runs via node; non-MCP tools still allowed
 minimal_bin=$(mktemp -d)
-ln -s "$(command -v node)" "$minimal_bin/node"
-ln -s "$(command -v bash)" "$minimal_bin/bash"
-ln -s "$(command -v grep)" "$minimal_bin/grep"
-ln -s "$(command -v mktemp)" "$minimal_bin/mktemp"
-ln -s "$(command -v rm)" "$minimal_bin/rm"
-ln -s "$(command -v cat)" "$minimal_bin/cat"
-ln -s "$(command -v date)" "$minimal_bin/date"
+for cmd in node bash grep mktemp rm cat date dirname; do
+  p=$(command -v "$cmd" 2>/dev/null) && [ -n "$p" ] && ln -sf "$p" "$minimal_bin/$cmd"
+done
 no_jq_path="$minimal_bin"
 resp=$(printf '%s' "$(payload_dyn Linear list_teams)" | PATH="$no_jq_path" bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
 if printf '%s' "$resp" | jq -e '.permission == "allow"' >/dev/null 2>&1; then pass=$((pass + 1)); else
@@ -239,6 +243,30 @@ resp=$(printf '%s' '{"tool_name":"Grep","tool_input":{"pattern":"x"}}' | PATH="$
 if printf '%s' "$resp" | jq -e '.permission == "allow"' >/dev/null 2>&1; then pass=$((pass + 1)); else
   fail=$((fail + 1)); echo "FAIL: non-MCP Grep without jq should allow"; echo "  resp: $resp"
 fi
+resp=$(printf '%s' '{"tool_name":"list_teams","mcp_server_name":"Linear"}' | PATH="$no_jq_path" bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "allow"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: native list_teams without jq should allow"; echo "  resp: $resp"
+fi
+resp=$(printf '%s' '{"tool_name":"delete_comment","mcp_server_name":"Linear"}' | PATH="$no_jq_path" bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "deny"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: native delete_comment without jq should deny"; echo "  resp: $resp"
+fi
+
+# no node and no jq: MCP-shaped payloads deny (cannot classify)
+bare_bin=$(mktemp -d)
+for cmd in bash grep mktemp rm cat date dirname sed; do
+  p=$(command -v "$cmd" 2>/dev/null) && [ -n "$p" ] && ln -sf "$p" "$bare_bin/$cmd"
+done
+bare_path="$bare_bin"
+resp=$(printf '%s' '{"tool_name":"delete_comment","mcp_server_name":"Linear"}' | PATH="$bare_path" bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "deny"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: native write without node/jq should deny"; echo "  resp: $resp"
+fi
+resp=$(printf '%s' '{"tool_name":"list_teams","mcp_server_name":"Linear"}' | PATH="$bare_path" bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "deny"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: native read without node/jq should deny (fail-closed)"; echo "  resp: $resp"
+fi
+rm -rf "$bare_bin"
 
 # mktemp failure on MCP path returns deny JSON
 resp=$(printf '%s' "$(payload_dyn Linear list_teams)" | TMPDIR=/nonexistent bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
