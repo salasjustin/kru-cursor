@@ -1477,7 +1477,16 @@ EDITS.push(E(
 
 // --- mockup layout gate: automated review before the PM sees mockups -----------
 const MOCKUP_GATE_LEAD =
+  "**Mockup layout gate before the PM channel.** Whenever `kru-ui-designer` or `/kru-design` returns artboards or a canvas publish — bootstrap directions, a steady-state screen mockup, a system-change preview — run `references/gates.md` → *Mockup layout gate* before the PM sees the card or paths (independent `kru-visual-reviewer` at each artboard's stated width; **FIX** to `kru-ui-designer`; cap **three reviewer passes**). The PM channel opens only after a clean layout **SHIP** or pass 3 exhausted (step 4). Skipping the design hop on an existing system does not skip this gate when a new page mockup was produced."
+
+const MOCKUP_GATE_LEAD_LONG =
   "**Mockup layout gate before the PM channel.** Whenever `kru-ui-designer` or `/kru-design` returns artboards or a canvas publish — bootstrap directions, a steady-state screen mockup, a system-change preview — run the gate in `references/gates.md` (*Mockup layout gate*) before the PM sees the card or paths. The drafter already ran `composition` → *The pass*; dispatch `kru-visual-reviewer` to **render and measure independently** at each artboard's **stated width** (desktop **1440**, mobile **375** — never a desktop file at 375; same `composition` entries, cited by section). On **FIX**, brief `kru-ui-designer` to redraw (cap **three reviewer passes** — the named exception in `gates.md`). The PM sees the draft plus any open layout findings only after a clean layout **SHIP** or pass 3 exhausted (*Mockup layout gate* step 4). Skipping the design hop on an existing system does not skip this gate when a new page mockup was produced."
+
+const UI_PRACTICE_CANVAS_SURFACE_TRIPLED =
+  "**`/canvas` is the surface.** `ui-designer` drafts the `.dc.html` artboards from the repo and publishes them with `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`; the lead runs the **mockup layout gate** before handing the PM the chat card or paths (`skills/kru-lead/references/gates.md` → *Mockup layout gate*). The PM sees the draft only after a clean layout **SHIP** or pass 3, with any open layout findings attached. The PM reshapes it by asking, by editing the source, or with Design Mode ([changelog](https://cursor.com/changelog/canvas-improvements)). Any stack, no setup, and the design gate — **the PM's eye on a render** — lands after a clean layout **SHIP** or pass 3, with any open layout findings attached (*The canvas*, below). When `/canvas` isn't available, the `.dc.html` paths are the surface after a clean layout **SHIP** or pass 3, with any open layout findings attached."
+
+const UI_PRACTICE_CANVAS_SURFACE_TEXT_FIX =
+  "**`/canvas` is the surface.** `ui-designer` drafts the `.dc.html` artboards from the repo and publishes them with `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`; the lead runs the **mockup layout gate** (`skills/kru-lead/references/gates.md` → *Mockup layout gate*) before handing the PM the chat card, the `.dc.html` paths, or the design verdict. The PM sees the draft only after a clean layout **SHIP** or pass 3, with any open layout findings attached. The PM reshapes it by asking, by editing the source, or with Design Mode ([changelog](https://cursor.com/changelog/canvas-improvements)). Any stack, no setup; **the PM's eye on a render** is still the design gate, and it lands only after that layout gate (*The canvas*, below)."
 
 const COMPOSITION_HEADING_DONE =
   "every section heading satisfies `layout.md` → *The space around a group is larger than the space inside it*"
@@ -1495,19 +1504,19 @@ const MOCKUP_VISUAL_REVIEW_SECTION =
   "## Mockup layout — artboards and canvas previews\nWhen the brief is **mockup layout** (lead gate before the PM, or an explicit `/kru-visual-review` on drafts), the target is a `.dc.html` artboard or a `/canvas` URL — not the app dev server. This brief **overrides** *What this pass is for*'s assumption that the user already looked, and *Numbers are evidence*'s no-sweep limit — measure **composition entries only**. Open each artboard at **its stated width only** (desktop **1440**, mobile **375**; never a desktop file at 375) — **skip** *Sweep*'s viewport matrix. The lead serves `.design-work/` with `python3 -m http.server 4400 -d .design-work` and hands you `http://localhost:4400/…` when needed; **you still never start a server** — if the URL does not answer, return that to the lead. Scope to the named artboards. **Source of truth:** `skills/kru-composition` — verify *The pass* **done-when** and every **Check** in the entries the drafter loaded (`reference/layout.md`, and `hierarchy.md` / `text.md` when relevant). Cite the **section name** violated, plus **selector or `file:line`** and **measured px**. Do not restate or extend those rules here."
 
 const MOCKUP_SCREEN_PASSES =
-  "## Mockup layout (before the PM)\n\nWhen the target is a **mockup** — `.dc.html` or a `/canvas` publish from `kru-ui-designer` or `/kru-design` — brief `kru-visual-reviewer` for **mockup layout**, not the Step 4 coverage matrix. Viewports: **each artboard at its stated width only** (desktop **1440**, mobile **375**; never a desktop file at 375). The drafter already ran `composition` → *The pass*; this seat **renders and measures independently** — verify the pass **done-when** and every **Check** in the loaded `skills/kru-composition/reference/` entries, cited by section name. Every finding names **selector or `file:line`** and **measured px**. The lead serves artboards at `http://localhost:4400/…` (`python3 -m http.server 4400 -d .design-work`); the seat still never starts a server — if the URL does not answer, return that to the lead. On **FIX**, route defects to `kru-ui-designer` and re-dispatch (three reviewer passes, `gates.md` → *Mockup layout gate*). This pass does not judge whether the design is right — only whether composition checks fail."
+  "## Mockup layout (before the PM)\n\nWhen the target is a **mockup** — `.dc.html` or a `/canvas` publish from `kru-ui-designer` or `/kru-design` — brief `kru-visual-reviewer` for **mockup layout**, not the Step 4 coverage matrix. Run `gates.md` → *Mockup layout gate* (steps 1–3) and `skills/kru-visual-review/SKILL.md` → *Mockup layout*. On **FIX**, route defects to `kru-ui-designer` and re-dispatch (three reviewer passes, `gates.md` → *Mockup layout gate*). This pass does not judge whether the design is right — only whether composition checks fail."
+
+const LEAD_UI_HANDOFF =
+  "**The UI handoff.** Who writes components (the seam), why conformance is prevented rather than detected (the closed set and the **named gap**), and the two crafts that ride with the UI builders instead of getting a hop — motion, and interactive primitives: **`${CURSOR_PLUGIN_ROOT}/references/ui-handoff.md`**. Read it when the change list contains a component file. Two things from it you carry even before you open it: **only the three UI component builders write components**, and **the token file is a closed set the builder may not reach outside of** — a value it lacks comes back as a named gap, never as an invention."
+
+const LEAD_SCREEN_PASSES_PARA =
+  "**The two screen passes have seats you dispatch, and a set of passes that are lead-owned.** `visual-reviewer` and `accessibility-reviewer` are review-only seats you spawn at Step 4; `/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro` and the two animation passes are lead-owned, the list in *Delegate on stack, not size*, and they run in the main thread only when the user names one, because each edits work that already exists and each carries taste rather than a rule. They are not an opening of the closed inline list. Writing a marketing page's words in the first place is not one of them — that routes to `conversion-copywriter` before design or build, and what comes back is a draft the user still gates. How to brief the two for coverage and cause, what `visual-reviewer` may conclude, and the full lead-owned list: **`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/screen-passes.md`** — read it before dispatching the batch. **Conformance to the token file is not a pass at all** — it's the repo's own gate, running at every commit (`${CURSOR_PLUGIN_ROOT}/references/ui-practice.md`)."
 
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "**The UI handoff.** Who writes components (the seam), why conformance is prevented rather than detected (the closed set and the **named gap**), and the two crafts that ride with the UI builders instead of getting a hop — motion, and interactive primitives: **`${CURSOR_PLUGIN_ROOT}/references/ui-handoff.md`**. Read it when the change list contains a component file. Two things from it you carry even before you open it: **only the three UI component builders write components**, and **the token file is a closed set the builder may not reach outside of** — a value it lacks comes back as a named gap, never as an invention.\n\n**The two screen passes have seats you dispatch, and a set of passes that are lead-owned.**",
-  `**The UI handoff.** Who writes components (the seam), why conformance is prevented rather than detected (the closed set and the **named gap**), and the two crafts that ride with the UI builders instead of getting a hop — motion, and interactive primitives: **\`\${CURSOR_PLUGIN_ROOT}/references/ui-handoff.md\`**. Read it when the change list contains a component file. Two things from it you carry even before you open it: **only the three UI component builders write components**, and **the token file is a closed set the builder may not reach outside of** — a value it lacks comes back as a named gap, never as an invention.\n\n${MOCKUP_GATE_LEAD}\n\n**The two screen passes have seats you dispatch, and a set of passes that are lead-owned.**`,
+  `${LEAD_UI_HANDOFF}\n\n${LEAD_SCREEN_PASSES_PARA}`,
+  `${LEAD_UI_HANDOFF}\n\n${MOCKUP_GATE_LEAD}\n\n${LEAD_SCREEN_PASSES_PARA}`,
   "mockup layout gate: lead runs reviewer before PM on mockups",
-))
-EDITS.push(E(
-  "skills/kru-lead/SKILL.md",
-  "**Mockup layout gate before the PM channel.** Whenever `kru-ui-designer` or `/kru-design` returns artboards or a canvas publish — bootstrap directions, a steady-state screen mockup, a system-change preview — run the gate in `references/gates.md` (*Mockup layout gate*) before the PM sees the card or paths. The drafter already ran `composition` → *The pass*; dispatch `kru-visual-reviewer` to **render and measure independently** at **1440 and 375** (same `composition` entries, cited by section). On **FIX**, brief `kru-ui-designer` to redraw (cap **three** rounds), then hand the PM the draft plus any open findings. Skipping the design hop on an existing system does not skip this gate when a new page mockup was produced.",
-  MOCKUP_GATE_LEAD,
-  "mockup layout gate: lead paragraph cites composition independent review",
 ))
 EDITS.push(E(
   "skills/kru-lead/references/from-scratch.md",
@@ -1668,7 +1677,7 @@ EDITS.push(E(
 EDITS.push(E(
   "references/ui-practice.md",
   "**`/canvas` is the surface.** `ui-designer` drafts the `.dc.html` artboards from the repo and publishes them with `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`; the lead hands the PM the chat card. The PM reshapes it by asking, by editing the source, or with Design Mode ([changelog](https://cursor.com/changelog/canvas-improvements)). Any stack, no setup, and the design gate — **the PM's eye on a render** — lands in the same turn instead of out of band (*The canvas*, below). When `/canvas` isn't available, the `.dc.html` paths are the surface.",
-  "**`/canvas` is the surface.** `ui-designer` drafts the `.dc.html` artboards from the repo and publishes them with `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)) through `/kru-design`; the lead runs the **mockup layout gate** before handing the PM the chat card or paths (`skills/kru-lead/references/gates.md` → *Mockup layout gate*). The PM sees the draft only after a clean layout **SHIP** or pass 3, with any open layout findings attached. The PM reshapes it by asking, by editing the source, or with Design Mode ([changelog](https://cursor.com/changelog/canvas-improvements)). Any stack, no setup, and the design gate — **the PM's eye on a render** — lands after a clean layout **SHIP** or pass 3, with any open layout findings attached (*The canvas*, below). When `/canvas` isn't available, the `.dc.html` paths are the surface after a clean layout **SHIP** or pass 3, with any open layout findings attached.",
+  UI_PRACTICE_CANVAS_SURFACE_TEXT_FIX,
   "mockup layout gate r2: ui-practice PM sees draft after SHIP or pass 3",
 ))
 EDITS.push(E(
@@ -1682,12 +1691,6 @@ EDITS.push(E(
   "Most trips round the loop compose a screen out of parts that already exist and settle no new value. A **system change** is the other kind: the token file itself moves. Two things start one — a builder's **named gap**, blocked and reported (*the conformance gate*, below), or a deliberate improvement with nothing blocked, which is the user's to start and enters the loop at step 1 (a canvas is the cheap way to put one in front of them first). Both run the same steps; what differs is what the landing step lands and what closes it.",
   "Most trips round the loop compose a screen out of parts that already exist and settle no new value. A **system change** is the other kind: the token file itself moves. Two things start one — a builder's **named gap**, blocked and reported (*the conformance gate*, below), or a deliberate improvement with nothing blocked, which is the PM's to start and enters the loop at step 1 (a canvas is the cheap way to put one in front of them first). Run the **mockup layout gate** before that canvas is shown to the PM (`skills/kru-lead/references/gates.md` → *Mockup layout gate*). Both run the same steps; what differs is what the landing step lands and what closes it.",
   "mockup layout gate r2: ui-practice system change canvas gated",
-))
-EDITS.push(E(
-  "skills/kru-lead/references/screen-passes.md",
-  "On **FIX**, route defects to `kru-ui-designer` and re-dispatch (three reviewer passes, `gates.md`). This pass does not judge whether the design is right — only whether composition checks fail.",
-  "On **FIX**, route defects to `kru-ui-designer` and re-dispatch (three reviewer passes, `gates.md` → *Mockup layout gate*). This pass does not judge whether the design is right — only whether composition checks fail.",
-  "mockup layout gate r2: screen-passes cite Mockup layout gate",
 ))
 EDITS.push(E(
   "agents/visual-reviewer.md",
@@ -1748,12 +1751,6 @@ EDITS.push(E(
   "mockup layout gate r5: visual-review dev-server bullet dedupe partial r5 port",
 ))
 EDITS.push(E(
-  "skills/kru-lead/SKILL.md",
-  "On **FIX**, brief `kru-ui-designer` to redraw (cap **three reviewer passes** — the named exception in `gates.md`), then hand the PM the draft plus any open findings.",
-  "On **FIX**, brief `kru-ui-designer` to redraw (cap **three reviewer passes** — the named exception in `gates.md`). The PM sees the draft plus any open layout findings only after a clean layout **SHIP** or pass 3 exhausted (*Mockup layout gate* step 4).",
-  "mockup layout gate r3: lead FIX then PM channel matches gates step 4",
-))
-EDITS.push(E(
   "skills/kru-lead/references/gates.md",
   "and a seat that finds no page falls back to a static read that verifies no rendered criterion). **Mockup layout** uses the lead-served artboard URL from step 1 above — if `http://localhost:4400/…` does not answer, the seat returns that to the lead; the lead runs `python3 -m http.server 4400 -d .design-work` and fixes reachability before re-dispatch. They are report-only",
   "and a seat that finds no page falls back to a static read that verifies no rendered criterion). They are report-only",
@@ -1766,4 +1763,28 @@ EDITS.push(E(
   "| the user | the design gate — the eye on the render, which is the only design verdict on this team |",
   "| the PM | the design gate — the eye on the render, which is the only design verdict on this team |",
   "mockup layout gate r5: ui-practice who owns what PM design gate row",
+))
+
+// --- text-fix (PR24): dedupe mockup gate prose --------------------------------
+EDITS.push(E(
+  "references/ui-practice.md",
+  UI_PRACTICE_CANVAS_SURFACE_TRIPLED,
+  UI_PRACTICE_CANVAS_SURFACE_TEXT_FIX,
+  "text-fix: ui-practice dedupe SHIP/pass 3",
+))
+
+const MOCKUP_SCREEN_PASSES_LONG = `When the target is a **mockup** — \`.dc.html\` or a \`/canvas\` publish from \`kru-ui-designer\` or \`/kru-design\` — brief \`kru-visual-reviewer\` for **mockup layout**, not the Step 4 coverage matrix. Viewports: **each artboard at its stated width only** (desktop **1440**, mobile **375**; never a desktop file at 375). The drafter already ran \`composition\` → *The pass*; this seat **renders and measures independently** — verify the pass **done-when** and every **Check** in the loaded \`skills/kru-composition/reference/\` entries, cited by section name. Every finding names **selector or \`file:line\`** and **measured px**. The lead serves artboards at \`http://localhost:4400/…\` (\`python3 -m http.server 4400 -d .design-work\`); the seat still never starts a server — if the URL does not answer, return that to the lead. On **FIX**, route defects to \`kru-ui-designer\` and re-dispatch (three reviewer passes, \`gates.md\` → *Mockup layout gate*). This pass does not judge whether the design is right — only whether composition checks fail.`
+
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  MOCKUP_GATE_LEAD_LONG,
+  MOCKUP_GATE_LEAD,
+  "text-fix: lead mockup gate paragraph points at gates.md",
+))
+
+EDITS.push(E(
+  "skills/kru-lead/references/screen-passes.md",
+  `## Mockup layout (before the PM)\n\n${MOCKUP_SCREEN_PASSES_LONG}\n\n## Mockup layout (before the PM)\n\nWhen the target is a **mockup** — \`.dc.html\` or a \`/canvas\` publish from \`kru-ui-designer\` or \`/kru-design\` — brief \`kru-visual-reviewer\` for **mockup layout**, not the Step 4 coverage matrix. Run \`gates.md\` → *Mockup layout gate* (steps 1–3) and \`skills/kru-visual-review/SKILL.md\` → *Mockup layout*. On **FIX**, route defects to \`kru-ui-designer\` and re-dispatch (three reviewer passes). This pass does not judge whether the design is right — only whether composition checks fail.`,
+  MOCKUP_SCREEN_PASSES,
+  "text-fix: screen-passes dedupe mockup section",
 ))

@@ -624,7 +624,7 @@ const RULES = [
   // the review report: review seats run readonly here (see the shell rule above)
   R(/\*\*Name a report path in every review brief\.\*\*[^\n]*/g, () => block("gates-report-path.md"), { md: true, files: /^skills\/kru-lead\/references\/gates\.md$/, required: /\*\*Name no report path in a review brief\.\*\*/ }),
   R(/(\n- Design work:)/, (m, _a, _i, str) => (str.includes("Mockup layout gate (before the PM)") ? m : `\n${block("mockup-layout-gate.md")}${m}`), { md: true, files: /^skills\/kru-lead\/references\/gates\.md$/, required: /Mockup layout gate \(before the PM\)/ }),
-  R(/- \*\*Mockup layout gate \(before the PM\)\.\*\*[\s\S]*?(?=\n- Design work:)/, () => `${block("mockup-layout-gate.md")}\n`, { md: true, files: /^skills\/kru-lead\/references\/gates\.md$/, required: /self-check is not the gate/ }),
+  R(/- \*\*Mockup layout gate \(before the PM\)\.\*\*[\s\S]*?(?=\n- Design work:)/, () => `${block("mockup-layout-gate.md")}`, { md: true, files: /^skills\/kru-lead\/references\/gates\.md$/, required: /self-check is not the gate/ }),
   R(/7\. \*\*What comes back\*\* — the return shape, plus a report path on a review brief \(Step 4\)\./g,
     "7. **What comes back** — the return shape (a review seat returns inline here — `gates.md`, Step 4).", { md: true, files: /^skills\/kru-lead\/SKILL\.md$/, required: /a review seat returns inline here/ }),
   R(/Two it supplies rather than refuses when a brief lacks them: item 7's report path and the learnings channel\./g,

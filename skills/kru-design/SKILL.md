@@ -43,7 +43,7 @@ If `/canvas` is not offered, or creating the canvas fails, do not invent a publi
 
 ## Layout gate (lead-owned — not your channel)
 
-You return artboards to the **lead**, not the PM. You already run **`composition` → *The pass*** on every frame before publish; that is self-check, not the gate. Before the PM sees the draft, the lead dispatches **`kru-visual-reviewer`** to render each artboard at **its stated width** (1440 desktop, 375 mobile) and measure the same entries independently (`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/gates.md` → *Mockup layout gate*). On **FIX**, the lead briefs you to redraw from the on-disk files — up to **three reviewer passes** (not a bad-brief signal). After the cap, the PM may see the draft with open findings attached. This gate is **composition checks, not taste**; the PM's verdict on the look still comes later.
+You return artboards to the **lead**, not the PM. *The pass* is self-check only; the lead runs **`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/gates.md` → *Mockup layout gate*** before the PM channel (independent `kru-visual-reviewer`, stated widths, up to three reviewer passes — not a bad-brief signal). Composition checks, not taste; the PM's verdict on the look still comes later.
 
 When a redraw brief names a violated `composition` entry with px offsets, selectors, or `file:line`, fix those first — do not re-layout unrelated surfaces.
 

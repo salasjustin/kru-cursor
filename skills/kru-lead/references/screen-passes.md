@@ -12,7 +12,11 @@ What that reversal does **not** touch is what a pass may conclude. `visual-revie
 
 ## Mockup layout (before the PM)
 
-When the target is a **mockup** — `.dc.html` or a `/canvas` publish from `kru-ui-designer` or `/kru-design` — brief `kru-visual-reviewer` for **mockup layout**, not the Step 4 coverage matrix. Viewports: **each artboard at its stated width only** (desktop **1440**, mobile **375**; never a desktop file at 375). The drafter already ran `composition` → *The pass*; this seat **renders and measures independently** — verify the pass **done-when** and every **Check** in the loaded `skills/kru-composition/reference/` entries, cited by section name. Every finding names **selector or `file:line`** and **measured px**. The lead serves artboards at `http://localhost:4400/…` (`python3 -m http.server 4400 -d .design-work`); the seat still never starts a server — if the URL does not answer, return that to the lead. On **FIX**, route defects to `kru-ui-designer` and re-dispatch (three reviewer passes, `gates.md` → *Mockup layout gate*). This pass does not judge whether the design is right — only whether composition checks fail.
+When the target is a **mockup** — `.dc.html` or a `/canvas` publish from `kru-ui-designer` or `/kru-design` — brief `kru-visual-reviewer` for **mockup layout**, not the Step 4 coverage matrix. Run `gates.md` → *Mockup layout gate* (steps 1–3) and `skills/kru-visual-review/SKILL.md` → *Mockup layout*. On **FIX**, route defects to `kru-ui-designer` and re-dispatch (three reviewer passes). This pass does not judge whether the design is right — only whether composition checks fail.
+
+## Mockup layout (before the PM)
+
+When the target is a **mockup** — `.dc.html` or a `/canvas` publish from `kru-ui-designer` or `/kru-design` — brief `kru-visual-reviewer` for **mockup layout**, not the Step 4 coverage matrix. Run `gates.md` → *Mockup layout gate* (steps 1–3) and `skills/kru-visual-review/SKILL.md` → *Mockup layout*. On **FIX**, route defects to `kru-ui-designer` and re-dispatch (three reviewer passes, `gates.md` → *Mockup layout gate*). This pass does not judge whether the design is right — only whether composition checks fail.
 
 ## Brief them for coverage and cause, because that's the only part they win
 
