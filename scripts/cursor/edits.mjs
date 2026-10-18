@@ -1125,9 +1125,21 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
-  "**The two screen passes have seats you dispatch, and a set of passes that stay the user's.** `visual-reviewer` and `accessibility-reviewer` are review-only seats you spawn at Step 4; `/seo-review`, `/copywriting`, `/copy-editing`, `/cro` and the two animation passes run inline only when the user names one, because each edits work that already exists and each carries taste rather than a rule. Writing a marketing page's words in the first place is not one of them — that routes to `conversion-copywriter` before design or build, and what comes back is a draft the user still gates. How to brief the two for coverage and cause, what `visual-reviewer` may conclude, and the full user-owned list: **`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/screen-passes.md`** — read it before dispatching the batch. **Conformance to the token file is not a pass at all** — it's the repo's own gate, running at every commit (`${CURSOR_PLUGIN_ROOT}/references/ui-practice.md`).",
-  "**The two screen passes have seats you dispatch, and a set of passes that are lead-owned.** `visual-reviewer` and `accessibility-reviewer` are review-only seats you spawn at Step 4; `/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro` and the two animation passes are lead-owned, the list in *Delegate on stack, not size*, and they run in the main thread only when the user names one, because each edits work that already exists and each carries taste rather than a rule. They are not an opening of the closed inline list. Writing a marketing page's words in the first place is not one of them — that routes to `conversion-copywriter` before design or build, and what comes back is a draft the PM still gates. How to brief the two for coverage and cause, what `visual-reviewer` may conclude, and the full lead-owned list: **`${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/screen-passes.md`** — read it before dispatching the batch. **Conformance to the token file is not a pass at all** — it's the repo's own gate, running at every commit (`${CURSOR_PLUGIN_ROOT}/references/ui-practice.md`).",
+  "a set of passes that stay the user's.**",
+  "a set of passes that are lead-owned.**",
   "dispatch: user-named passes are lead-owned",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "`/seo-review`, `/copywriting`, `/copy-editing`, `/cro` and the two animation passes run inline only when the user names one",
+  "`/kru-seo-review`, `/kru-copywriting`, `/kru-copy-editing`, `/kru-cro` and the two animation passes are lead-owned, the list in *Delegate on stack, not size*, and they run in the main thread only when the user names one",
+  "dispatch: user-named passes are lead-owned",
+))
+EDITS.push(E(
+  "skills/kru-lead/SKILL.md",
+  "the full user-owned list:",
+  "the full lead-owned list:",
+  "dispatch: the screen-pass list is lead-owned",
 ))
 EDITS.push(E(
   "skills/kru-lead/SKILL.md",
@@ -1137,8 +1149,8 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/references/screen-passes.md",
-  "These have no seat and you never dispatch them — they run inline in the main thread when the user names one, on the target they name:",
-  "These have no seat and you never dispatch them. They are lead-owned, the list in `SKILL.md` → *Delegate on stack, not size*: they run in the main thread when the user names one, on the target they name, and that does not open the closed inline list:",
+  "These have no seat and you never dispatch them — they run inline when the user names one:",
+  "These have no seat and you never dispatch them. They are lead-owned, the list in `SKILL.md` → *Delegate on stack, not size*: they run in the main thread when the user names one, and that does not open the closed inline list:",
   "dispatch: user-named passes are lead-owned",
 ))
 EDITS.push(E(
@@ -1194,12 +1206,6 @@ EDITS.push(E(
   "## The user's passes",
   "## The lead-owned passes",
   "dispatch: the screen-pass heading is lead-owned",
-))
-EDITS.push(E(
-  "skills/kru-lead/references/screen-passes.md",
-  "which is exactly why they stayed the user's when the two screen passes didn't:",
-  "which is exactly why they are lead-owned, and named by the user, when the two screen passes are not:",
-  "dispatch: taste passes stay lead-owned",
 ))
 EDITS.push(E(
   "TRACKER.md",
