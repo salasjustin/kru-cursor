@@ -209,15 +209,27 @@ if printf '%s' "$resp" | jq -e '.permission == "deny"' >/dev/null 2>&1; then pas
   fail=$((fail + 1)); echo "FAIL: MCP invalid JSON should deny"; echo "  resp: $resp"
 fi
 
-# missing jq: MCP denied, non-MCP tools still allowed
+# missing jq: classifier runs via node; non-MCP tools still allowed
 minimal_bin=$(mktemp -d)
 ln -s "$(command -v node)" "$minimal_bin/node"
 ln -s "$(command -v bash)" "$minimal_bin/bash"
 ln -s "$(command -v grep)" "$minimal_bin/grep"
+ln -s "$(command -v mktemp)" "$minimal_bin/mktemp"
+ln -s "$(command -v rm)" "$minimal_bin/rm"
+ln -s "$(command -v cat)" "$minimal_bin/cat"
+ln -s "$(command -v date)" "$minimal_bin/date"
 no_jq_path="$minimal_bin"
 resp=$(printf '%s' "$(payload_dyn Linear list_teams)" | PATH="$no_jq_path" bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
-if printf '%s' "$resp" | jq -e '.permission == "deny" and (.agent_message | test("jq"))' >/dev/null 2>&1; then pass=$((pass + 1)); else
-  fail=$((fail + 1)); echo "FAIL: MCP without jq should deny"; echo "  resp: $resp"
+if printf '%s' "$resp" | jq -e '.permission == "allow"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: MCP allowlist without jq should allow list_teams"; echo "  resp: $resp"
+fi
+resp=$(printf '%s' "$(payload_dyn Linear delete_comment)" | PATH="$no_jq_path" bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "deny"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: MCP deny without jq should deny delete_comment"; echo "  resp: $resp"
+fi
+resp=$(printf '%s' '{"tool_name":"Shell","tool_input":{"command":"echo CallDynamicTool in a brief"}}' | PATH="$no_jq_path" bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "allow"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: Shell body mentioning CallDynamicTool without jq should allow"; echo "  resp: $resp"
 fi
 resp=$(printf '%s' '{"tool_name":"Shell","tool_input":{"command":"echo hi"}}' | PATH="$no_jq_path" bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
 if printf '%s' "$resp" | jq -e '.permission == "allow"' >/dev/null 2>&1; then pass=$((pass + 1)); else

@@ -243,6 +243,21 @@ check "mcp-outbound-guard: Linear delete_comment is denied" has '.permission == 
 fire preToolUse "$(tool mcp-g2 Read "{\"path\":\"$plugin/skills/kru-lead/SKILL.md\"}")"
 fire preToolUse "$(tool mcp-g2 MCP:deploy '{"x":"y"}')"
 check "mcp-outbound-guard: MCP:deploy is denied" has '.permission == "deny"'
+fire beforeMCPExecution "$(jq -nc --arg w "$work" '{conversation_id:"mcp-bme", session_id:"mcp-bme", cwd:$w, tool_name:"delete_comment", mcp_server_name:"Linear"}')"
+check "mcp-outbound-guard: beforeMCPExecution delete_comment is denied" has '.permission == "deny"'
+
+minimal_bin=$(mktemp -d)
+ln -s "$(command -v node)" "$minimal_bin/node"
+ln -s "$(command -v bash)" "$minimal_bin/bash"
+ln -s "$(command -v mktemp)" "$minimal_bin/mktemp"
+ln -s "$(command -v rm)" "$minimal_bin/rm"
+ln -s "$(command -v cat)" "$minimal_bin/cat"
+no_jq_path="$minimal_bin:$PATH"
+resp=$(cd "$plugin" && printf '%s' "$(jq -nc '{tool_name:"CallDynamicTool",tool_input:{namespace:"Linear",toolName:"list_teams"}}')" | PATH="$no_jq_path" bash "$plugin/hooks/cursor-hook.sh" preToolUse mcp-outbound-guard.sh)
+check "adapter without jq: allowlisted MCP is allowed" has '.permission == "allow"'
+resp=$(cd "$plugin" && printf '%s' '{"tool_name":"Shell","tool_input":{"command":"mentions CallDynamicTool in text"}}' | PATH="$no_jq_path" bash "$plugin/hooks/cursor-hook.sh" preToolUse require-lead.sh)
+check "adapter without jq: Shell with CallDynamicTool in body is allowed" has '.permission == "allow"'
+rm -rf "$minimal_bin"
 
 # --- store-sync on a hung remote ------------------------------------------------------------------
 # the first preToolUse waits on the store's clone; a remote that never answers

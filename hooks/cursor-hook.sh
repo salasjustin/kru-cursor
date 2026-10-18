@@ -45,18 +45,60 @@ deny_mcp() {
   local msg=${1:-kru: MCP outbound guard failed. Denying connector MCP.}
   case "$event" in
     preToolUse|subagentStart|beforeShellExecution|beforeReadFile|beforeMCPExecution)
-      jq -nc --arg m "$msg" '{permission: "deny", user_message: $m, agent_message: $m}'
+      if command -v jq >/dev/null 2>&1; then
+        jq -nc --arg m "$msg" '{permission: "deny", user_message: $m, agent_message: $m}'
+      else
+        node -e 'const m=process.argv[1]; process.stdout.write(JSON.stringify({permission:"deny",user_message:m,agent_message:m})+"\n")' "$msg"
+      fi
       exit 0
       ;;
-    beforeSubmitPrompt) jq -nc --arg m "$msg" '{continue: false, user_message: $m}'; exit 0 ;;
+    beforeSubmitPrompt)
+      if command -v jq >/dev/null 2>&1; then
+        jq -nc --arg m "$msg" '{continue: false, user_message: $m}'
+      else
+        node -e 'const m=process.argv[1]; process.stdout.write(JSON.stringify({continue:false,user_message:m})+"\n")' "$msg"
+      fi
+      exit 0
+      ;;
     *) allow ;;
   esac
 }
 mcp_payload_heuristic() {
-  case "$1" in
-    *CallDynamicTool*|*\"MCP:*|*mcp_server_name*) return 0 ;;
-  esac
-  return 1
+  # tool_name only — never substring-match the whole payload (false positives on brief text)
+  if command -v jq >/dev/null 2>&1; then
+    printf '%s' "$1" | jq -e '
+      def raw: .tool_name // "";
+      raw == "CallDynamicTool" or (raw | test("^MCP:"))
+    ' >/dev/null 2>&1
+    return $?
+  fi
+  node -e '
+    let p; try { p = JSON.parse(process.argv[1]); } catch { process.exit(1); }
+    const raw = String(p.tool_name ?? "");
+    process.exit(raw === "CallDynamicTool" || /^MCP:/.test(raw) ? 0 : 1);
+  ' "$1"
+}
+run_mcp_classify_no_jq() {
+  local classify="$root/scripts/cursor/mcp-outbound-classify.mjs"
+  if [ ! -f "$classify" ]; then
+    deny_mcp "kru: MCP outbound guard is misconfigured (missing classifier at scripts/cursor/mcp-outbound-classify.mjs). Denying connector MCP."
+  fi
+  if ! node -e 'let s=""; process.stdin.on("data",d=>s+=d); process.stdin.on("end",()=>{try{JSON.parse(s);process.exit(0)}catch{process.exit(1)}})' <<<"$input"; then
+    deny_mcp "kru: MCP outbound guard received invalid JSON. Denying connector MCP."
+  fi
+  local errf
+  errf=$(mktemp 2>/dev/null) || deny_mcp "kru: MCP outbound guard could not run (mktemp failed). Denying connector MCP."
+  if printf '%s' "$input" | node "$classify" 2>"$errf"; then
+    rm -f "$errf"
+    allow
+  fi
+  local code=$? err
+  err=$(cat "$errf" 2>/dev/null)
+  rm -f "$errf"
+  if [ "$code" = 2 ]; then
+    deny_mcp "${err:-kru: this cloud agent cannot run that connector MCP tool. Hand the exact tool name and arguments back to the PM bot to run outside the agent.}"
+  fi
+  deny_mcp "${err:-kru: MCP outbound guard classifier failed (exit $code). Denying connector MCP.}"
 }
 mcp_guard_context() {
   [ "$event" = beforeMCPExecution ] && return 0
@@ -66,7 +108,7 @@ mcp_guard_context() {
 input=$(cat 2>/dev/null)
 if ! command -v jq >/dev/null 2>&1; then
   if mcp_guard_context || mcp_payload_heuristic "$input"; then
-    deny_mcp "kru: MCP outbound guard requires jq. Denying connector MCP."
+    run_mcp_classify_no_jq
   fi
   allow
 fi

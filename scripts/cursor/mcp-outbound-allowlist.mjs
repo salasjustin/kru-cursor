@@ -9,6 +9,25 @@ export const DENY_MESSAGE =
  * @param {unknown} payload cursor preToolUse JSON (native or cursor-hook normalized)
  * @returns {ToolId | null} null when this is not an MCP / dynamic MCP tool call
  */
+/** True when the payload is connector MCP but extractMcpToolId may still return null (malformed tool_input). */
+export function isMcpShapedPayload(payload) {
+  if (!payload || typeof payload !== "object") return false
+  const raw = String(payload.cursor_tool_name ?? payload.tool_name ?? "")
+  if (raw === "CallDynamicTool") {
+    const ns = payload.tool_input?.namespace
+    if (typeof ns === "string" && ns.toLowerCase() === "cursor") return false
+    return true
+  }
+  if (/^MCP:/i.test(raw)) {
+    const server = (raw.replace(/^MCP:/i, "").split(/[:/]/)[0] ?? "").toLowerCase()
+    return server !== "cursor"
+  }
+  if (payload.mcp_server_name && typeof payload.mcp_server_name === "string" && payload.mcp_server_name.length > 0) {
+    return payload.mcp_server_name.toLowerCase() !== "cursor"
+  }
+  return false
+}
+
 export function extractMcpToolId(payload) {
   if (!payload || typeof payload !== "object") return null
   const raw = String(payload.cursor_tool_name ?? payload.tool_name ?? "")

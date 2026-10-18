@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // stdin: one preToolUse or beforeMCPExecution JSON object. exit 0 = allow; exit 2 = deny (message on stderr).
 import { appendFileSync, readFileSync } from "node:fs"
-import { classifyMcpTool, extractMcpToolId } from "./mcp-outbound-allowlist.mjs"
+import { classifyMcpTool, extractMcpToolId, isMcpShapedPayload } from "./mcp-outbound-allowlist.mjs"
 
 function trace(entry) {
   const path = process.env.KRU_HOOK_TRACE
@@ -23,7 +23,15 @@ try {
 }
 
 const tool = extractMcpToolId(payload)
-if (!tool) process.exit(0)
+if (!tool) {
+  if (isMcpShapedPayload(payload)) {
+    process.stderr.write(
+      "kru: MCP outbound guard could not identify connector tool. Denying connector MCP.\n",
+    )
+    process.exit(2)
+  }
+  process.exit(0)
+}
 
 const decision = classifyMcpTool(tool)
 trace({
