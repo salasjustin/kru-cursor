@@ -32,7 +32,7 @@ check_match() {
 }
 
 AGENT_SEAT='"subagent_type"\s*:\s*"(?:kru:)?[a-z0-9]+(?:-[a-z0-9]+)*"\s*,\s*"prompt"'
-NOT_UX='"subagent_type"\s*:\s*"(?:kru:)?ux-designer"\s*,\s*"prompt"'
+NOT_UX='"subagent_type"\s*:\s*"(?:kru-)?ux-designer"\s*,\s*"prompt"'
 NOT_CC='"subagent_type"\s*:\s*"(?:kru:)?conversion-copywriter"\s*,\s*"prompt"'
 
 GOOD_DISPATCH='{"name":"Agent","input":{"subagent_type":"kru-react-ui-builder","prompt":"Build the card.","description":"t"}}'

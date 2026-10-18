@@ -3,6 +3,7 @@
 The team's UI doctrine, read by the three UI component builders, `design-system`, `design-gallery`, and `lead`'s from-scratch path. Read when any UI build starts: from scratch at *Bootstrap*, an existing repo at *Steady state*.
 
 **Design is made outside this team.** A designer (standalone bot or human) uses the plugin's design skills (`/kru-design`, `composition`, `landing-page`, and the rest — `${CURSOR_PLUGIN_ROOT}/references/designer-handoff.md`). The **owner approves** mockups and build spec; the **PM** attaches that approved package to engineering (`references/design-spec.md`). Engineering never runs a mockup or canvas step.
+
 **External designer on Cursor.** Mockups and directions are made outside this engineering team. On Cursor, the designer uses `/kru-design` and publishes with `/canvas` ([canvas](https://cursor.com/docs/agent/tools/canvas)); `.dc.html` artboards are the fallback when `/canvas` isn't available. The PM bot attaches the approved mockups and build spec to the brief (`references/design-spec.md`, `references/designer-handoff.md`). Engineering never drafts mockups or runs a design step. A `.design-sync/` bundle, if present, is for the designer — Cursor has no claude.ai/design host for that lane (`references/design-sync.md` records upstream; engineering does not run it).
 
 

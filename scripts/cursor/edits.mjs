@@ -1082,6 +1082,12 @@ EDITS.push(E(
 ))
 EDITS.push(E(
   "skills/kru-lead/references/gates.md",
+  "Brief `visual-reviewer` with mockup paths",
+  "Brief `kru-visual-reviewer` with mockup paths",
+  "dispatch: brief uses the Task name",
+))
+EDITS.push(E(
+  "skills/kru-lead/references/gates.md",
   "as `code-reviewer`'s",
   "as `kru-code-reviewer`'s",
   "dispatch: the screen pass uses the Task name",
