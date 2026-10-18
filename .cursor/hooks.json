@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "command": "bash hooks/mcp-outbound-guard.sh",
+        "matcher": "^(CallDynamicTool|MCP:.*)$",
+        "timeout": 10,
+        "failClosed": true
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": "bash hooks/mcp-outbound-guard.sh",
+        "matcher": "*",
+        "timeout": 10,
+        "failClosed": true
+      }
+    ]
+  }
+}

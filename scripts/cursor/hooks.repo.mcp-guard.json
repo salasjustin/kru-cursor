@@ -1,0 +1,19 @@
+{
+  "_comment": "Merge into .cursor/hooks.json (/kru-setup §1d). Repo-root commands (project hooks cwd = repo root). Cloud agents load project hooks only; connector MCP hooks do not run there today (rules/kru-lead.mdc).",
+  "preToolUse": [
+    {
+      "command": "bash hooks/mcp-outbound-guard.sh",
+      "matcher": "^(CallDynamicTool|MCP:.*)$",
+      "timeout": 10,
+      "failClosed": true
+    }
+  ],
+  "beforeMCPExecution": [
+    {
+      "command": "bash hooks/mcp-outbound-guard.sh",
+      "matcher": "*",
+      "timeout": 10,
+      "failClosed": true
+    }
+  ]
+}
