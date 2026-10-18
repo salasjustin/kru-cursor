@@ -1,7 +1,7 @@
 #!/bin/bash
 # preToolUse / beforeMCPExecution: block outbound team connector MCP when Cursor runs these hooks.
 # Project hooks (`.cursor/hooks.json`) invoke this from the repo root; plugin hooks use cursor-hook.sh.
-# Allowlist policy: scripts/cursor/mcp-outbound-denylist.mjs (default deny)
+# Allowlist policy: scripts/cursor/mcp-outbound-allowlist.mjs (default deny)
 # Kill switch: KRU_NO_MCP_OUTBOUND_GUARD=1
 # Cursor cloud agents do not currently run hooks for MCP connector calls (verified Oct 2026);
 # rules/kru-lead.mdc is the only guard there. Optional trace: set KRU_HOOK_TRACE to a log path.
@@ -29,7 +29,12 @@ emit_allow() {
 emit_deny() {
   local msg=${1:-kru: MCP outbound action denied}
   printf '%s\n' "$msg" >&2
-  jq -nc --arg m "$msg" '{permission: "deny", user_message: $m, agent_message: $m}'
+  if command -v jq >/dev/null 2>&1; then
+    jq -nc --arg m "$msg" '{permission: "deny", user_message: $m, agent_message: $m}'
+  else
+    # MCP fail-closed path may hit this when jq is missing; still emit valid JSON.
+    node -e 'const m=process.argv[1]; process.stdout.write(JSON.stringify({permission:"deny",user_message:m,agent_message:m})+"\n")' "$msg"
+  fi
   exit 2
 }
 
@@ -59,7 +64,10 @@ looks_like_mcp() {
 root=$(resolve_root "${1:-}")
 classify="$root/scripts/cursor/mcp-outbound-classify.mjs"
 
-input=$(cat 2>/dev/null) || input=""
+input=""
+if [ ! -t 0 ]; then
+  input=$(</dev/stdin) || input=""
+fi
 [ -n "$input" ] || emit_allow
 
 if [ "${KRU_NO_MCP_OUTBOUND_GUARD:-}" = "1" ]; then
@@ -69,7 +77,7 @@ fi
 is_mcp=0
 if looks_like_mcp "$input"; then
   is_mcp=1
-elif printf '%s' "$input" | grep -qE 'CallDynamicTool|"MCP:|mcp_server_name' 2>/dev/null; then
+elif case "$input" in *CallDynamicTool*|*\"MCP:*|*mcp_server_name*) true ;; *) false ;; esac; then
   is_mcp=1
 fi
 

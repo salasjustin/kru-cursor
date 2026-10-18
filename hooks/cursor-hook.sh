@@ -20,9 +20,10 @@
 #        tool_input (only the prompt changes); anything else → allow. a stop
 #        hook's {decision:"block",reason} becomes followup_message.
 #
-# fail open, like every upstream hook: a crash, a missing jq or a timeout is an
-# allow, never a block. KRU_HOOK_LOG=<file> appends one line per call (the
-# harness reads it).
+# fail open, like every upstream hook: a crash or a timeout is an allow, never a
+# block. connector MCP payloads fail closed on missing jq or invalid JSON (see
+# mcp-outbound-guard.sh and the jq gate below). KRU_HOOK_LOG=<file> appends one
+# line per call (the harness reads it).
 event=${1:-}
 script=${2:-}
 shift 2 2>/dev/null

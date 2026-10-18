@@ -169,7 +169,7 @@ const FORK_OWNED = new Set([
   "hooks/cursor-state.sh",
   "hooks/mcp-outbound-guard.sh",
   "hooks/mcp-outbound-guard.test.sh",
-  "scripts/cursor/mcp-outbound-denylist.mjs",
+  "scripts/cursor/mcp-outbound-allowlist.mjs",
   "scripts/cursor/mcp-outbound-classify.mjs",
   "scripts/cursor/hooks.repo.mcp-guard.json",
   ".cursor/hooks.json",

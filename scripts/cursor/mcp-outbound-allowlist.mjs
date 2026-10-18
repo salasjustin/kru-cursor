@@ -59,6 +59,10 @@ export const ALLOW_STEMS = new Set([
   "semantic_issue_similarity_search",
   "github_support_docs_search",
   "projects_get",
+  "projects_list",
+  "actions_get",
+  "actions_list",
+  "ui_get",
   "resolve-library-id",
 ])
 
@@ -73,6 +77,8 @@ export const ALLOW_STEM_PREFIXES = [
   "fetch_",
   "slack_read_",
   "slack_search_",
+  "slack_list_",
+  "slack_get_",
 ]
 
 /** Stems denied even when they would match an allow rule (upload handshakes, draft delete). */

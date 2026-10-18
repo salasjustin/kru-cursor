@@ -107,13 +107,13 @@ makes, and a repo that wants it unconditional wires it into its own git hooks.
 **Cloud agents: block outbound MCP.** Plugin hooks do not run on cloud agents; only this repo's
 `.cursor/hooks.json` does. Copy these files from `${CURSOR_PLUGIN_ROOT}` into the repo (paths must
 match the hook commands) before merging hook entries: `hooks/mcp-outbound-guard.sh`,
-`scripts/cursor/mcp-outbound-classify.mjs`, and `scripts/cursor/mcp-outbound-denylist.mjs`. Merge the
+`scripts/cursor/mcp-outbound-classify.mjs`, and `scripts/cursor/mcp-outbound-allowlist.mjs`. Merge the
 `preToolUse` and `beforeMCPExecution` entries from
 `${CURSOR_PLUGIN_ROOT}/scripts/cursor/hooks.repo.mcp-guard.json` into `.cursor/hooks.json` (create the
 file when the repo has none). Commands are repo-root paths such as `bash hooks/mcp-outbound-guard.sh`
 (project hooks run with cwd = the repo root; do not use `${CURSOR_PLUGIN_ROOT}`). The guard is
 default-deny: only reads, drafts, and Linear `save_issue` are allowed through connectors — the
-allowlist lives in `scripts/cursor/mcp-outbound-denylist.mjs`. Skip when the repo
+allowlist lives in `scripts/cursor/mcp-outbound-allowlist.mjs`. Skip when the repo
 already carries the same matchers. Cursor cloud agents do not currently run hooks for MCP connector
 calls (verified Oct 2026); the always-on rule is the only guard there (`rules/kru-lead.mdc`).
 

@@ -5,7 +5,7 @@ set -u
 here=$(cd "$(dirname "$0")" && pwd)
 root=$(dirname "$here")
 classify="$root/scripts/cursor/mcp-outbound-classify.mjs"
-denylist="$root/scripts/cursor/mcp-outbound-denylist.mjs"
+allowlist="$root/scripts/cursor/mcp-outbound-allowlist.mjs"
 
 pass=0 fail=0
 
@@ -142,13 +142,20 @@ run 0 "GitHub search_pull_requests" "$(payload_mcp 'MCP:GitHub:search_pull_reque
 run 0 "GitHub issue_read" "$(payload_mcp 'MCP:GitHub:issue_read')"
 run 0 "GitHub get_file_contents" "$(payload_mcp 'MCP:GitHub:get_file_contents')"
 run 0 "Slack slack_read_channel" "$(payload_mcp 'MCP:Slack:slack_read_channel')"
+run 0 "Slack slack_list_channel_members" "$(payload_mcp 'MCP:Slack:slack_list_channel_members')"
+run 0 "Slack slack_list_user_channels" "$(payload_mcp 'MCP:Slack:slack_list_user_channels')"
+run 0 "Slack slack_get_reactions" "$(payload_mcp 'MCP:Slack:slack_get_reactions')"
+run 0 "GitHub actions_get" "$(payload_mcp 'MCP:GitHub:actions_get')"
+run 0 "GitHub actions_list" "$(payload_mcp 'MCP:GitHub:actions_list')"
+run 0 "GitHub projects_list" "$(payload_mcp 'MCP:GitHub:projects_list')"
+run 0 "GitHub ui_get" "$(payload_mcp 'MCP:GitHub:ui_get')"
 run 0 "Gmail get_draft" "$(payload_mcp 'MCP:Gmail:get_draft')"
 run 0 "Gmail list_drafts" "$(payload_mcp 'MCP:Gmail:list_drafts')"
 run 0 "Context7 resolve-library-id" "$(payload_dyn Context7 resolve-library-id)"
 
 # module-level stem checks
 (cd "$root" && node --input-type=module -e "
-import { classifyMcpTool } from './scripts/cursor/mcp-outbound-denylist.mjs';
+import { classifyMcpTool } from './scripts/cursor/mcp-outbound-allowlist.mjs';
 const deny = (stem) => classifyMcpTool({ id: 'x/'+stem, stem }).action === 'deny';
 const allow = (stem) => classifyMcpTool({ id: 'x/'+stem, stem }).action === 'allow';
 const cases = [
@@ -201,6 +208,33 @@ resp=$(printf '%s' '{"tool_name":"CallDynamicTool","tool_input":{"namespace":"Li
 if printf '%s' "$resp" | jq -e '.permission == "deny"' >/dev/null 2>&1; then pass=$((pass + 1)); else
   fail=$((fail + 1)); echo "FAIL: MCP invalid JSON should deny"; echo "  resp: $resp"
 fi
+
+# missing jq: MCP denied, non-MCP tools still allowed
+minimal_bin=$(mktemp -d)
+ln -s "$(command -v node)" "$minimal_bin/node"
+ln -s "$(command -v bash)" "$minimal_bin/bash"
+ln -s "$(command -v grep)" "$minimal_bin/grep"
+no_jq_path="$minimal_bin"
+resp=$(printf '%s' "$(payload_dyn Linear list_teams)" | PATH="$no_jq_path" bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "deny" and (.agent_message | test("jq"))' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: MCP without jq should deny"; echo "  resp: $resp"
+fi
+resp=$(printf '%s' '{"tool_name":"Shell","tool_input":{"command":"echo hi"}}' | PATH="$no_jq_path" bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "allow"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: non-MCP Shell without jq should allow"; echo "  resp: $resp"
+fi
+resp=$(printf '%s' '{"tool_name":"Grep","tool_input":{"pattern":"x"}}' | PATH="$no_jq_path" bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "allow"' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: non-MCP Grep without jq should allow"; echo "  resp: $resp"
+fi
+
+# mktemp failure on MCP path returns deny JSON
+resp=$(printf '%s' "$(payload_dyn Linear list_teams)" | TMPDIR=/nonexistent bash "$here/mcp-outbound-guard.sh" "$root" 2>/dev/null; true)
+if printf '%s' "$resp" | jq -e '.permission == "deny" and (.agent_message | test("mktemp"))' >/dev/null 2>&1; then pass=$((pass + 1)); else
+  fail=$((fail + 1)); echo "FAIL: mktemp failure on MCP should deny"; echo "  resp: $resp"
+fi
+
+rm -rf "$minimal_bin"
 
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

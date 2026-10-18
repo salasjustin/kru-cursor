@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // stdin: one preToolUse or beforeMCPExecution JSON object. exit 0 = allow; exit 2 = deny (message on stderr).
 import { appendFileSync, readFileSync } from "node:fs"
-import { classifyMcpTool, extractMcpToolId } from "./mcp-outbound-denylist.mjs"
+import { classifyMcpTool, extractMcpToolId } from "./mcp-outbound-allowlist.mjs"
 
 function trace(entry) {
   const path = process.env.KRU_HOOK_TRACE
