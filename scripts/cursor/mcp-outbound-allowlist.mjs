@@ -1,5 +1,4 @@
-// Single source of truth: which MCP tool names cloud agents may call (default deny).
-// Only reads, drafts, Linear save_issue, and the cursor namespace pass; everything else is denied.
+// Default-deny allowlist for team connector MCP (reads, drafts, Linear save_issue, cursor namespace).
 
 /** @typedef {{ id: string, stem: string }} ToolId */
 

@@ -1,10 +1,8 @@
 #!/bin/bash
-# preToolUse / beforeMCPExecution: block outbound team connector MCP when Cursor runs these hooks.
-# Project hooks (`.cursor/hooks.json`) invoke this from the repo root; plugin hooks use cursor-hook.sh.
-# Allowlist policy: scripts/cursor/mcp-outbound-allowlist.mjs (default deny)
-# Kill switch: KRU_NO_MCP_OUTBOUND_GUARD=1
-# Cursor cloud agents do not currently run hooks for MCP connector calls (verified Oct 2026);
-# rules/kru-lead.mdc is the only guard there. Optional trace: set KRU_HOOK_TRACE to a log path.
+# preToolUse / beforeMCPExecution: default-deny outbound team connector MCP when hooks run.
+# Repo `.cursor/hooks.json` calls this from the repo root; the plugin routes through cursor-hook.sh.
+# Policy: scripts/cursor/mcp-outbound-allowlist.mjs. Kill switch: KRU_NO_MCP_OUTBOUND_GUARD=1.
+# Cloud agents often skip MCP hooks (Oct 2026); rules/kru-lead.mdc covers that gap. Trace: KRU_HOOK_TRACE.
 set -u
 
 resolve_root() {
@@ -32,7 +30,7 @@ emit_deny() {
   if command -v jq >/dev/null 2>&1; then
     jq -nc --arg m "$msg" '{permission: "deny", user_message: $m, agent_message: $m}'
   else
-    # MCP fail-closed path may hit this when jq is missing; still emit valid JSON.
+    # fail-closed when jq is missing; still emit valid JSON
     node -e 'const m=process.argv[1]; process.stdout.write(JSON.stringify({permission:"deny",user_message:m,agent_message:m})+"\n")' "$msg"
   fi
   exit 2
@@ -49,7 +47,7 @@ trace_line() {
 }
 
 looks_like_mcp() {
-  # jq-only probe when the classifier script is missing (fail closed for MCP only).
+  # when the classifier is missing, fail closed for MCP-shaped payloads only
   printf '%s' "$1" | jq -e '
     def dyn_cursor: (.tool_name == "CallDynamicTool") and (.tool_input.namespace? == "cursor");
     if dyn_cursor then false

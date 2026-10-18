@@ -1,5 +1,5 @@
 {
-  "_comment": "Merge into the repo's .cursor/hooks.json. Cloud agents load project hooks only (not the plugin's hooks/hooks.json). /kru-setup step 1d installs this block. Commands are repo-root relative (project hooks run with cwd = project root per cursor.com/docs/agent/hooks). Cursor cloud agents do not currently run hooks for MCP connector calls (verified Oct 2026); rules/kru-lead.mdc is the only guard there.",
+  "_comment": "Merge into .cursor/hooks.json (/kru-setup §1d). Repo-root commands (project hooks cwd = repo root). Cloud agents load project hooks only; connector MCP hooks do not run there today (rules/kru-lead.mdc).",
   "preToolUse": [
     {
       "command": "bash hooks/mcp-outbound-guard.sh",

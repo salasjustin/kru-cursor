@@ -1198,9 +1198,8 @@ function portHooks(noEdit) {
         h("preToolUse", "check-handoff.sh", { matcher: "^Task$", timeout: 10 }),
         h("preToolUse", "brainstorm-guard.sh", { matcher: "^(Shell|Write|Delete)$", timeout: 10 }),
         h("preToolUse", "seat-guard.sh", { matcher: "^(Write|Delete)$", timeout: 10 }, noEdit),
-        // cloud agents skip plugin hooks; product repos wire the same script from
-        // .cursor/hooks.json (scripts/cursor/hooks.repo.mcp-guard.json). local runs
-        // get the guard here too.
+        // product repos wire the guard from .cursor/hooks.json (hooks.repo.mcp-guard.json);
+        // plugin installs load the same script here (cloud agents skip plugin hooks).
         h("preToolUse", "mcp-outbound-guard.sh", { matcher: "^CallDynamicTool$", timeout: 10, failClosed: true }),
         h("preToolUse", "mcp-outbound-guard.sh", { matcher: "^MCP:.*$", timeout: 10, failClosed: true }),
       ],
@@ -1270,7 +1269,7 @@ function portRules(version) {
     "- The PM is the bot or person that briefed this session; the owner approves hard-to-reverse calls (the `kru-lead` skill says what reaches the owner). The PM bot's own operating rules govern escalation and approval; the plugin's generic default applies only when the PM has none.",
     "- Team skills are `kru-<name>` (`kru-testing`), and the PM's commands are `/kru-<name>` (`/kru-brief`, `/kru-setup`).",
     "- The install dir is `${CURSOR_PLUGIN_ROOT}`; the store resolver is `bash \"${CURSOR_PLUGIN_ROOT}/scripts/kru-store.sh\"`.",
-    "- **Cloud agents: no outbound connector MCP.** On a cloud agent, never send, post, reply, forward, share, publish, schedule, upload, comment, react, or delete through team connectors (Gmail, Slack, Linear comments, Google Docs/Drive edits and shares, GitHub comments or merges via MCP). The repo hook is default-deny: only reads, drafts, and Linear `save_issue` pass through team connectors when Cursor runs hooks on MCP calls; hand any other connector tool back to the PM bot with the exact tool name and arguments. Cursor cloud agents do not currently run hooks for MCP connector calls (verified Oct 2026), so this rule is the only guard there.",
+    "- **Cloud agents: no outbound connector MCP.** On a cloud agent, never send, post, reply, forward, share, publish, schedule, upload, comment, react, or delete through team connectors (Gmail, Slack, Linear comments, Google Docs/Drive edits and shares, GitHub comments or merges via MCP). Hand any other connector tool back to the PM bot with the exact tool name and arguments. When Cursor runs hooks on MCP calls, the repo hook is default-deny: only reads, drafts, and Linear `save_issue` pass. Cursor cloud agents do not currently run those hooks for connector MCP (verified Oct 2026); this rule is the only guard there.",
     "- **PR babysit loop.** After you open or own a pull request, subscribe to its reviews, comments, and CI and check. Clean means CI green and every review thread answered. On AngelProtocolFinance/better-giving, wait until Greptile's review is posted and no Greptile P0 or P1 is still open; never wait for Greptile on any other repo. Already clean: tell the PM that requested the work it is ready to merge (the plugin maintainer for this plugin after CI (`verify`); the owner for product repos — `skills/kru-lead/SKILL.md` → *Who acts at the door*). Not clean: fix a valid finding, `commit` locally on the branch, reply on each thread — say why when the finding stands — and return proof for the PM bot to push; if nothing is left to fix, end the turn. Repeat on the next wake until it is clean. That report is the only message out.",
     "",
   ].join("\n")
