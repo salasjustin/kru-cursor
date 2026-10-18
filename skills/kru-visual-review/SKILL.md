@@ -29,7 +29,7 @@ When the brief is **mockup layout** (lead gate before the PM, or an explicit `/k
 
 ## Drive the browser via local-browser
 Invoke and follow the **`local-browser`** skill — it wraps the `chrome-devtools` MCP server, headless, on a profile that keeps the login. Its rules bind you:
-- **The dev server must already be running — never start it.** If nothing responds at the target URL, stop and report that, naming the URL — to the user inline, in your return as a seat.
+- **The dev server must already be running — never start it.** If nothing responds at the target URL, stop and report that, naming the URL — to the user inline, in your return as a seat. **Mockup layout** (the brief names it): return the gap to the lead; the lead serves artboards at `http://localhost:4400/…` (`python3 -m http.server 4400 -d .design-work`).
 - **`emulate` owns the breakpoint** — `resize_page` clamps at ~500px and reports success, so anything narrower measured that way is a fiction.
 - Work from `take_snapshot` uids; the skill's *Done when* binds this pass too.
 
