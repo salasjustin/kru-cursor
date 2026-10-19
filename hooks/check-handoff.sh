@@ -300,15 +300,28 @@ readonly_seat=false
 if [ -n "$lanes" ] && ! $readonly_seat && printf '%s' "$lanes" | awk -v s="$seat" '$2 == s { f = 1 } END { exit !f }'; then
   # a scoped package (`@libsql/client`) is a dependency, not a directory; a
   # sentence handing a path to its owner ("the auth seat owns that file") names
-  # it for reading.
+  # it for reading. Exempt `mounted by` / `leave it` (reference only). Bare sheet
+  # dirs log as grouping-mention; file paths as grouping (shadow).
   misroute=$(printf '%s\n' "$prompt" | sed 's/\. /\
-/g' | grep -viE "\banother (seat|lane)|\bseat owns\b|\bowns (that|this|the) file\b|\boutside (the|your|its) lane\b" |
-    grep -oE '(^|[^@A-Za-z0-9_.-])[A-Za-z0-9_.-]+(/[][A-Za-z0-9_.@()-]+)+' | sed -E 's#^[^A-Za-z0-9_.-]##' | sort -u | head -40 |
+/g' | grep -viE "\banother (seat|lane)|\bseat owns\b|\bowns (that|this|the) file\b|\boutside (the|your|its) lane\b|\bmounted by\b|\bleave it\b" |
+    grep -oE '(^|[^@A-Za-z0-9_.-])[A-Za-z0-9_.-]+(/[][A-Za-z0-9_.@()+-]+)+' | sed -E 's#^[^A-Za-z0-9_.-]##' | sort -u | head -40 |
     awk -v s="$seat" 'NR == FNR { if (NF == 2) { dir[++n] = $1; own[n] = $2 }; next }
-      { best = ""; bl = 0
-        for (i = 1; i <= n; i++) if (($0 == dir[i] || index($0, dir[i] "/") == 1) && length(dir[i]) > bl) { best = own[i]; bl = length(dir[i]) }
-        if (best != "" && best != s) { print $0 " is " best "'"'"'s"; exit } }' <(printf '%s' "$lanes") -)
-  [ -n "$misroute" ] && shadow="${shadow}grouping: ${misroute} per the sheet — split it into that seat's brief (step 3). "
+      { best = ""; bl = 0; bare = 0
+        for (i = 1; i <= n; i++) if (($0 == dir[i] || index($0, dir[i] "/") == 1) && length(dir[i]) > bl) {
+          best = own[i]; bl = length(dir[i]); bare = ($0 == dir[i])
+        }
+        if (best != "" && best != s) { print $0 "\t" best "\t" bare; exit } }' <(printf '%s' "$lanes") -)
+  if [ -n "$misroute" ]; then
+    path=${misroute%%	*}
+    rest=${misroute#*	}
+    owner=${rest%%	*}
+    bare=${rest##*	}
+    if [ "$bare" = 1 ]; then
+      shadow="${shadow}grouping-mention: \"${path}\" is ${owner}'s per the sheet (directory name only — low confidence). "
+    else
+      shadow="${shadow}grouping: \"${path}\" is ${owner}'s per the sheet — split it into that seat's brief (step 3). "
+    fi
+  fi
 fi
 
 # the cross-session log `skills/kru-roster/learn.md` (PM or lead loads) sweeps for misfires, reading each quoted

@@ -1,4 +1,4 @@
-# Roster — v0.1.1+kru0.158.0
+# Roster — v0.1.1+kru0.159.0
 
 The lead is the `lead` skill (`skills/kru-lead/SKILL.md`, runs in the main thread). It delegates to the specialists below and to built-in agents (`Explore`, Plan mode, the Browser subagent — [subagents](https://cursor.com/docs/subagents)) and skills (Cursor's `/review`), plus its own vendored `tdd` and `diagnosing-bugs` skills. **The PM accepts work** — Step 5 hands them criteria with builder evidence (or **unproven**), PR/preview/CI, and the product-visible checklist (screens, a11y a user hits, flows, running the app), plus gaps. Builders verify what a user could not confirm from the product alone (tests, lint, typecheck, edge cases, data/backend, in-process checks). Neither the lead nor a builder signs off. Every specialist follows **official sources first** (`SOURCES.md`). Each specialist's Task `subagent_type` is `kru-<seat>`, the `name:` in `agents/<seat>.md`. The bare name in the table is the file stem.
 
