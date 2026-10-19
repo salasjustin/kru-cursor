@@ -40,4 +40,4 @@ Run it on every artboard before mockups publish to the PM (designer: `${CURSOR_P
 - **How a component behaves** — `ui-patterns`.
 - **Charts and their colours** — `dataviz`.
 - **Words on the screen** — `ux-copy`, and `ui-patterns` → `reference/text-and-icons.md` for which prose earns a place.
-- **Whether a rendered state breaks, ambiguous grouping included** — `visual-reviewer`.
+- **Whether a rendered state breaks, ambiguous grouping included** — `kru-visual-reviewer`.

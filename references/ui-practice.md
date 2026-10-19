@@ -18,10 +18,10 @@ The team's UI doctrine, read by the three UI component builders, `design-system`
 | --- | --- |
 | **Designer** (outside engineering) | mockups, build spec (flows, IA, copy, brand paths, imagery), owner approval before PM handoff |
 | **PM** | attaches the approved design spec to the brief; product calls on gaps |
-| `conversion-copywriter` | marketing argument and SECTION deck — often **before** the designer draws |
+| `kru-conversion-copywriter` | marketing argument and SECTION deck — often **before** the designer draws |
 | the UI builder | token file, **conformance gate**, components — built to the spec |
 | the lead | routes, dispatches, verifies — **no** design drafting |
-| `visual-reviewer` | rendered UI vs approved mockups at **1440** and **375**, plus coverage states — mismatches go to the builder |
+| `kru-visual-reviewer` | rendered UI vs approved mockups at **1440** and **375**, plus coverage states — mismatches go to the builder |
 
 ## The conventions file
 
@@ -31,7 +31,7 @@ The team's UI doctrine, read by the three UI component builders, `design-system`
 
 1. **PM brings an approved design spec** — mockups + build spec from the designer (`design-spec.md`). Without it, engineering stops and asks the PM to get design first.
 2. **Builder Phase 0** — transcribe token values from the build spec into `design-system.ts`, emit the token file, ship the **conformance gate** in the same slice (see *The conformance gate*). Do **not** invoke `skills/kru-design-system/SKILL.md` (scope in the invoking task: create) to invent values — either the spec supplies the tokens or the builder implements the mapping the spec names. First components; conventions file turns to header era when applicable.
-3. **Feature slices** — builders implement screens to the spec; **PM acceptance** (Step 5) compares the preview to the same mockups (or a task-named `visual-reviewer` pass).
+3. **Feature slices** — builders implement screens to the spec; **PM acceptance** (Step 5) compares the preview to the same mockups (or a task-named `kru-visual-reviewer` pass).
 
 Greenfield team defaults (`pnpm`, React when unstated) apply when scaffolding; brownfield matches the repo.
 
@@ -39,7 +39,7 @@ Greenfield team defaults (`pnpm`, React when unstated) apply when scaffolding; b
 
 1. **PM attaches the design spec** for the slice (or points at an unchanged spec already on the brief).
 2. **Build** — component + token edits in the repo, to the closed set (`references/ui-handoff.md`).
-3. **Verify** — repo gate every commit; lead Step 4 is builder tests and evidence. **PM acceptance** on the preview covers `visual-reviewer` + `accessibility-reviewer` (+ `ux-auditor` on multi-screen flows) unless the task names those passes earlier.
+3. **Verify** — repo gate every commit; lead Step 4 is builder tests and evidence. **PM acceptance** on the preview covers `kru-visual-reviewer` + `kru-accessibility-reviewer` (+ `kru-ux-auditor` on multi-screen flows) unless the task names those passes earlier.
 
 A **named gap** — the spec lacks a value the slice needs — goes to the **PM** with the token name; no seat invents it.
 
@@ -83,14 +83,14 @@ Three different things, and collapsing them is what makes this rule look like it
 - **Recording what was settled is the system's.** A mature token file has a ledger beside it saying what each token is *for* and which pairs are legible as text, ratio included, because the distinction between a **fill** and an **ink** is the single largest source of drift and no reader can recover it from the values. Those numbers are measurements of decisions already taken, written once, and they are what the header carries into the next design session. Recording a ratio is not computing a verdict.
 - **Using a pair as authored is conformance**, and the gate's business. A fill token spent as a text colour — a warning fill on a body line, or a tint paired with its own full-strength ink — is not a design decision anyone took; it is a component reaching past the surface-and-ink pair the system authored for exactly that case. That is a **names/values** finding on the same footing as any other. (The token names differ per system; the failure doesn't.)
 
-What stays banned is a **review seat computing a ratio to overturn the spec**: `accessibility-reviewer`, `visual-reviewer`, and `ux-auditor` report structure — keyboard operability, focus order and visibility, target size, name/role/value, error identification — and name 1.4.3/1.4.11 unassessed so a clean run never reads as full AA.
+What stays banned is a **review seat computing a ratio to overturn the spec**: `kru-accessibility-reviewer`, `kru-visual-reviewer`, and `kru-ux-auditor` report structure — keyboard operability, focus order and visibility, target size, name/role/value, error identification — and name 1.4.3/1.4.11 unassessed so a clean run never reads as full AA.
 
 ## Reviewing the built UI
 
 What runs, and when:
 
 - **Every commit, mechanical:** the gate above — whatever the build enforces structurally, plus the sweeps in the suite.
-- **At PM acceptance (Step 5), on the preview:** `visual-reviewer` when named — **spec match at 1440 and 375** plus states nobody opens and defect root cause; `accessibility-reviewer`; `ux-auditor` on a named flow.
+- **At PM acceptance (Step 5), on the preview:** `kru-visual-reviewer` when named — **spec match at 1440 and 375** plus states nobody opens and defect root cause; `kru-accessibility-reviewer`; `kru-ux-auditor` on a named flow.
 - **Outside kru:** the designer bot may compare the finished UI to her mockups after ship.
 
 ## Team defaults (greenfield only)

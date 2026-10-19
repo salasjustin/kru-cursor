@@ -8,7 +8,7 @@ Each block below has **invariant clauses** (copy verbatim — `audit` checks the
 
 ## Block A — `## Context hygiene (stay lean)`
 
-Required on every seat that **reads or edits repo files**. The two text-producing seats (`planner`, `conversion-copywriter`) are exempt by decision: their input is a brief handed to them, and they already carry an `## Output`/`## Handoff` contract.
+Required on every seat that **reads or edits repo files**. The two text-producing seats (`kru-planner`, `kru-conversion-copywriter`) are exempt by decision: their input is a brief handed to them, and they already carry an `## Output`/`## Handoff` contract.
 
 ```
 ## Context hygiene (stay lean)
@@ -31,11 +31,11 @@ Return: {what the lead gets back — paths, commands run, what the next seat sti
 
 **Tailored slots**: the seat noun, the scope nouns in bullet 1 (`the Worker + wrangler config` / `the config files + the package.jsons` / `the slow route plus its hot path`), the whole docs-source bullet, and the `Return:` line. A seat may add a bullet (the UI builders' no-mid-build-asset-fetch rule) — additions are fine, deletions are drift.
 
-**Reviewer variant** (`code-reviewer`, `architecture-reviewer`): they never edit, so bullet 2 becomes `Never re-read a file already in context — you don't edit, so nothing you've read has changed under you.`, bullet 1 scopes to the diff, and the block opens by naming the read/change asymmetry. Their return contract is `## Output` **plus Block C.1's `## What you return`**, never a `Return:` line — this block caps what the seat *reads*, C.1 caps what it *hands back*, and the two are separate failure modes.
+**Reviewer variant** (`kru-code-reviewer`, `kru-architecture-reviewer`): they never edit, so bullet 2 becomes `Never re-read a file already in context — you don't edit, so nothing you've read has changed under you.`, bullet 1 scopes to the diff, and the block opens by naming the read/change asymmetry. Their return contract is `## Output` **plus Block C.1's `## What you return`**, never a `Return:` line — this block caps what the seat *reads*, C.1 caps what it *hands back*, and the two are separate failure modes.
 
 ## Block B — `## TypeScript (shared skill)`
 
-Required on every seat that **writes or edits TypeScript**. `python-developer` is the one code-writing seat outside it — its artifact is Python and its packaging, with no TS surface at all, so there is nothing for the block to bind; it carries Block I on its own, and the `Comments`-follows-`TypeScript` grep is unaffected because it never enters that grep's input set.
+Required on every seat that **writes or edits TypeScript**. `kru-python-developer` is the one code-writing seat outside it — its artifact is Python and its packaging, with no TS surface at all, so there is nothing for the block to bind; it carries Block I on its own, and the `Comments`-follows-`TypeScript` grep is unaffected because it never enters that grep's input set.
 
 Full form (23 seats — the default for any seat writing app code; re-derive with `grep -lc 'cheat-sheet baseline' agents/*.md` rather than trusting this number):
 
@@ -44,7 +44,7 @@ Full form (23 seats — the default for any seat writing app code; re-derive wit
 For anything TypeScript-the-language — tsconfig/strictness, module-resolution or path-alias breakage, a cryptic type error, a gnarly generic/inference or a `.d.ts`, ESM/CJS, monorepo project references, JS→TS migration, or slow type-checking — load the **`typescript`** skill (cheat-sheet baseline + type craft) and solve it in-context, not from memory. It's ambient craft in the code you're already writing, not a separate hand-off. (That skill excludes the formatter/linter + monorepo task/package graph — Biome/ESLint/Prettier, pnpm, Turborepo are the `toolchain-engineer` seat's; route that to the lead for it.)
 ```
 
-**Short form** — correct when the seat only meets TypeScript at its own narrow surface. Name that surface, then the invariant tail. `cloudflare-builder` (typed `Env`/bindings, `wrangler types`), `toolchain-engineer` (+ the "you own the *task*, that skill owns the *tsconfig*" seam), `vercel-platform-engineer` (config-adjacent), `vercel-perf-optimizer` (typed `dynamic()`, `next.config.ts`), `go-fullstack-builder` (the client side of its wire — its app code is Go) all use it correctly. **These are tailoring, not drift — do not converge them onto the full form.**
+**Short form** — correct when the seat only meets TypeScript at its own narrow surface. Name that surface, then the invariant tail. `kru-cloudflare-builder` (typed `Env`/bindings, `wrangler types`), `kru-toolchain-engineer` (+ the "you own the *task*, that skill owns the *tsconfig*" seam), `kru-vercel-platform-engineer` (config-adjacent), `kru-vercel-perf-optimizer` (typed `dynamic()`, `next.config.ts`), `kru-go-fullstack-builder` (the client side of its wire — its app code is Go) all use it correctly. **These are tailoring, not drift — do not converge them onto the full form.**
 
 Invariant in both forms: loads `` **`typescript`** `` **and** `solve it in-context`, plus a not-from-memory clause.
 
@@ -55,7 +55,7 @@ Required on every seat carrying **Block B** (28 seats — the same list, and it 
 **Exempt by decision** — record the reason, don't just omit:
 - reviewers and the two text-producing seats — they write no code, so there are no comments to earn.
 
-**The read side** — this block is what a seat writes under; `code-reviewer` → *What to hunt* is where a violation is caught. It carries the detection half as one bullet, self-contained (a reviewer writes no code, so it never loads this block): `low` for the noise a diff adds, `med` for a comment the diff **lost**, left **stale**, or **added wrong from birth** — the misdescribing half is what reaches the verdict and the fix loop. The two move together: a clause here that changes what counts as a violation needs its twin there, or the gate stops matching the rule. `lead` carries the third copy on the path where neither a seat under this block nor a reviewer reading for it is in the loop — **inline** edits the lead makes itself (*Delegate on stack, not size*), and the lead-owned Block I pass at Step 4 before handoff. It is both halves on both.
+**The read side** — this block is what a seat writes under; `kru-code-reviewer` → *What to hunt* is where a violation is caught. It carries the detection half as one bullet, self-contained (a reviewer writes no code, so it never loads this block): `low` for the noise a diff adds, `med` for a comment the diff **lost**, left **stale**, or **added wrong from birth** — the misdescribing half is what reaches the verdict and the fix loop. The two move together: a clause here that changes what counts as a violation needs its twin there, or the gate stops matching the rule. `lead` carries the third copy on the path where neither a seat under this block nor a reviewer reading for it is in the loop — **inline** edits the lead makes itself (*Delegate on stack, not size*), and the lead-owned Block I pass at Step 4 before handoff. It is both halves on both.
 
 **The audit side** — `skills/kru-comment-fix/SKILL.md` is the third copy and the one the *user* invokes. It restates the standard rather than pointing here, for the reason `ROSTER.md` records, which makes it the copy nothing re-derives: **a class on its cut list is a class this block owes a clause**, and its `Keep, always` list is the same contract as the exemptions above. Its case step is the same contract as *Terse, in the file's own voice*. That set drifted wider once already — commented-out code and `stale` were cut there with no twin here or on the gate, which is why a pass over a freshly-reviewed diff still landed hunks.
 
@@ -81,7 +81,7 @@ A comment earns its line by carrying what the code can't: a constraint from outs
 - `Terse, in the file's own voice` + `lowercase fragments where it has none to match` + the exemptions — case and grammar follow the comments around the new one (a PEP 8 file gets sentences), and the lowercase default covers only the file with nothing to match. The exemptions are API: recasing a directive turns a tool off.
 - `not for whoever prompted you` + `belongs in your return` — names the wrong audience the seat defaults to, and where that text does go. The TODO clause rides this bullet rather than its own: same wrong reader (pp. 58–59 — a TODO is not an excuse to leave bad code), and `name it in your return and let the lead call it` is deliberately Block F's escape-hatch phrasing, because a deferred piece of work is a scope call and scope calls route.
 
-**Tailored slots**: the **surface syntax only**, and only on a seat whose language isn't JS/TS — an exhaustive list, because anything outside it is drift: the manifest named in the opener (`package.json` → `pyproject.toml`, `go.mod`), the comment marker (`//` → `#`), the identifier casing in the absorbed-comment example (`isEligibleForFullBenefits()` → `is_eligible_for_full_benefits()`), the closing-brace tag where the language has no braces (`} // end try` → `# end try`), and the throw/raise keyword. Every clause, every example's *meaning*, and the bullet order are invariant — normalize those five and the text must match canonical exactly, which is the check to run rather than a visual diff (`python-developer` passes it). Two seats in the same language differing at all is drift, same as Block E.
+**Tailored slots**: the **surface syntax only**, and only on a seat whose language isn't JS/TS — an exhaustive list, because anything outside it is drift: the manifest named in the opener (`package.json` → `pyproject.toml`, `go.mod`), the comment marker (`//` → `#`), the identifier casing in the absorbed-comment example (`isEligibleForFullBenefits()` → `is_eligible_for_full_benefits()`), the closing-brace tag where the language has no braces (`} // end try` → `# end try`), and the throw/raise keyword. Every clause, every example's *meaning*, and the bullet order are invariant — normalize those five and the text must match canonical exactly, which is the check to run rather than a visual diff (`kru-python-developer` passes it). Two seats in the same language differing at all is drift, same as Block E.
 
 ## Block C — the return contract
 
@@ -95,9 +95,9 @@ Pick by seat kind, not by whichever peer you opened.
 
 ### Block C.1 — `## What you return` (the five review seats)
 
-Required on `code-reviewer`, `architecture-reviewer`, `visual-reviewer`, `accessibility-reviewer`, `ux-auditor`. It **follows** `## Output` and never replaces it: `## Output` is the **report**, this block is the **return**, and separating them is the whole point. Three of these seats say their Output is a skill's template *verbatim* — the caps here must not read as an edit to that template, or the two-callers-one-body rule forks.
+Required on `kru-code-reviewer`, `kru-architecture-reviewer`, `kru-visual-reviewer`, `kru-accessibility-reviewer`, `kru-ux-auditor`. It **follows** `## Output` and never replaces it: `## Output` is the **report**, this block is the **return**, and separating them is the whole point. Three of these seats say their Output is a skill's template *verbatim* — the caps here must not read as an edit to that template, or the two-callers-one-body rule forks.
 
-Not on the builders/specialists: their `Return:` line is already a path list, which is the shape this block exists to produce. Not on the two text-producing seats: their output **is** the deliverable a next seat consumes. Not on `dispatch-auditor`: its report is the inbox lines it files — the durable artifact lives in the preference store, not in a return — and its return is a single closing line, already the shape this block exists to produce.
+Not on the builders/specialists: their `Return:` line is already a path list, which is the shape this block exists to produce. Not on the two text-producing seats: their output **is** the deliverable a next seat consumes. Not on `kru-dispatch-auditor`: its report is the inbox lines it files — the durable artifact lives in the preference store, not in a return — and its return is a single closing line, already the shape this block exists to produce.
 
 ```
 ## What you return (the return is not the report)
@@ -119,24 +119,24 @@ Your context is your own; the lead's is the scarce one, and it pays for every wo
 - `No narration` + `Open on the first one`
 - `Severity names a situation, never a worry` + a situation per level — a level defined by how bad it feels ("very risky") sorts by the reviewer's mood, and the verdict built on the counts sorts with it
 
-**Tailored slots**: the finding noun (`findings` / `failures` / `defects`), the **ordering rule** (severity for most; `systemic first` for `visual-reviewer`, **path order** for `ux-auditor` — its findings compound along the walk), the seat's coverage line (the `handed to visual-reviewer` line · the coverage line · *how it was checked* + *what wasn't verified* · where the dependency trace stopped · the resolved entry route), what the seat narrates by habit, and `{levels}` — the seat's own level names, each a situation a finding either is or isn't in. The user-reach ladder on four seats (`code-reviewer`, `visual-reviewer`, `accessibility-reviewer` under its template's Critical/Major/Minor, `ux-auditor`): **high** — a path reachable today gives a wrong result, loses or exposes data, moves money wrongly, or stops a user; **med** — wrong only under a reachable edge case, or a stated behavior regresses and a user can work around it; **low** — no user-reachable effect today (naming, comments, style, a latent path). `architecture-reviewer` grades change cost instead, since a boundary breach reaches no user until the next change does: **high** — a dependency cycle or a breached boundary that makes the next change edit across modules or leaves the seam untestable; **med** — coupling that makes a likely change touch two modules; **low** — placement or naming with no change-cost effect. A seat may add a bullet for the payload *it specifically* over-returns — `visual-reviewer`'s screenshots-are-paths, `accessibility-reviewer`'s criterion tables, `ux-auditor`'s questions-and-gaps-as-counts, `code-reviewer`'s comment count (a dimension capped at `low` needs a way past a severity-ordered cap). Additions are fine, deletions are drift.
+**Tailored slots**: the finding noun (`findings` / `failures` / `defects`), the **ordering rule** (severity for most; `systemic first` for `kru-visual-reviewer`, **path order** for `kru-ux-auditor` — its findings compound along the walk), the seat's coverage line (the `handed to visual-reviewer` line · the coverage line · *how it was checked* + *what wasn't verified* · where the dependency trace stopped · the resolved entry route), what the seat narrates by habit, and `{levels}` — the seat's own level names, each a situation a finding either is or isn't in. The user-reach ladder on four seats (`kru-code-reviewer`, `kru-visual-reviewer`, `kru-accessibility-reviewer` under its template's Critical/Major/Minor, `kru-ux-auditor`): **high** — a path reachable today gives a wrong result, loses or exposes data, moves money wrongly, or stops a user; **med** — wrong only under a reachable edge case, or a stated behavior regresses and a user can work around it; **low** — no user-reachable effect today (naming, comments, style, a latent path). `kru-architecture-reviewer` grades change cost instead, since a boundary breach reaches no user until the next change does: **high** — a dependency cycle or a breached boundary that makes the next change edit across modules or leaves the seam untestable; **med** — coupling that makes a likely change touch two modules; **low** — placement or naming with no change-cost effect. A seat may add a bullet for the payload *it specifically* over-returns — `kru-visual-reviewer`'s screenshots-are-paths, `kru-accessibility-reviewer`'s criterion tables, `kru-ux-auditor`'s questions-and-gaps-as-counts, `kru-code-reviewer`'s comment count (a dimension capped at `low` needs a way past a severity-ordered cap). Additions are fine, deletions are drift.
 
 **Two documented exceptions to the caps**, both recorded rather than inferred:
-- `architecture-reviewer` **design mode returns its interface spec in full** — the spec is not a finding list, it's what a builder implements, and capping it breaks the build it was dispatched to unblock. Signatures are that mode's exception to *return no code*. Review mode caps normally.
-- `ux-auditor`'s **path map goes to the report, not the return** — it's the artifact that makes findings checkable, so it stays written in full, but the lead routes off defects. Its header (resolved entry route, step count, unfollowed branches) returns; the map doesn't.
+- `kru-architecture-reviewer` **design mode returns its interface spec in full** — the spec is not a finding list, it's what a builder implements, and capping it breaks the build it was dispatched to unblock. Signatures are that mode's exception to *return no code*. Review mode caps normally.
+- `kru-ux-auditor`'s **path map goes to the report, not the return** — it's the artifact that makes findings checkable, so it stays written in full, but the lead routes off defects. Its header (resolved entry route, step count, unfollowed branches) returns; the map doesn't.
 
 **The lead's half.** A seat can only write the long half somewhere if the lead names where — when the **task** names a review seat, the brief carries `report: ${TMPDIR:-/tmp}/kru-review/<project-slug>/<seat>-<slice-slug>.md`. That location is **deliberately ephemeral and outside the plan store**: a review is per-run and has none of the four lifetimes `TRACKER.md` defines, so nothing durable may point at it. What survives is the routed fix list and any `issues/<kebab-slug>.md` capture — never the report file.
 
 ## Block D — `## Test-first (shared skill)`
 
-Required on every seat that implements **executable behavior with a specifiable contract** (21 seats: the four framework builders, `go-fullstack-builder`, `cloudflare-builder`, `hono-builder`, both data architects, `turso-specialist`, `better-auth-specialist`, `stripe-specialist`, `paypal-specialist`, `chariot-specialist`, `nowpayments-specialist`, `quickbooks-specialist`, `zapier-specialist`, `web-components-builder`, `python-developer`, `node-developer`, `extension-builder`).
+Required on every seat that implements **executable behavior with a specifiable contract** (21 seats: the four framework builders, `kru-go-fullstack-builder`, `kru-cloudflare-builder`, `kru-hono-builder`, both data architects, `kru-turso-specialist`, `kru-better-auth-specialist`, `kru-stripe-specialist`, `kru-paypal-specialist`, `kru-chariot-specialist`, `kru-nowpayments-specialist`, `kru-quickbooks-specialist`, `kru-zapier-specialist`, `kru-web-components-builder`, `kru-python-developer`, `kru-node-developer`, `kru-extension-builder`).
 
 **Exempt by decision** — record the reason, don't just omit:
-- `react-ui-builder`, `svelte-ui-builder` — you can't go red on a layout or a motion curve; pixels and motion on the preview are **PM acceptance** (lead Step 5), not tests in your run. Logic-dense component internals (a reducer, validation rules) route to `test-writer` after the build.
-- `web-components-builder` is the **partial**, and it's in rather than out: its element's public API (attribute→property reflection and the pre-upgrade path, emitted events and their `detail`, `ElementInternals` form value/validity, idempotent connect/disconnect) is a specifiable contract other people's pages depend on, and every one of its failures is invisible on screen — so Block D applies to it in full. What it *renders* is PM acceptance on the preview, not a red test in your run.
-- `sanity-builder` — its primary artifact is declarative schema; TypeGen is the correctness gate on GROQ.
-- `vercel-perf-optimizer` — already carries the same discipline in a different currency: `## Prove the win` demands a measured before/after.
-- `toolchain-engineer`, `vercel-platform-engineer`, `fly-platform-engineer` — config, not behavior. The Fly seat's artifact is an image plus `fly.toml`; what verifies it is a health check against a real deploy, not a red test.
+- `kru-react-ui-builder`, `kru-svelte-ui-builder` — you can't go red on a layout or a motion curve; pixels and motion on the preview are **PM acceptance** (lead Step 5), not tests in your run. Logic-dense component internals (a reducer, validation rules) route to `kru-test-writer` after the build.
+- `kru-web-components-builder` is the **partial**, and it's in rather than out: its element's public API (attribute→property reflection and the pre-upgrade path, emitted events and their `detail`, `ElementInternals` form value/validity, idempotent connect/disconnect) is a specifiable contract other people's pages depend on, and every one of its failures is invisible on screen — so Block D applies to it in full. What it *renders* is PM acceptance on the preview, not a red test in your run.
+- `kru-sanity-builder` — its primary artifact is declarative schema; TypeGen is the correctness gate on GROQ.
+- `kru-vercel-perf-optimizer` — already carries the same discipline in a different currency: `## Prove the win` demands a measured before/after.
+- `kru-toolchain-engineer`, `kru-vercel-platform-engineer`, `kru-fly-platform-engineer` — config, not behavior. The Fly seat's artifact is an image plus `fly.toml`; what verifies it is a health check against a real deploy, not a red test.
 - reviewers and the two text-producing seats — they don't write the code.
 
 ```
@@ -166,11 +166,11 @@ What you verify before return is whatever a user could **not** confirm by using 
 
 **Tailored slot**: `{the seat's behavior surface}` only. Everything else is invariant — this block is short precisely so there's nothing to shorten.
 
-**Not a substitute for `test-writer`.** This block covers first coverage of behavior the seat is building right now. What needs its own context stays `test-writer`'s (`lead` SKILL.md Step 4): coverage sweeps and fan-out across many files, repairing a red/flaky suite when no builder is in flight, and **capturing** an unfamiliar repo's conventions into a project testing doc. The seat and this block run the same `testing` skill — the split is context, not craft.
+**Not a substitute for `kru-test-writer`.** This block covers first coverage of behavior the seat is building right now. What needs its own context stays `kru-test-writer`'s (`lead` SKILL.md Step 4): coverage sweeps and fan-out across many files, repairing a red/flaky suite when no builder is in flight, and **capturing** an unfamiliar repo's conventions into a project testing doc. The seat and this block run the same `testing` skill — the split is context, not craft.
 
 ## Block S — `## Test credentials`
 
-Required on the same seats as Block D (21 behavior seats) plus `test-writer` — anyone who runs or writes tests that may touch secrets or a database. Sits **immediately after** Block D in each behavior seat, or **immediately after** `## The craft (shared skill)` in `test-writer` — matching `scripts/port.mjs` injection.
+Required on the same seats as Block D (21 behavior seats) plus `kru-test-writer` — anyone who runs or writes tests that may touch secrets or a database. Sits **immediately after** Block D in each behavior seat, or **immediately after** `## The craft (shared skill)` in `kru-test-writer` — matching `scripts/port.mjs` injection.
 
 ```
 ## Test credentials
@@ -181,11 +181,11 @@ Before the first test run in a slice that needs secrets or a database, read `${C
 
 **Invariant clauses:**
 - `` `${CURSOR_PLUGIN_ROOT}/skills/kru-lead/references/test-credentials.md` `` — the canonical guard; do not restate its rules in a brief or in this block.
-- `the lead runs the same guards` — one guard for lead, builders, and `test-writer`; a seat that skips it because the brief didn't repeat it is drift.
+- `the lead runs the same guards` — one guard for lead, builders, and `kru-test-writer`; a seat that skips it because the brief didn't repeat it is drift.
 
 ## Block F — `## Scope — build the real path, not every path`
 
-Required on every seat that **writes app code** (24 seats: the four framework builders, `go-fullstack-builder`, `cloudflare-builder`, `hono-builder`, `sanity-builder`, both data architects, `turso-specialist`, `better-auth-specialist`, `stripe-specialist`, `paypal-specialist`, `chariot-specialist`, `nowpayments-specialist`, `quickbooks-specialist`, `zapier-specialist`, the three UI component builders, `python-developer`, `node-developer`, `extension-builder`). Reviewers, config seats and the two text-producing seats don't build, so there is no breadth to bound.
+Required on every seat that **writes app code** (24 seats: the four framework builders, `kru-go-fullstack-builder`, `kru-cloudflare-builder`, `kru-hono-builder`, `kru-sanity-builder`, both data architects, `kru-turso-specialist`, `kru-better-auth-specialist`, `kru-stripe-specialist`, `kru-paypal-specialist`, `kru-chariot-specialist`, `kru-nowpayments-specialist`, `kru-quickbooks-specialist`, `kru-zapier-specialist`, the three UI component builders, `kru-python-developer`, `kru-node-developer`, `kru-extension-builder`). Reviewers, config seats and the two text-producing seats don't build, so there is no breadth to bound.
 
 ```
 ## Scope — build the real path, not every path
@@ -204,7 +204,7 @@ This bounds **breadth, never rigor**{, and where the bound bites hardest on this
 
 ## Block G — `## Build and return — no self-dispatch`
 
-Required on the seats whose output **renders** (10 seats: the four framework builders, `go-fullstack-builder`, the three UI component builders, `cloudflare-builder`, `sanity-builder`) — the ones tempted to boot the app and look.
+Required on the seats whose output **renders** (10 seats: the four framework builders, `kru-go-fullstack-builder`, the three UI component builders, `kru-cloudflare-builder`, `kru-sanity-builder`) — the ones tempted to boot the app and look.
 
 ```
 ## Build and return — no self-dispatch
@@ -213,21 +213,21 @@ Required on the seats whose output **renders** (10 seats: the four framework bui
 ```
 
 **Exempt by decision** — record the reason, don't just omit:
-- `vercel-perf-optimizer` — measuring a running app **is** the job; `## Prove the win` is its version of this rule.
-- `toolchain-engineer`, `vercel-platform-engineer`, `fly-platform-engineer` — config; nothing renders to be tempted by.
-- the data/auth/billing specialists, `python-developer`, `node-developer`, `extension-builder` and `hono-builder` — no rendered surface, and their gate is the suite (Block D). The Python, Node, extension and Hono seats carry the never-boot clause anyway, tailored: an MCP server is verified by calling its tools in-process from a test, never by launching it and driving a client, a long-running Node process by a test that spawns it, signals it and asserts on its exit, a Vite plugin through Vite's JavaScript API rather than a dev server, and a Hono app through `app.request()` and the Hono CLI, both in-process.
+- `kru-vercel-perf-optimizer` — measuring a running app **is** the job; `## Prove the win` is its version of this rule.
+- `kru-toolchain-engineer`, `kru-vercel-platform-engineer`, `kru-fly-platform-engineer` — config; nothing renders to be tempted by.
+- the data/auth/billing specialists, `kru-python-developer`, `kru-node-developer`, `kru-extension-builder` and `kru-hono-builder` — no rendered surface, and their gate is the suite (Block D). The Python, Node, extension and Hono seats carry the never-boot clause anyway, tailored: an MCP server is verified by calling its tools in-process from a test, never by launching it and driving a client, a long-running Node process by a test that spawns it, signals it and asserts on its exit, a Vite plugin through Vite's JavaScript API rather than a dev server, and a Hono app through `app.request()` and the Hono CLI, both in-process.
 - reviewers and the two text-producing seats — they don't build.
 
 **Invariant clauses:**
-- ⚠ the never-boot clause — `drive a browser` is the string to grep (all 10 carry it, in three wordings: `Never start a dev server or drive a browser to check your own work` on six, `Never boot the app, start a dev server, or drive a browser` on the three UI builders, and `Never start a dev server, launch the Studio, or drive a browser` on `sanity-builder`, whose Studio is a second thing it would otherwise open to look). This is the load-bearing half: a seat that boots the app burns the run and still can't judge the render. The bullet's *opener* is a tailored slot, so grep this clause, never the opener.
+- ⚠ the never-boot clause — `drive a browser` is the string to grep (all 10 carry it, in three wordings: `Never start a dev server or drive a browser to check your own work` on six, `Never boot the app, start a dev server, or drive a browser` on the three UI builders, and `Never start a dev server, launch the Studio, or drive a browser` on `kru-sanity-builder`, whose Studio is a second thing it would otherwise open to look). This is the load-bearing half: a seat that boots the app burns the run and still can't judge the render. The bullet's *opener* is a tailored slot, so grep this clause, never the opener.
 - ⚠ `PM acceptance on the preview URL` — names where product-visible checks land (screens, a11y a user hits, flows, manual product behavior), so the never-boot ban has a positive target; in-process and data/backend checks stay on the opener above.
 - the no-spawn bullet is cheap insurance rather than a live risk (a subagent can't spawn subagents), so it may be one line — but it stays paired with `dispatch and review routing is the lead's alone`.
 
-**Tailored slots**: the **opener** — `Verify with the toolchain, not the app:` on the seats that have one (the framework builders, `cloudflare-builder`, `sanity-builder`), `Self-check in isolation:` on the two UI component builders, whose toolchain can't render what they wrote either — and the seat's checks (`autofixer, typecheck/build, existing tests` · `typecheck/lint` · `wrangler deploy --dry-run` + `wrangler types` · TypeGen + typecheck).
+**Tailored slots**: the **opener** — `Verify with the toolchain, not the app:` on the seats that have one (the framework builders, `kru-cloudflare-builder`, `kru-sanity-builder`), `Self-check in isolation:` on the two UI component builders, whose toolchain can't render what they wrote either — and the seat's checks (`autofixer, typecheck/build, existing tests` · `typecheck/lint` · `wrangler deploy --dry-run` + `wrangler types` · TypeGen + typecheck).
 
 ## Block H — `## Match the repo`
 
-Required on the seats that write app code **into an existing tree** (14 seats: the four framework builders, `go-fullstack-builder`, `hono-builder`, the three UI component builders, `sanity-builder`, `vercel-perf-optimizer`, `python-developer`, `node-developer`, `extension-builder`). The specialists that own a whole layer (data, auth, billing, platform, toolchain) carry their own brownfield rule instead — `toolchain-engineer`'s "match the repo's actual package manager" is that rule, and converging it onto this block would lose the package-manager specifics.
+Required on the seats that write app code **into an existing tree** (14 seats: the four framework builders, `kru-go-fullstack-builder`, `kru-hono-builder`, the three UI component builders, `kru-sanity-builder`, `kru-vercel-perf-optimizer`, `kru-python-developer`, `kru-node-developer`, `kru-extension-builder`). The specialists that own a whole layer (data, auth, billing, platform, toolchain) carry their own brownfield rule instead — `kru-toolchain-engineer`'s "match the repo's actual package manager" is that rule, and converging it onto this block would lose the package-manager specifics.
 
 ```
 ## Match the repo
@@ -238,11 +238,11 @@ Read `package.json` and {the seat's peer artifacts — existing routes / compone
 - `follow the codebase's conventions` + `over your defaults` — the whole point; a seat that keeps this as "follow conventions" alone loses the tie-break rule
 - ⚠ `Check `package.json` before importing anything` + `installed with the repo's own package manager and named in your return` + `verification is blocked on it` — an uninstalled dep means Block D's red test and Block G's checks can't run, so the clause installs or says so. It lives **inside this block** on every seat, never under a heading of its own and never in the quality floor. One home, or it goes missing from whichever seat is written next.
 
-**Tailored slots**: the peer artifacts and the convention axes only — plus the **manifest name** in the install-command clause where the seat's stack isn't Node (`go.mod` + `package.json` on `go-fullstack-builder`, `pyproject.toml` + the lockfile with `uv add …` on `python-developer`). The clause's shape is invariant; which file it names is not.
+**Tailored slots**: the peer artifacts and the convention axes only — plus the **manifest name** in the install-command clause where the seat's stack isn't Node (`go.mod` + `package.json` on `kru-go-fullstack-builder`, `pyproject.toml` + the lockfile with `uv add …` on `kru-python-developer`). The clause's shape is invariant; which file it names is not.
 
 ## Block J — the contrast clause
 
-Required on every seat that could otherwise reach for a ratio: the three **UI component builders**, `accessibility-reviewer`, `visual-reviewer`. It rides inside whatever sentence already tells the seat where a value comes from, rather than as a bullet of its own.
+Required on every seat that could otherwise reach for a ratio: the three **UI component builders**, `kru-accessibility-reviewer`, `kru-visual-reviewer`. It rides inside whatever sentence already tells the seat where a value comes from, rather than as a bullet of its own.
 
 ```
 contrast is the design's and ships as authored — no seat on this team computes a ratio
@@ -253,13 +253,13 @@ contrast is the design's and ships as authored — no seat on this team computes
 - ⚠ `ships as authored` — this is what stops the softer failure: a seat that doesn't compute a ratio but still flags a pair as "worth checking," which routes a design decision back to the user as a defect.
 - `no seat on this team computes a ratio` — team-wide, not seat-local. Scoped to the seat, each one assumes some *other* seat has it covered, and the criterion silently comes back.
 
-**The pair carve-out — a permitted companion, never an edit to the clause.** The clause bans *deciding* a pair; it does not ban holding one together. Where the design authored a surface and its ink as one decision, a fill token spent as a text colour is a **conformance** finding — cited by token name against the system's own ledger, never by a ratio the seat worked out. The three UI builders carry it as a following sentence (*transcribing a pair includes keeping it a pair*). The screen seats — `accessibility-reviewer`, `visual-reviewer` — carry **no** carve-out: for them the ban is total, because a finding they file reads as an a11y verdict whatever it cites. Recording measured ratios in a token ledger is likewise not covered by this block: that is the system documenting decisions already taken (`${CURSOR_PLUGIN_ROOT}/references/ui-practice.md` → *Contrast*).
+**The pair carve-out — a permitted companion, never an edit to the clause.** The clause bans *deciding* a pair; it does not ban holding one together. Where the design authored a surface and its ink as one decision, a fill token spent as a text colour is a **conformance** finding — cited by token name against the system's own ledger, never by a ratio the seat worked out. The three UI builders carry it as a following sentence (*transcribing a pair includes keeping it a pair*). The screen seats — `kru-accessibility-reviewer`, `kru-visual-reviewer` — carry **no** carve-out: for them the ban is total, because a finding they file reads as an a11y verdict whatever it cites. Recording measured ratios in a token ledger is likewise not covered by this block: that is the system documenting decisions already taken (`${CURSOR_PLUGIN_ROOT}/references/ui-practice.md` → *Contrast*).
 
-**Tailored slots**: the host sentence. `accessibility-reviewer` and the `skills/kru-accessibility-review/SKILL.md` skill additionally name **1.4.3 / 1.4.11 as unassessed** in their output, so a clean run is never read as a full-AA claim — that naming is theirs alone and is not part of this block.
+**Tailored slots**: the host sentence. `kru-accessibility-reviewer` and the `skills/kru-accessibility-review/SKILL.md` skill additionally name **1.4.3 / 1.4.11 as unassessed** in their output, so a clean run is never read as a full-AA claim — that naming is theirs alone and is not part of this block.
 
 ## Block E — the token-vocabulary bullet
 
-Required on the three **UI component builders** (`react-ui-builder`, `svelte-ui-builder`, `web-components-builder`) — the seats that write style values. It sits inside `## Follow the plan exactly`, under the closed-set and named-gap bullets it depends on.
+Required on the three **UI component builders** (`kru-react-ui-builder`, `kru-svelte-ui-builder`, `kru-web-components-builder`) — the seats that write style values. It sits inside `## Follow the plan exactly`, under the closed-set and named-gap bullets it depends on.
 
 **Not on the framework builders.** They mount components and write no style values, so the vocabulary is nothing they can get wrong. The **conformance gate** the builder sets up in Phase 0 is what enforces it afterwards — structural in the build where the stack allows, plus a test in the repo, and never a seat.
 
@@ -273,11 +273,11 @@ Required on the three **UI component builders** (`react-ui-builder`, `svelte-ui-
 - ⚠ `How a value was derived is the system's business, not yours` — the team conforms to the system it was given and holds no opinion on the CSS behind it. Without this clause a seat re-derives a state step it dislikes, which is a design decision taken from the approved spec at the last possible moment, in a file nobody reviews as design.
 - ⚠ the `--accent` trap. It is the block's reason to exist — the part **no token file confesses**, because it's a plausible-looking line imported from shadcn's published components rather than a value the seat invented. Read backwards it tints every resting row, and it is expensive to unpick later.
 
-**Tailored slots**: none. The bullet is identical on all three seats by design — `audit`'s cluster check (step 6) treats any divergence between them as drift. `web-components-builder` carries **one added bullet after it**, never an edit to it: inside a shadow root distributed beyond the app the token names take a prefix, because custom properties inherit across the boundary and a generic `--primary` on a host page the team doesn't own bleeds in. An addition is fine; changing the block's own text is drift.
+**Tailored slots**: none. The bullet is identical on all three seats by design — `audit`'s cluster check (step 6) treats any divergence between them as drift. `kru-web-components-builder` carries **one added bullet after it**, never an edit to it: inside a shadow root distributed beyond the app the token names take a prefix, because custom properties inherit across the boundary and a generic `--primary` on a host page the team doesn't own bleeds in. An addition is fine; changing the block's own text is drift.
 
 ## Block K — `## Validation and forms (the repo's libraries)`
 
-Required on the six **network-boundary seats** (`nextjs-builder`, `react-router-builder`, `tanstack-start-builder`, `sveltekit-builder`, `cloudflare-builder`, `hono-builder`) — the seats that own a parse boundary. One section per seat whatever the library: the library choice is a repo fact the brief carries (`references/routing.md` → *Conditional skills*), and each library's traps live in its own skill, so a new conditional skill adds a routing row and touches no seat.
+Required on the six **network-boundary seats** (`kru-nextjs-builder`, `kru-react-router-builder`, `kru-tanstack-start-builder`, `kru-sveltekit-builder`, `kru-cloudflare-builder`, `kru-hono-builder`) — the seats that own a parse boundary. One section per seat whatever the library: the library choice is a repo fact the brief carries (`references/routing.md` → *Conditional skills*), and each library's traps live in its own skill, so a new conditional skill adds a routing row and touches no seat.
 
 ```
 ## Validation and forms (the repo's libraries)
@@ -289,11 +289,11 @@ Before a parse boundary or a form action, load the skill for this repo's schema 
 - ⚠ ``the brief names them, `package.json` when it doesn't`` — the brief is the sheet's answer; `package.json` is the environment for a direct spawn or a repo with no sheet.
 - `Parse once at the edge and pass the parsed value inward` — the seat's own invariant, which no library skill states because none owns the route.
 
-**Tailored slots**: `{framework}` in the wiring clause, and `{the seat's edges}`. `cloudflare-builder` and `hono-builder` have no form library: their heading is `## Validation at the boundary (the repo's schema library)`, the form-action trigger and the wiring clause drop, and the edge sentence reads ``Parse once in the `fetch` handler and pass the parsed value inward; bundle size decides the import on a Worker, and the skill carries the numbers.`` on `cloudflare-builder`, and names the route's validator middleware and `c.req.valid()` on `hono-builder`.
+**Tailored slots**: `{framework}` in the wiring clause, and `{the seat's edges}`. `kru-cloudflare-builder` and `kru-hono-builder` have no form library: their heading is `## Validation at the boundary (the repo's schema library)`, the form-action trigger and the wiring clause drop, and the edge sentence reads ``Parse once in the `fetch` handler and pass the parsed value inward; bundle size decides the import on a Worker, and the skill carries the numbers.`` on `kru-cloudflare-builder`, and names the route's validator middleware and `c.req.valid()` on `kru-hono-builder`.
 
 ## Block L — the props-contract handback bullet
 
-Required on the five **framework builders** (`react-router-builder`, `nextjs-builder`, `tanstack-start-builder`, `sveltekit-builder`, `go-fullstack-builder`) — the seats that mount components and build none. It sits inside `## The seam`, after the glue bullet that names what crosses the boundary. The bullet is the seat's half of the lead's grouping step, so it is the same sentence on every seat that fills the slot.
+Required on the five **framework builders** (`kru-react-router-builder`, `kru-nextjs-builder`, `kru-tanstack-start-builder`, `kru-sveltekit-builder`, `kru-go-fullstack-builder`) — the seats that mount components and build none. It sits inside `## The seam`, after the glue bullet that names what crosses the boundary. The bullet is the seat's half of the lead's grouping step, so it is the same sentence on every seat that fills the slot.
 
 ```
 - Needed component doesn't exist yet, or one your brief names needs changing? Return its **props contract** (name, props, callbacks, loading/empty/error states) — or the delta to it — to the lead for `{ui-builder}`, and leave the file to that seat: a component path in your brief is the lead's grouping miss, handed back.
@@ -304,11 +304,11 @@ Required on the five **framework builders** (`react-router-builder`, `nextjs-bui
 - `leave the file to that seat` — the positive half: the component file has one author.
 - ⚠ `a component path in your brief is the lead's grouping miss, handed back` — the brief itself can be wrong, and the seat's answer is a return, not a build. Without it the path in the brief reads as licence.
 
-**Tailored slots**: `{ui-builder}` only — `react-ui-builder` on the four React seats, `svelte-ui-builder` on `sveltekit-builder`. Any other divergence between the five is drift.
+**Tailored slots**: `{ui-builder}` only — `kru-react-ui-builder` on the four React seats, `kru-svelte-ui-builder` on `kru-sveltekit-builder`. Any other divergence between the five is drift.
 
 ## Block M — the root-spacing bullet
 
-Required on the three **UI component builders** (`react-ui-builder`, `svelte-ui-builder`, `web-components-builder`). It sits inside `## The seam`, after the bullets that say what crosses the boundary — it is the layout half of the same seam: the mount point owns where the component sits, the component owns what is inside it.
+Required on the three **UI component builders** (`kru-react-ui-builder`, `kru-svelte-ui-builder`, `kru-web-components-builder`). It sits inside `## The seam`, after the bullets that say what crosses the boundary — it is the layout half of the same seam: the mount point owns where the component sits, the component owns what is inside it.
 
 ```
 - **A root carries no outer spacing.** A margin on a component's root is the caller's to place, through {the passthrough}; padding is the shell's own and stays inside. A root that positions itself fits one mount point and fights every other.
@@ -319,11 +319,11 @@ Required on the three **UI component builders** (`react-ui-builder`, `svelte-ui-
 - `padding is the shell's own and stays inside` — the bound: the rule is about margin, and a copy that drops this reads as "no spacing at all".
 - `fits one mount point and fights every other` — the reason.
 
-**Tailored slots**: `{the passthrough}` — ``the `className` passthrough in the props contract`` on `react-ui-builder`, ``the `class` passthrough in the props contract`` on `svelte-ui-builder`, `the host element, which the mounting page styles` on `web-components-builder`.
+**Tailored slots**: `{the passthrough}` — ``the `className` passthrough in the props contract`` on `kru-react-ui-builder`, ``the `class` passthrough in the props contract`` on `kru-svelte-ui-builder`, `the host element, which the mounting page styles` on `kru-web-components-builder`.
 
 ## Block N — `## Exhaust the {library|tool|platform|database} before you write around it`
 
-Required on every seat that **writes code or config** (28 seats: Block F's 24 plus the four config seats — `toolchain-engineer`, `vercel-platform-engineer`, `fly-platform-engineer`, `vercel-perf-optimizer`, whose `turbo.json` / `vercel.json` / `fly.toml` / caching surfaces hand-roll the same way app code does). Reviewers and the two text-producing seats don't build.
+Required on every seat that **writes code or config** (28 seats: Block F's 24 plus the four config seats — `kru-toolchain-engineer`, `kru-vercel-platform-engineer`, `kru-fly-platform-engineer`, `kru-vercel-perf-optimizer`, whose `turbo.json` / `vercel.json` / `fly.toml` / caching surfaces hand-roll the same way app code does). Reviewers and the two text-producing seats don't build.
 
 It sits **immediately after the seat's official-source section** (`## Official source first` · `## Consult current docs` · `## Always consult the source of truth`) — it's a trigger for that same lookup, and `the source chain above` resolves only there.
 
@@ -339,16 +339,16 @@ Reaching to hand-write something — {four examples from this seat's surface} �
 - ⚠ `What you hand-write, this repo owns, tests, and keeps in sync` — the **price**, and the clause that flips how the hand-roll reads. Unpriced, a hand-rolled retry loop reads as diligence; priced, it reads as a second implementation of something already maintained.
 - ⚠ `Name the gap and what you built instead in your return` — the escape hatch, same shape as Block F's. Without it a seat facing a real gap either stalls or hand-rolls silently, and the lead never learns the library fell short.
 
-**Tailored slots**: the heading noun and the four examples only. The examples are what make the trigger concrete, so they name surfaces this seat meets in the file it is writing (`postgres-architect`: a constraint, a generated column, `ON CONFLICT`, a partial index) — a generic list fires on nothing.
+**Tailored slots**: the heading noun and the four examples only. The examples are what make the trigger concrete, so they name surfaces this seat meets in the file it is writing (`kru-postgres-architect`: a constraint, a generated column, `ON CONFLICT`, a partial index) — a generic list fires on nothing.
 
-**The read side** is one bullet in `code-reviewer` → *What to hunt*, sharing this block's `ships` token. A block with no reviewer bullet binds only the seats a build happens to route through, and nothing catches the hand-roll after it lands.
+**The read side** is one bullet in `kru-code-reviewer` → *What to hunt*, sharing this block's `ships` token. A block with no reviewer bullet binds only the seats a build happens to route through, and nothing catches the hand-roll after it lands.
 
 ## Block O — `## The return pass`
 
-Required on the same 28 seats as Block N — every seat that **writes code or config**. Reviewers and the two text-producing seats don't build, so there is no slice to read back; `code-reviewer` carries the **read side** instead (below).
+Required on the same 28 seats as Block N — every seat that **writes code or config**. Reviewers and the two text-producing seats don't build, so there is no slice to read back; `kru-code-reviewer` carries the **read side** instead (below).
 
 **Exempt by decision** — record the reason, don't just omit:
-- `test-writer` — its completion criterion is already hard and external (*the suite is green*), and a green suite is the one bound that resists premature completion without being asked to. It writes tests, not app code, which is also why it sits outside Blocks F and N.
+- `kru-test-writer` — its completion criterion is already hard and external (*the suite is green*), and a green suite is the one bound that resists premature completion without being asked to. It writes tests, not app code, which is also why it sits outside Blocks F and N.
 
 It sits **immediately before `## Context hygiene (stay lean)`** — the last action before the return it gates.
 
@@ -365,21 +365,21 @@ Fix what it finds. What this slice can't absorb, name in your return rather than
 
 **Invariant clauses:**
 - ⚠ `Believing the work is done is the cue` — the **trigger**, and it has to fire at the moment of false completion. Every other placement fails: a pass scheduled "at the end" is one the seat believes it has already reached. Softened to *review your work before returning*, it states what every seat already believes and none does, because the belief that the work is done is what suppresses it.
-- ⚠ `Every skill above whose trigger this slice hit, loaded — and every pointer those skills point at, followed?` — the **process half** (scoped to the triggers hit, so a button slice isn't told to load the 3D skill), and the whole reason this block isn't `code-reviewer`'s job: a reviewer reads output, and a source the seat never consulted leaves none. Everything downstream follows from that one asymmetry — the trace clause below, the read side's surface-only scope, and the ledger field the auditor files on. The tail (`never a step you didn't know about`) names the class: not a knowledge gap, a step skipped under finish-line pressure.
+- ⚠ `Every skill above whose trigger this slice hit, loaded — and every pointer those skills point at, followed?` — the **process half** (scoped to the triggers hit, so a button slice isn't told to load the 3D skill), and the whole reason this block isn't `kru-code-reviewer`'s job: a reviewer reads output, and a source the seat never consulted leaves none. Everything downstream follows from that one asymmetry — the trace clause below, the read side's surface-only scope, and the ledger field the auditor files on. The tail (`never a step you didn't know about`) names the class: not a knowledge gap, a step skipped under finish-line pressure.
 - `every file you authored this slice` + `its generator's to check` — the read's bound; a literal *every file touched* pulls a lockfile.
 - `Read the files as a set` — the **cross-surface half**. Without it the pass degrades to re-reading one file at a time, which is where none of these defects is visible.
 - ⚠ `name in your return rather than widening it` — the **escape hatch**, same shape as Block F's and N's, doing double duty as a scope bound: a return pass with no hatch is a licence to keep building past the slice.
 - `costs a fix loop through the lead` — the **price**. Unpriced, skipping reads as momentum; priced, it reads as spending a full round-trip to have someone else find what you were holding.
-- ⚠ `` `Return pass: <what you re-read> · <what it found, or `clean`>` `` + `its absence says it didn't` — the **trace**, and the clause that separates this block from a wish. Block N's hand-roll and Block F's cut path are both checkable from the diff; by the asymmetry above this one isn't, so a skipped pass and a clean pass produce identical output unless the seat says which it was. `clean` is required precisely because it is the case a seat would otherwise leave silent. The token is greppable on purpose: `hooks/log-dispatch.sh` records its presence per dispatch, which is what lets `dispatch-auditor` see a pass that never ran.
+- ⚠ `` `Return pass: <what you re-read> · <what it found, or `clean`>` `` + `its absence says it didn't` — the **trace**, and the clause that separates this block from a wish. Block N's hand-roll and Block F's cut path are both checkable from the diff; by the asymmetry above this one isn't, so a skipped pass and a clean pass produce identical output unless the seat says which it was. `clean` is required precisely because it is the case a seat would otherwise leave silent. The token is greppable on purpose: `hooks/log-dispatch.sh` records its presence per dispatch, which is what lets `kru-dispatch-auditor` see a pass that never ran.
 - ⚠ `Never declare the slice accepted, verified, or done for the PM` + `evidence is not acceptance` — the **PM boundary**. Without it a green suite or a `Return pass: clean` line reads as sign-off; acceptance is the PM's after the lead hands the Step 5 package.
 
-**The read side** is one bullet in `code-reviewer` → *What to hunt*, sharing this block's `across the slice` token. Surface half only, per the asymmetry above.
+**The read side** is one bullet in `kru-code-reviewer` → *What to hunt*, sharing this block's `across the slice` token. Surface half only, per the asymmetry above.
 
 ## Block P — the unreachable-source clause
 
-Required on every seat whose source chain **leads with an MCP server or a plugin**: `better-auth-specialist`, `cloudflare-builder`, `fly-platform-engineer`, `nextjs-builder`, `sanity-builder`, `svelte-ui-builder`, `sveltekit-builder`, `turso-specialist`, `vercel-perf-optimizer`, `vercel-platform-engineer` — plus the seats naming an MCP tool in their own frontmatter, where an absent server leaves a dead entry rather than a slower path: `architecture-reviewer`, `code-reviewer` (`*` (`context7` MCP)), `accessibility-reviewer`, `visual-reviewer` (`*` (`chrome-devtools` MCP)). It rides inside the seat's official-source section, after the chain it qualifies.
+Required on every seat whose source chain **leads with an MCP server or a plugin**: `kru-better-auth-specialist`, `kru-cloudflare-builder`, `kru-fly-platform-engineer`, `kru-nextjs-builder`, `kru-sanity-builder`, `kru-svelte-ui-builder`, `kru-sveltekit-builder`, `kru-turso-specialist`, `kru-vercel-perf-optimizer`, `kru-vercel-platform-engineer` — plus the seats naming an MCP tool in their own frontmatter, where an absent server leaves a dead entry rather than a slower path: `kru-architecture-reviewer`, `kru-code-reviewer` (`*` (`context7` MCP)), `kru-accessibility-reviewer`, `kru-visual-reviewer` (`*` (`chrome-devtools` MCP)). It rides inside the seat's official-source section, after the chain it qualifies.
 
-**Exempt by decision** — `planner` holds `*` (`context7` MCP) in its tool list and names no source chain in its body, so the clause would have nothing to qualify and would be writing that seat a chain it doesn't have. Its dead tool entry is real and it is a `planner` gap, not this block's: fix it by giving the seat a source chain, and the block follows.
+**Exempt by decision** — `kru-planner` holds `*` (`context7` MCP) in its tool list and names no source chain in its body, so the clause would have nothing to qualify and would be writing that seat a chain it doesn't have. Its dead tool entry is real and it is a `kru-planner` gap, not this block's: fix it by giving the seat a source chain, and the block follows.
 
 ```
 **A source you can't reach is one you say is missing.** MCP servers and plugins are enabled per project, so the server above may not be connected in this repo — check before working from the next rung down. Missing, your first line names it and the command that enables it, and then you either work the fallback with every claim it produced marked unverified, or hand the question back. Silently taking the lesser path returns work that reads as sourced and isn't.
@@ -391,18 +391,18 @@ Required on every seat whose source chain **leads with an MCP server or a plugin
 - ⚠ `marked unverified` — what keeps the fallback honest. Training data answers every question the MCP would have, in the same voice, which is exactly why a fallback the return doesn't label is indistinguishable downstream from a sourced answer.
 - `hand the question back` — the second branch, and it has to stay available: where the chain has no rung under the missing one, working on is guessing.
 
-**Tailored slots**: the server's name where the seat's chain names exactly one (`the server above` otherwise), and the host sentence it attaches to. Three seats already carry a fallback instruction of their own — `better-auth-specialist`, `sveltekit-builder`, `svelte-ui-builder` — and the clause **replaces** it rather than sitting beside it; two copies of a fallback rule are the drift this block exists to close.
+**Tailored slots**: the server's name where the seat's chain names exactly one (`the server above` otherwise), and the host sentence it attaches to. Three seats already carry a fallback instruction of their own — `kru-better-auth-specialist`, `kru-sveltekit-builder`, `kru-svelte-ui-builder` — and the clause **replaces** it rather than sitting beside it; two copies of a fallback rule are the drift this block exists to close.
 
 ## Block Q — `## Memory (this repo's facts)`
 
-Required on the 29 seats that **write code or config into the working repo** — Block O's 28 plus `test-writer`, whose repo-specific suite quirks are the facts most worth keeping. Each carries `memory: local` in its frontmatter, and the harness supplies the directory, its read/write instructions and the index on every run. What it can't supply is where a fact goes on *this* team, which is the whole block.
+Required on the 29 seats that **write code or config into the working repo** — Block O's 28 plus `kru-test-writer`, whose repo-specific suite quirks are the facts most worth keeping. Each carries `memory: local` in its frontmatter, and the harness supplies the directory, its read/write instructions and the index on every run. What it can't supply is where a fact goes on *this* team, which is the whole block.
 
 **Exempt by decision** — record the reason, don't just omit:
 - reviewers and auditors — `memory` grants `Write`/`Edit`, and *reports; does not edit* is their contract. A recurring finding still reaches the team as an inbox line.
 - the text-producing seats — their input is a brief, not a tree they re-learn each run.
 - **`user` and `project` scopes, on every seat.** `user` is cross-project memory the seat writes and reads back with no gate, which is exactly what the inbox → `skills/kru-roster/learn.md` (PM or lead loads) sweep exists to gate. `project` is committed into someone else's repo. `local` is the one scope that stays per repo and off the repo's history — the single exception to `TRACKER.md`'s *no management files in it, ever*, taken because the harness offers no out-of-tree path.
 
-It sits **immediately before `## The return pass`** (before `## Context hygiene (stay lean)` on `test-writer`, which carries no return pass) — the pass is where a run learns what it would have wanted to know at the start.
+It sits **immediately before `## The return pass`** (before `## Context hygiene (stay lean)` on `kru-test-writer`, which carries no return pass) — the pass is where a run learns what it would have wanted to know at the start.
 
 ```
 ## Memory (this repo's facts)
@@ -435,6 +435,6 @@ Everyone who meets your output acts on their own payoff, not on your intent — 
 - the three questions, verbatim — `what do they gain, what does it cost them, so what will they actually do?` The third is the one a shortened copy drops, and it is the whole point: the first two are analysis, the third is the forecast the design is built on.
 - ⚠ `the one they'd pick anyway` + `deviating costs more than it pays` — the two exits, incentive-compatible or deterrent. A copy keeping only the first reads as "make it easy", and the abuse half of the principle goes missing.
 - ⚠ `You are one of them` — the author as actor. It is what ties the block to the return pass and to the reviewers' reachability rules; dropped, the block points only outward and the seat's own shortcut is the one actor it never models.
-- `` the **`incentives`** skill `` — the pointer. `dispatch-auditor` has no `Skill` tool, so its copy names the file (`${CURSOR_PLUGIN_ROOT}/skills/kru-incentives/SKILL.md`) beside the skill.
+- `` the **`incentives`** skill `` — the pointer. `kru-dispatch-auditor` has no `Skill` tool, so its copy names the file (`${CURSOR_PLUGIN_ROOT}/skills/kru-incentives/SKILL.md`) beside the skill.
 
 **Tailored slots**: `{the seat's actors}` — two or three actors this seat's output actually meets, the unintended one included (the attacker on an open endpoint, the operator reading logs, the builder taking the least-effort reading of a spec); a generic *users and attackers* fires on nothing. And `{what this seat is paid in, …}` — the reward the seat's own run optimizes (*done*, *green*, *findings*, a deploy that passes) and the shortcut it pulls toward, ideally naming the section of the same prompt that counters it.

@@ -4,7 +4,7 @@ description: Break a plan, spec, or the current conversation into a set of trace
 disable-model-invocation: true
 ---
 
-<!-- vendored from `mattpocock/skills` (v1.3.1, sha 24fe0ef) → `skills/kru-to-tickets`. Tracer-bullet ticket decomposition backing the `planner` seat. Kept verbatim minus the Codex `agents/openai.yaml` metadata (unused here); re-sync: re-download from https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-tickets/. -->
+<!-- vendored from `mattpocock/skills` (v1.3.1, sha 24fe0ef) → `skills/kru-to-tickets`. Tracer-bullet ticket decomposition backing the `kru-planner` seat. Kept verbatim minus the Codex `agents/openai.yaml` metadata (unused here); re-sync: re-download from https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-tickets/. -->
 
 # To Tickets
 

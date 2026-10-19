@@ -61,10 +61,10 @@ In `NeonSession.transaction`, the `connect()` and the `begin` both sit *outside*
 The same function's `catch` runs `rollback` unguarded before rethrowing, so on a dead socket the caller receives the connection error and **never sees the constraint violation that actually aborted the transaction** — the reason a transaction failure can be unexplainable from its own logs.
 
 ## Serverless and edge runtimes
-A WebSocket cannot outlive a request there, so `Pool`/`Client` is constructed, used and closed **inside** the handler, never at module scope. On Cloudflare Workers, Neon's own README routes you to Hyperdrive instead of this driver — a different seam, owned by `cloudflare-builder`.
+A WebSocket cannot outlive a request there, so `Pool`/`Client` is constructed, used and closed **inside** the handler, never at module scope. On Cloudflare Workers, Neon's own README routes you to Hyperdrive instead of this driver — a different seam, owned by `kru-cloudflare-builder`.
 
 ## Not this skill's job
 The chain for everything below is `SOURCES.md`'s Neon row. **Neon's own agent-skills pack** is its first rung and serves the platform surface well — branching, provisioning, the control plane — so read the pack's index for that half rather than looking for it here.
 - **Schema, migrations, indexes, SQL** — the `postgres` skill over `sql`.
 - **The ORM layer** — the `drizzle` skill. The transaction leak above stays here: it exists only at this driver seam.
-- **Provisioning, env-var scoping, a database branch per preview deployment** — `vercel-platform-engineer` (`vercel:bootstrap` carries the routes and the env-pull order).
+- **Provisioning, env-var scoping, a database branch per preview deployment** — `kru-vercel-platform-engineer` (`vercel:bootstrap` carries the routes and the env-pull order).

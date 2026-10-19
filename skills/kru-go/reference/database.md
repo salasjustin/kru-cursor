@@ -1,6 +1,6 @@
 # `database/sql` — the Go code that runs the data seat's schema
 
-Schema and migrations are `postgres-architect`'s / `sqlite-architect`'s. What follows is the driver-side discipline the seat owns: how a pooled connection is leaked, how a NULL becomes a runtime error, and how "not found" is spelled.
+Schema and migrations are `kru-postgres-architect`'s / `kru-sqlite-architect`'s. What follows is the driver-side discipline the seat owns: how a pooled connection is leaked, how a NULL becomes a runtime error, and how "not found" is spelled.
 
 ## The pool
 `sql.Open` returns a pool with **no upper bound** — a traffic spike opens connections until the server refuses them. Set all four, once, at startup:

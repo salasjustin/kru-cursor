@@ -5,7 +5,7 @@ description: Run or troubleshoot Wrangler CLI commands and configure Worker proj
 
 <!-- vendored verbatim from `cloudflare/skills` main:skills/wrangler @ 41e0d19 (Apache-2.0; LICENSE kept; `user-invocable: false` added to frontmatter).
      the Wrangler CLI skill — inspect the project's own wrangler version and config, then retrieve the command
-     or config page the task needs. backs the `cloudflare-builder` seat's deploy/config surface.
+     or config page the task needs. backs the `kru-cloudflare-builder` seat's deploy/config surface.
      re-sync: re-download skills/kru-wrangler/SKILL.md from the cloudflare/skills repo.
      upstream's `cf`-first gate line (under the H1) stripped (standing Decline: `cf` is beta) — keep stripped on re-sync. -->
 

@@ -214,7 +214,20 @@ const FORK_OWNED_DIRS = /^(scripts\/cursor\/|\.cursor-plugin\/|rules\/|commands\
 // rules: the official-source map's vendoring rows, the claude release ledger the
 // update skill keeps, eval-review (grades an upstream suite already in the tree;
 // layout rules, plus fork edits that drop the default evals/ directory).
-const PATHS_ONLY = /^(skills\/kru-update\/(claude|reviewed)\.md|skills\/kru-eval-review\/SKILL\.md)$/
+const PATHS_ONLY_PATHS = [
+  "skills/kru-update/claude.md",
+  "skills/kru-update/reviewed.md",
+  "skills/kru-eval-review/SKILL.md",
+]
+const PATHS_ONLY = new RegExp(
+  "^(" + PATHS_ONLY_PATHS.map((p) => p.replace(/\//g, "\\/").replace(/\./g, "\\.")).join("|") + ")$",
+)
+// dispatch-doc seat-prefix rewrite skips these (verify-tree reads the same set).
+const DISPATCH_SEAT_PREFIX_SKIP = new Set([
+  ...PATHS_ONLY_PATHS,
+  "rules/pstack-models.mdc",
+  "references/update-log.md",
+])
 
 // ---------------------------------------------------------------------------
 // rewrite rules. each is [regex, replacement, opts]: `files` narrows it to
@@ -1053,7 +1066,29 @@ function rewrite(text, rel) {
   // upstream spells its commands both `/kru:x` and bare `/x`; a bare one is
   // re-pointed from the skill set on disk rather than from a list that drifts
   if (md && !pathsOnly) out = out.replace(BARE_COMMAND(), (_m, p, n) => `${p}/${PREFIX}${n}`)
-  return applyEdits(out, rel)
+  out = applyEdits(out, rel)
+  if (md && !pathsOnly && DISPATCH_DOC.test(rel) && !DISPATCH_SEAT_PREFIX_SKIP.has(rel))
+    out = prefixDispatchSeatNames(out, rel)
+  return out
+}
+
+// skills, references, and rules tell the lead what to dispatch; bare `seat`
+// names are the file stem, not the Task subagent_type (kru-<seat>).
+const DISPATCH_DOC = /^(skills|references|rules)\//
+function prefixDispatchSeatNamesInPlain(text) {
+  let out = text
+  for (const seat of seatNames().sort((a, b) => b.length - a.length)) {
+    const re = new RegExp("(?<!kru-)`" + seat.replace(/-/g, "\\-") + "`", "g")
+    out = out.replace(re, `\`kru-${seat}\``)
+  }
+  return out
+}
+function prefixDispatchSeatNames(text, rel = "") {
+  if (rel === "skills/kru-roster/shared-blocks.md") {
+    const parts = text.split(/(```[\s\S]*?```)/g)
+    return parts.map((part, i) => (i % 2 === 1 ? part : prefixDispatchSeatNamesInPlain(part))).join("")
+  }
+  return prefixDispatchSeatNamesInPlain(text)
 }
 
 // the fork's own edits (scripts/cursor/edits.mjs), last, on the ported text.
@@ -1477,6 +1512,28 @@ if (process.argv.includes("--test-inject-credentials")) {
   process.exit(0)
 }
 
+// --test-dispatch-seats: backtick seat names in dispatch docs become kru-<seat>.
+if (process.argv.includes("--test-dispatch-seats")) {
+  const fail = (name) => {
+    console.error(`dispatch seats: ${name}`)
+    process.exit(1)
+  }
+  const sample = "Do not dispatch `visual-reviewer` or `kru-accessibility-reviewer`; route `test-writer`."
+  const out = prefixDispatchSeatNames(sample)
+  if (!out.includes("`kru-visual-reviewer`")) fail("did not prefix a bare seat")
+  if (!out.includes("`kru-test-writer`")) fail("did not prefix test-writer")
+  if (out.includes("`kru-kru-accessibility-reviewer`")) fail("double-prefixed an existing kru- seat")
+  if (prefixDispatchSeatNames(out) !== out) fail("second pass changed output")
+  const fenced =
+    "Prose `toolchain-engineer`.\n```\n`toolchain-engineer` in a fence.\n```\nMore `test-writer`."
+  const fencedOut = prefixDispatchSeatNames(fenced, "skills/kru-roster/shared-blocks.md")
+  if (!fencedOut.includes("Prose `kru-toolchain-engineer`")) fail("shared-blocks: did not prefix prose")
+  if (fencedOut.includes("`kru-toolchain-engineer` in a fence")) fail("shared-blocks: prefixed inside fence")
+  if (!fencedOut.includes("More `kru-test-writer`")) fail("shared-blocks: did not prefix after fence")
+  console.log("dispatch seats: ok")
+  process.exit(0)
+}
+
 // --list-models: the confirmed ids, one per line (scripts/verify.sh checks every
 // agent's model against them); --list-models --seats: seat, pick and fallback,
 // tab-separated — the source of MODELS.md's map
@@ -1495,6 +1552,11 @@ if (process.argv.includes("--list-models")) {
 // --list-fork-owned: the files a fresh port of upstream needs laid over it to
 // reproduce this tree (scripts/verify.sh → the fresh-port check). generated
 // files are left out on purpose — the port has to regenerate them.
+if (process.argv.includes("--list-dispatch-seat-prefix-skip")) {
+  console.log([...DISPATCH_SEAT_PREFIX_SKIP].sort().join("\n"))
+  process.exit(0)
+}
+
 if (process.argv.includes("--list-fork-owned")) {
   const out = [...FORK_OWNED].filter((f) => existsSync(join(ROOT, f)))
   for (const p of walk(ROOT)) {

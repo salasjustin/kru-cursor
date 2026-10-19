@@ -66,7 +66,7 @@
 **Trigger:** a control set beside a heading — an edit press next to a section title, a close button on a card's title row.
 **Pattern:** size the heading's box to its own text; the control beside it takes its hit area from its own padding, hanging past the line with a negative margin or an overlay pseudo-element.
 **Default it corrects:** stretching the heading's row to the control's target height, so every heading with a button beside it grows to the target minimum — or trimming the control's target to the line to keep the row tight.
-**Why:** the type scale set the heading's line and a target minimum was never a typographic decision; padding the row breaks the vertical rhythm for a sibling's sake, while trimming the control breaks the target. A target that overhangs the line keeps both. The measured size is `accessibility-reviewer`'s.
+**Why:** the type scale set the heading's line and a target minimum was never a typographic decision; padding the row breaks the vertical rhythm for a sibling's sake, while trimming the control breaks the target. A target that overhangs the line keeps both. The measured size is `kru-accessibility-reviewer`'s.
 **Applies when:** the control's target is taller than the heading's line box. Equal heights need nothing.
 
 ## An icon is drawn from the icon set, never typed as a character
@@ -96,7 +96,7 @@
 **Trigger:** a link or press inside running text or a label/value line that needs the target minimum.
 **Pattern:** extend the hit area with padding plus an equal negative block margin, so the line box stays the text's height. Where two such targets can land on adjacent lines of one wrapped sentence, the sentence's `line-height` is at least the target height. The control and the value it acts on are one `white-space: nowrap` unit.
 **Default it corrects:** `min-height: 44px` on the inline control, which pushes its line apart from the rest of the paragraph — or keeping the line tight and letting two targets' hit areas overlap across lines, or a line break that orphans "Change" at the head of the next line.
-**Why:** a target taller than its line either breaks the paragraph's rhythm or overlaps its neighbour's target, so a tap lands on the wrong one; an orphaned control reads as belonging to whatever follows it. The measured size is `accessibility-reviewer`'s.
+**Why:** a target taller than its line either breaks the paragraph's rhythm or overlaps its neighbour's target, so a tap lands on the wrong one; an orphaned control reads as belonging to whatever follows it. The measured size is `kru-accessibility-reviewer`'s.
 **Shape:**
 ```css
 .inline-press { padding-block: var(--target-pad); margin-block: calc(-1 * var(--target-pad)); }

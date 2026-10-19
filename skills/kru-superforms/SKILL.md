@@ -109,6 +109,6 @@ Pull the one the task needs, not both.
 
 ## Not this skill's job
 - **The Zod schema itself** — `.default()` vs `.prefault()`, coercion, transform output, error customization: the **`zod`** skill. This skill starts where the adapter wraps it.
-- **Route structure, `load`, and the component seam** — the `sveltekit-builder` / `svelte-ui-builder` seats own those; this skill only marks the one seam exception above.
+- **Route structure, `load`, and the component seam** — the `kru-sveltekit-builder` / `kru-svelte-ui-builder` seats own those; this skill only marks the one seam exception above.
 - **Formsnap / shadcn-svelte form wrappers** — a layer on top with its own API. Check the installed version before answering for it.
 - **Authorization** — an enum defaulting to `admin` is a reminder that validation is not a permission check, not an invitation to fix permissions in the schema.

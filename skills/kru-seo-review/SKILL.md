@@ -26,7 +26,7 @@ Load the **`sanity:seo-aeo-best-practices`** skill for the current checklist (ge
 ## Boundaries
 - Default is recommendations only. Apply fixes in-thread only when the task explicitly asks after the report — metadata/markup gaps are small targeted diffs, and a handoff to a framework/UI builder costs more than it buys.
 - Net-new copy/content strategy → the words are the user's/builder's; you shape structure and markup.
-- Core Web Vitals / rendering / bundle → `vercel-perf-optimizer`'s lane; note the overlap, don't duplicate.
+- Core Web Vitals / rendering / bundle → `kru-vercel-perf-optimizer`'s lane; note the overlap, don't duplicate.
 - New routes / data plumbing → the stack's builder. You audit (and on request, add metadata/markup to) what exists.
 - Net-new OG art → the designer (paths in the approved design spec).
 

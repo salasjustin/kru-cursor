@@ -19,7 +19,7 @@ The rendered string is the deliverable and the only thing that moves. The house 
    | a branch name | `git diff <base>...<branch>` — three dots, the branch's own work |
    | a number | a PR: `gh pr checkout <n>` first (fixing needs a working tree), then its three-dot diff |
 
-   **A diff target audits what the change wrote, not every string in the files it grazed.** Out of the target regardless: log lines, developer-facing `Error` messages, fixtures, `README`/`docs/` (`doc-fix`'s), marketing routes (`copy-editing`'s), and whether a mark has an `alt` or `aria-label` at all (`accessibility-reviewer`'s — its wording is yours).
+   **A diff target audits what the change wrote, not every string in the files it grazed.** Out of the target regardless: log lines, developer-facing `Error` messages, fixtures, `README`/`docs/` (`doc-fix`'s), marketing routes (`copy-editing`'s), and whether a mark has an `alt` or `aria-label` at all (`kru-accessibility-reviewer`'s — its wording is yours).
 
 2. **Match the repo's vocabulary.** Grep the existing strings before rewording one: a term users have already learned beats a better word for it. In a catalog, the **source locale is the target**; a reworded `en.json` beside an untouched `fr.json` is a stale-translation line in the report, not a second edit.
 

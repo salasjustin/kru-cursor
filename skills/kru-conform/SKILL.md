@@ -92,7 +92,7 @@ Pull the one the task needs, not both.
 
 ## Not this skill's job
 - **The Zod schema itself** — `.default()` vs `.prefault()`, transform output, error customization: the **`zod`** skill. This one starts where conform's coercion wraps it.
-- **Route structure and the component seam** — the framework builder seats own actions and routes; `react-ui-builder` owns the component boundary. This skill only marks where a form field has to hold the whole field metadata.
+- **Route structure and the component seam** — the framework builder seats own actions and routes; `kru-react-ui-builder` owns the component boundary. This skill only marks where a form field has to hold the whole field metadata.
 - **The future API's full surface** — it's a preview that moves every minor; read its own docs at the version the repo pins.
 - **Other adapters and other libraries** — Valibot and Yup ship their own conform packages with their own coercion; React Hook Form and TanStack Form are different stacks entirely.
 - **Authorization** — a schema that validates says nothing about who may submit it.

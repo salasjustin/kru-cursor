@@ -167,8 +167,8 @@ The rows spell the default root; substitute what `home` printed when it differs.
 
 Two things decide whether those last rules ever fire:
 
-- **A shell rule matches the command text, not the file it resolves to.** `planner` and
-  `dispatch-auditor` are refused the Write tool (`hooks/seat-guard.sh`), so every store write of
+- **A shell rule matches the command text, not the file it resolves to.** `kru-planner` and
+  `kru-dispatch-auditor` are refused the Write tool (`hooks/seat-guard.sh`), so every store write of
   theirs is a shell command — and the rule has to be written in the form the seat actually types.
   Expand `<home>`: a seat writing an absolute path walks straight past a rule spelled with `~`.
 - **Write the rules against the root the resolver prints** — a grant against a path the files left

@@ -14,7 +14,7 @@ Optional but useful: motion dials, coverage-ledger gaps handed to the PM as buil
 ## What engineering does with it
 
 - **Build** to the spec — the UI component builders implement components and screens; the token file and conformance gate stay the repo's (`references/ui-practice.md`, `references/ui-handoff.md`).
-- **Verify** — `visual-reviewer` compares the running UI to the mockups at 1440 and 375 and reports mismatches back to the builder (`skills/kru-visual-review/SKILL.md`). `accessibility-reviewer` and `ux-auditor` run on the built UI as before.
+- **Verify** — `kru-visual-reviewer` compares the running UI to the mockups at 1440 and 375 and reports mismatches back to the builder (`skills/kru-visual-review/SKILL.md`). `kru-accessibility-reviewer` and `kru-ux-auditor` run on the built UI as before.
 - **Gaps** — a value the approved spec does not cover is a **named gap** to the PM (with the token name it would need), not an invention in code.
 
 ## What is out of scope for the lead

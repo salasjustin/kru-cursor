@@ -6,7 +6,7 @@ description: Find motion opportunities read-only — places that should animate 
 <!-- vendored from `emilkowalski/skills` (main, sha 6bf2443) → `skills/kru-find-animation-opportunities`.
      Emil Kowalski (Sonner, Vaul, animations.dev) — the reference source for web-animation craft;
      no first-party animation source exists, so this authored pack is the legitimate backing.
-     Carried ambiently by the UI component builders (`react-ui-builder`/`svelte-ui-builder`) — build-side motion craft.
+     Carried ambiently by the UI component builders (`kru-react-ui-builder`/`kru-svelte-ui-builder`) — build-side motion craft.
      Kept verbatim; re-sync: re-download from https://raw.githubusercontent.com/emilkowalski/skills/main/skills/find-animation-opportunities/.
      description trimmed locally — keep on re-sync. -->
 

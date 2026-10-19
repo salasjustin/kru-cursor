@@ -4,7 +4,7 @@ description: Use when building Hono web applications or when the user asks about
 ---
 
 <!-- vendored verbatim from `honojs/skills` main:skills/hono @ 5becff4 (MIT; LICENSE kept; `user-invocable: false` added to frontmatter).
-     Hono's own agent skill — inline API reference plus the Hono CLI request/batch/snapshot loop. backs the `hono-builder` seat.
+     Hono's own agent skill — inline API reference plus the Hono CLI request/batch/snapshot loop. backs the `kru-hono-builder` seat.
      its sibling `hono-jsx` (server-rendered pages) is left upstream: the seat builds the API side only.
      re-sync: re-download skills/kru-hono/SKILL.md from the honojs/skills repo.
      -->

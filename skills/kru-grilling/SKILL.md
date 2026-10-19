@@ -4,7 +4,7 @@ description: Stress-test a plan, decision, or idea — one numbered frontier per
 disable-model-invocation: true
 ---
 
-<!-- vendored from `mattpocock/skills` (v1.3.1, sha 24fe0ef) → `skills/kru-grilling`. Plan/design stress-test — the engine under `brief` and the lead's Step 2.5 grilling judgment; also feeds `planner`'s input. Kept verbatim minus the Codex `agents/openai.yaml` metadata (unused here); re-sync: re-download from https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grilling/. -->
+<!-- vendored from `mattpocock/skills` (v1.3.1, sha 24fe0ef) → `skills/kru-grilling`. Plan/design stress-test — the engine under `brief` and the lead's Step 2.5 grilling judgment; also feeds `kru-planner`'s input. Kept verbatim minus the Codex `agents/openai.yaml` metadata (unused here); re-sync: re-download from https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grilling/. -->
 
 Interview the PM relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.
 

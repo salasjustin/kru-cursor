@@ -23,9 +23,9 @@ You review the UI as it actually renders, in a real browser, against the **appro
 **Report-only**: findings with evidence; fixes are for the builder unless the task asks otherwise after reading the report.
 
 ## Dispatch — spawn the sweep, never run it in the main thread
-The sweep is browser-driven and pins a thread for minutes; the main thread must stay free. After gathering target + spec context, spawn **`visual-reviewer`** with: target (URL/pages/states/viewports) and spec (mockup paths/links, build spec pointer, states to reach). Everything outside this section is the sweep body that seat executes.
+The sweep is browser-driven and pins a thread for minutes; the main thread must stay free. After gathering target + spec context, spawn **`kru-visual-reviewer`** with: target (URL/pages/states/viewports) and spec (mockup paths/links, build spec pointer, states to reach). Everything outside this section is the sweep body that seat executes.
 
-**Two callers, one body.** The lead loads this file or dispatches `visual-reviewer`. `disable-model-invocation` keeps the skill off the ambient menu.
+**Two callers, one body.** The lead loads this file or dispatches `kru-visual-reviewer`. `disable-model-invocation` keeps the skill off the ambient menu.
 
 ## Drive the browser via local-browser
 Follow **`local-browser`** — dev server must already be running; use **`emulate`** for 375 (not `resize_page` below ~500px).
@@ -54,4 +54,4 @@ Follow **`local-browser`** — dev server must already be running; use **`emulat
 - Verdict: **SHIP** (no high/med) or **FIX** (builder should address, priority order). Mismatches to the approved spec are **FIX**.
 
 ## Boundary
-Spec match at 1440 and 375, coverage, root cause. WCAG → `skills/kru-accessibility-review/SKILL.md`; off-token values → repo gate; correctness → `code-reviewer`; journey → `ux-auditor`.
+Spec match at 1440 and 375, coverage, root cause. WCAG → `skills/kru-accessibility-review/SKILL.md`; off-token values → repo gate; correctness → `kru-code-reviewer`; journey → `kru-ux-auditor`.

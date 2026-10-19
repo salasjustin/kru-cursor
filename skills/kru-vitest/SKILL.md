@@ -93,6 +93,6 @@ Pull the one the task needs.
 ## Not this skill's job
 - **What makes a test worth keeping and how this repo tests** — discovery, assertions that can fail, one reason to fail, the run→fix loop: the **`testing`** skill. This one is the runner underneath it.
 - **The red → green loop** — `tdd`.
-- **Standing up the runner** — `vitest.config.ts` from nothing, scripts, CI wiring: `toolchain-engineer`.
+- **Standing up the runner** — `vitest.config.ts` from nothing, scripts, CI wiring: `kru-toolchain-engineer`.
 - **End-to-end browser tests** — Playwright Test is a different runner with its own fixtures; Vitest Browser Mode runs *component* tests in a browser and is covered in `reference/dom.md`.
 - **Jest** — same shape, different defaults (`globals`, `mockReset` semantics, persistent `mock.mock`); a Jest repo has no row here.

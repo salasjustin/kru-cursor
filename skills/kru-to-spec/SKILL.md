@@ -4,7 +4,7 @@ description: "Turn the current conversation into a spec and publish it to the pl
 disable-model-invocation: true
 ---
 
-<!-- vendored from `mattpocock/skills` (v1.3.1, sha 24fe0ef) → `skills/kru-to-spec`. Spec/PRD synthesis backing the `planner` seat. Kept verbatim minus the Codex `agents/openai.yaml` metadata (unused here); re-sync: re-download from https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-spec/. -->
+<!-- vendored from `mattpocock/skills` (v1.3.1, sha 24fe0ef) → `skills/kru-to-spec`. Spec/PRD synthesis backing the `kru-planner` seat. Kept verbatim minus the Codex `agents/openai.yaml` metadata (unused here); re-sync: re-download from https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-spec/. -->
 
 This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.
 

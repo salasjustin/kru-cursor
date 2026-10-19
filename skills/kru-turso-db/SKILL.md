@@ -4,7 +4,7 @@ description: Turso (Limbo) — in-process SQLite-compatible database in Rust, ex
 ---
 
 <!-- vendored verbatim from `tursodatabase/agent-skills` main:skills/turso-db @ 34ced52 (MIT; LICENSE kept; `user-invocable: false` added to frontmatter).
-     Turso's own engine skill — critical rules, SDKs per language, sync, vector/FTS/CDC/MVCC/encryption. backs the `turso-specialist` seat.
+     Turso's own engine skill — critical rules, SDKs per language, sync, vector/FTS/CDC/MVCC/encryption. backs the `kru-turso-specialist` seat.
      its "do not use `@libsql/client`" line has a live exception the seat prompt carries: Drizzle's stable driver reaches Turso only through it.
      re-sync: re-download skills/kru-turso-db/ from the tursodatabase/agent-skills repo.
      description trimmed locally — keep on re-sync. -->

@@ -24,6 +24,7 @@ while read -r n; do
   [ -f "agents/$n.md" ] || bad "ROSTER.md row names missing agent $n"
 done < <(sed -n '/^## Current specialists/,/^## /p' ROSTER.md | grep -oE '^\| `[a-z0-9-]+` \|' | tr -d '|` ')
 for n in $(grep -oE '`[a-z0-9]+(-[a-z0-9]+)+`' references/routing.md | tr -d '`' | sort -u); do
+  case "$n" in kru-*) n=${n#kru-};; esac
   case "$n" in *-builder|*-specialist|*-architect|*-reviewer|*-engineer|*-designer|*-developer|*-auditor|*-writer|*-optimizer|*-copywriter)
     [ -f "agents/$n.md" ] || bad "references/routing.md names missing agent $n";; esac
 done

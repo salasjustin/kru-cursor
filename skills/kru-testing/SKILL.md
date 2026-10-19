@@ -63,5 +63,5 @@ Done when the scoped suite is green, or you've named what's blocking and why.
 ## Not this skill's job
 
 - **The red → green loop** — one failing test → the minimal code that passes it → the next; where the seams under test are agreed; and the anti-patterns (never batch the tests, never let the expected value restate the implementation): `tdd`. Refactoring is not in that loop — it belongs to review.
-- **Coverage sweeps, fan-out across many files, repairing a suite that was already red, and writing the discovered conventions down** for next time: the `test-writer` seat, which runs this skill in its own context.
-- **Standing up a runner** where none exists — config, scripts, CI wiring: `toolchain-engineer`. If discovery finds no harness at all, say so and stop; don't scaffold one mid-feature.
+- **Coverage sweeps, fan-out across many files, repairing a suite that was already red, and writing the discovered conventions down** for next time: the `kru-test-writer` seat, which runs this skill in its own context.
+- **Standing up a runner** where none exists — config, scripts, CI wiring: `kru-toolchain-engineer`. If discovery finds no harness at all, say so and stop; don't scaffold one mid-feature.

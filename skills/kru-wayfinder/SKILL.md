@@ -4,7 +4,7 @@ description: Plan a huge chunk of work (more than one agent session can hold) as
 disable-model-invocation: true
 ---
 
-<!-- vendored from `mattpocock/skills` (v1.3.1, sha 24fe0ef) → `skills/kru-wayfinder`. Decision-ticket map for work bigger than one context, backing the `planner` seat. Kept verbatim minus the Codex `agents/openai.yaml` metadata (unused here); re-sync: re-download from https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/wayfinder/. -->
+<!-- vendored from `mattpocock/skills` (v1.3.1, sha 24fe0ef) → `skills/kru-wayfinder`. Decision-ticket map for work bigger than one context, backing the `kru-planner` seat. Kept verbatim minus the Codex `agents/openai.yaml` metadata (unused here); re-sync: re-download from https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/wayfinder/. -->
 
 A loose idea has arrived, too big for one agent session, and wrapped in fog: the way from here to the **destination** isn't visible yet. Wayfinding is about finding that way, not charging at the destination. This skill charts the way as a **shared map** in the plan store, then works its **decision tickets** (questions whose resolution is a decision, not slices of a build to execute) one at a time until the route is clear.
 

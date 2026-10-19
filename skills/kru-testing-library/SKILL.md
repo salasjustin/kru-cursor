@@ -113,5 +113,5 @@ result.current[0]   // 5
 ## Not this skill's job
 - **What makes a test worth keeping and how this repo tests** — discovery, `toHaveTextContent`'s substring match, the mount-once helper, the run→fix loop: the **`testing`** skill.
 - **The runner** — cleanup between tests, the setup file, `globals`, fake timers with RTL and user-event, the reporter that drops output, jsdom's missing APIs, Browser Mode (whose `page.getByRole` locators are exact-and-strict by their own rules): the **`vitest`** skill.
-- **Whether the markup is accessible** — a query that can't name a control is a defect the builder fixes now; the audit of the rest is `accessibility-reviewer`'s.
+- **Whether the markup is accessible** — a query that can't name a control is a defect the builder fixes now; the audit of the rest is `kru-accessibility-reviewer`'s.
 - **End-to-end** — Playwright Test's locators share the vocabulary and none of the semantics.
