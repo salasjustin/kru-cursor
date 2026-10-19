@@ -50,23 +50,21 @@ Each artboard is one valid HTML5 document.
 
 ## Styling and loads
 
-Values in the file are literals.
-
 - Write every value as a literal in the one `<style>` block in `<head>`.
 - Use web-safe faces, or add a single font `<link>` in `<head>`.
 - Reference repo images with relative paths from the artboard file.
-- After the PM approves a direction, a builder transcribes literals into the repo token file once.
 
 ## Content in each artboard
 
 - Use copy from the build spec (or `kru-conversion-copywriter`'s SECTION deck on marketing pages). Include a plausible long string in the field that will overflow.
-- Where the brief names screen states, stack them under small labels in the file (separate `.dc-artboard` blocks or clearly labelled sections): **empty**, **one row**, **many**, **error**, **loading**, **disabled**.
+- **Bootstrap direction files:** where the brief names screen states, stack them under small labels in the file (separate `.dc-artboard` blocks or clearly labelled sections): **empty**, **one row**, **many**, **error**, **loading**, **disabled**.
+- **Settled mockup set:** put one state in each `<screen>-<state>-<viewport>.dc.html` file.
 - Keep interaction **static** by default. Show **hover** and **focus** as a labelled second copy of the element beside the default state.
 - Each file renders at its one width. Breakpoint behaviour is the builder's job.
 
 ## PNG exports
 
-Capture each `.dc-artboard` at its `data-viewport` width as a full-height PNG named after its `.dc.html` file (for example `direction-a-1440.png` beside `direction-a-1440.dc.html`). These are the **1440** and **375** approved-mockup exports that *Canvas vs approved mockups* in `skills/kru-design/SKILL.md` requires.
+Capture each file's `.dc-artboard` at its `data-viewport` width as one full-height PNG named after the file (`checkout-empty-1440.png`). A bootstrap file with stacked states exports one PNG per block, named `<file>-<state>.png`.
 
 ## `index.html`
 

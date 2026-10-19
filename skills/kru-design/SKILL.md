@@ -18,7 +18,7 @@ At bootstrap, draft **2–4 directions**. A reader should be able to say what ea
 
 **Re-draft from the files that are there.** The PM's pick is the base; what they wanted different is the next brief. Keep rejected directions until the pick is transcribed into the token file. Two rounds is normal. On a **third** re-draft round, say the **brief** is the problem and hand the question back to the PM.
 
-**Ask the PM before building working controls.** Static mockups are the default. Hover and focus can be shown as labelled second copies in the artboard (see `artboards.md`) without spending on real `:hover` behaviour.
+**Ask the PM before building working controls.** Static mockups are the default.
 
 ## Publish with `/canvas`
 
