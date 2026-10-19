@@ -219,7 +219,9 @@ const PATHS_ONLY_PATHS = [
   "skills/kru-update/reviewed.md",
   "skills/kru-eval-review/SKILL.md",
 ]
-const PATHS_ONLY = /^(skills\/kru-update\/(claude|reviewed)\.md|skills\/kru-eval-review\/SKILL\.md)$/
+const PATHS_ONLY = new RegExp(
+  "^(" + PATHS_ONLY_PATHS.map((p) => p.replace(/\//g, "\\/").replace(/\./g, "\\.")).join("|") + ")$",
+)
 // dispatch-doc seat-prefix rewrite skips these (verify-tree reads the same set).
 const DISPATCH_SEAT_PREFIX_SKIP = new Set([
   ...PATHS_ONLY_PATHS,
