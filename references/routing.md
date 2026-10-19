@@ -48,6 +48,8 @@ names the seat and its skills has this question answered — take the answer.
 | WCAG structural audit on a built page | `kru-accessibility-reviewer` or `skills/kru-accessibility-review/SKILL.md` — **only when the PM names it** |
 | multi-screen UX flow audit | `kru-ux-auditor` or `skills/kru-ux-review/SKILL.md` — **only when the PM names it** |
 | coverage sweep or fan-out across many files; repair a red/flaky suite; an exempt seat's logic-dense output; a repo with no testing conventions captured yet | `kru-test-writer` |
+| a **test or spec file** the slice's own red-green build writes | the behavior seat (Block D) |
+| a standalone sweep, browser or harness **test file** the sheet gives its own lane | the sheet's lane owner, or `kru-test-writer` when the sheet names none |
 | repo tooling: pnpm workspaces/catalogs/lockfile · `turbo.json` monorepo task graph + caching · Biome/ESLint/Prettier lint+format · wiring a new package into the graph | `kru-toolchain-engineer` |
 | repo-wide TypeScript infrastructure: strict migration, monorepo project references, type-perf profiling | a general agent with the `typescript` skill loaded |
 | a half-formed idea the PM wants grilled without committing to a record | **`skills/kru-brainstorm/SKILL.md`** — grill like `brief`, write nothing until the task approves persist |

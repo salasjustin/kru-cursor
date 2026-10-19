@@ -60,5 +60,8 @@ Default it corrects: `padding-left`, `margin-right`, `left: 0`, `text-align: lef
 **A grey's hue is `none`.**
 Default it corrects: `oklch(70% 0 0)` mixed toward a coloured token with `color-mix(in oklch, …)`. The hue interpolates from 0, so the midpoints tint pink. Fix: `oklch(70% 0 none)` — a missing hue takes the other colour's.
 
+**Mix a Tailwind v4 `lab()` token `in oklab`.**
+Default it corrects: `color-mix(in oklch, <lab colour> N%, transparent)` on a see-through step — Tailwind v4 / Lightning CSS ships every `oklch()` token as `lab()` (with hex fallback), and Chrome 141 resolves the mix with hue `none`, so the step reads pink-red. Fix: mix those steps **`in oklab`** (visually the same, stable hue). Name any colour-notation change in the return, so the PM's screen check covers it.
+
 **A theme toggle sets `color-scheme`, never the tokens.**
 Default it corrects: every `light-dark()` token restated under `[data-theme="dark"]`, which is a second palette to drift. Fix: `:root[data-theme="dark"] { color-scheme: dark }` (and `light`); every `light-dark()` value flips with it.

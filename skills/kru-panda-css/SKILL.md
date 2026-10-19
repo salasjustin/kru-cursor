@@ -105,7 +105,7 @@ conditions: { extend: { dark: '[data-theme=dark] &, .dark &' } }
 ## Unlayered CSS beats every Panda rule (source-verified)
 Output lives in `@layer reset, base, tokens, recipes, utilities`. Under the cascade-layers spec, an unlayered declaration beats any layered one regardless of specificity, so a third-party plain stylesheet overrides your utilities (panda-css.com/blog/panda-css-v2, *Caveats*). Import it into a layer you order (`@import "lib.css" layer(vendor);`) instead of raising specificity. A library that ships Panda styles can rename its layers (`layers: { recipes: 'ds.recipes', utilities: 'ds.utilities' }`) so the consuming app's unlayered CSS wins predictably.
 
-A repo resolving `@pandacss/dev` below 2: `reference/migration.md`.
+A repo resolving `@pandacss/dev` below 2: `reference/migration.md`. A font token that silently falls back to the system font, or any `@fontsource-variable/*` import: `reference/fonts.md`.
 
 ## Consult current docs (official sources first)
 1. **Panda MCP**: `npx -y @pandacss/mcp`. It answers against this repo's resolved config, which no docs page can. `get_usage_report` audits used, unused and misused tokens, recipes, utilities, patterns and keyframes. Run it before inventing a token that already exists.
