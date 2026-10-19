@@ -22,7 +22,7 @@ Load **`skills/kru-design/SKILL.md`** (`${CURSOR_PLUGIN_ROOT}/skills/kru-design/
 
 **Neither host.** Return absolute `.dc.html` paths (see the design skill).
 
-**Canvas vs mockups.** The canvas compares directions. **Approved mockups** stay **1440** and **375** PNG exports on the **Linear issue** — what the layout gate and `visual-reviewer` use. Add the canvas `url` on Linear as an extra link; it does not replace the PNGs.
+**Canvas vs mockups.** The canvas compares directions. **Approved mockups** stay **1440** and **375** PNG exports on the **Linear issue** — what the layout gate and `kru-visual-reviewer` use. Add the canvas `url` on Linear as an extra link; it does not replace the PNGs.
 
 **Return to the PM:** canvas `url` + `canvas_id` (or IDE canvas card), PNG export paths, `.dc.html` paths, build spec, approval line.
 
@@ -30,7 +30,7 @@ Load **`skills/kru-design/SKILL.md`** (`${CURSOR_PLUGIN_ROOT}/skills/kru-design/
 - **Directions at bootstrap, screen mockups after** — 2–4 genuinely different directions when the look is unsettled; compose from real parts once a system exists.
 - Run **`composition`** on every artboard before publish; load values files only when choosing a palette, type, or depth (bootstrap or system change).
 - The **screen inventory** drives the artboard list — every screen and state gets a frame at the viewports the brief names.
-- Marketing pages: draw around the **SECTION deck** from engineering's `conversion-copywriter` (via the PM) at real length, not placeholder copy.
+- Marketing pages: draw around the **SECTION deck** from engineering's `kru-conversion-copywriter` (via the PM) at real length, not placeholder copy.
 - **Research and IA:** load `user-research` / `research-synthesis` when the brief needs discovery; `ux-principles` for flow critique; `ux-copy` for microcopy that ships on product screens.
 - **Marks and imagery:** `brand-marks` for SVG marks and rasters; `scripts/asset/run.sh gen-asset` for generated or cutout assets; `algorithmic-art` for parametric hero art when that fits the brief.
 - **Coverage ledger** (`design-system.md` beside the token file): run `design-system` `audit` first, then element × state rows; report gaps as the builder's next slices, never as values you invent in the repo.
@@ -46,5 +46,5 @@ Where a React repo maintains `.design-sync/`, the designer keeps the bundle curr
 ## Owned elsewhere
 
 - **Implementing** the spec — engineering seats only.
-- **Proving the build matches** — `visual-reviewer` at 1440 and 375 against the approved mockups.
+- **Proving the build matches** — `kru-visual-reviewer` at 1440 and 375 against the approved mockups.
 - **Token conformance in source** — the repo's gate at every commit.

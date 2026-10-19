@@ -34,10 +34,10 @@ Every seat already carries the principle as `## Design for what they'll actually
 ## Owned elsewhere
 
 - **Which paths get built at all** — Block F, `## Scope — build the real path, not every path`, in every code-writing seat: this principle's scope case. Traffic that exists is the set of actors who actually show up.
-- **Rating a security finding** — `code-reviewer` → *What to hunt*, the incentive bullet (gain · incidence · precondition). `reference/security.md` is the build side of the same analysis.
+- **Rating a security finding** — `kru-code-reviewer` → *What to hunt*, the incentive bullet (gain · incidence · precondition). `reference/security.md` is the build side of the same analysis.
 - **A flow's usability defects** — `ux-principles`; the user-cost entry is `reference/choice-and-load.md` → *A required field with no payoff to the user gets fabricated answers*.
-- **Card testing** — `## Money rules` on `stripe-specialist` and `paypal-specialist`, each on its provider's own guidance.
-- **Proof attached to a marketing claim** — `conversion-copywriter`.
+- **Card testing** — `## Money rules` on `kru-stripe-specialist` and `kru-paypal-specialist`, each on its provider's own guidance.
+- **Proof attached to a marketing claim** — `kru-conversion-copywriter`.
 - **What an integrator's code breaks on** — `api-design`.
 
 ## Sources

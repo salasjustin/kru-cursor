@@ -96,4 +96,4 @@ A widget distributed to third-party sites carries a second set of constraints �
 - **CSS feature safety** — `modern-css`, which owns the Baseline states for both.
 - **What the component does** — `ui-patterns`, one group per build target.
 - **Appearance** — the project's token file. This skill decides how a token *reaches* the component, never what it is.
-- **The payment layer** — `stripe-specialist` owns the client, the intent, and the webhook; this skill owns the shell and the mount node it hands over.
+- **The payment layer** — `kru-stripe-specialist` owns the client, the intent, and the webhook; this skill owns the shell and the mount node it hands over.

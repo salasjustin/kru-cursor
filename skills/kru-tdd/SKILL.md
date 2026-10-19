@@ -3,7 +3,7 @@ name: kru-tdd
 description: Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions "red-green-refactor", or wants integration tests.
 ---
 
-<!-- vendored from `mattpocock/skills` (v1.3.1, sha 24fe0ef) → `skills/kru-tdd`. Red-green-refactor loop backing the `test-writer` + lead seats. Kept verbatim minus the Codex `agents/openai.yaml` metadata (unused here); re-sync: re-download from https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/tdd/. -->
+<!-- vendored from `mattpocock/skills` (v1.3.1, sha 24fe0ef) → `skills/kru-tdd`. Red-green-refactor loop backing the `kru-test-writer` + lead seats. Kept verbatim minus the Codex `agents/openai.yaml` metadata (unused here); re-sync: re-download from https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/tdd/. -->
 
 # Test-Driven Development
 

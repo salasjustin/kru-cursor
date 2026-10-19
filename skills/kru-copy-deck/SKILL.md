@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 You commission the **argument** a marketing page makes: which sections it has, in what order, with what strings in them. The output is a SECTION deck — a closed set a designer draws around and a builder mounts without writing a word of its own.
 
-**The writing is `conversion-copywriter`'s body; the lead runs this file** — resolve the page, spawn the seat, return gaps the seat cannot fill.
+**The writing is `kru-conversion-copywriter`'s body; the lead runs this file** — resolve the page, spawn the seat, return gaps the seat cannot fill.
 
 ## Resolve the page
 
@@ -22,7 +22,7 @@ You commission the **argument** a marketing page makes: which sections it has, i
 The seat cannot invent a fact and will return a gap instead, so the facts it has decide how much of the deck comes back filled. Before spawning, hand it whatever exists: **the traffic source** (what the reader clicked, and what it already told them — this places the whole deck), **the price and what's in each tier**, **proof with sources** (named customers, metrics, ratings, logos), and **research** — reviews, tickets, transcripts the copy should mirror. **Each of the four is accounted for before you spawn — handed over, or declared absent in the brief.** An absence comes back as a gap either way; declared up front, the user can answer it before the run instead of after.
 
 ## Dispatch — spawn the write, never run it inline
-Spawn the **`conversion-copywriter`** agent with: the page and its route, the audience and what the page is meant to get someone to do, the facts above, and the repo's `design/conventions.md` if one exists.
+Spawn the **`kru-conversion-copywriter`** agent with: the page and its route, the audience and what the page is meant to get someone to do, the facts above, and the repo's `design/conventions.md` if one exists.
 
 Relay the return unedited, then:
 - **Return the gap list as questions for the PM.** Each gap is a fact someone has; the deck stays unfinished until the next task answers or the claim is cut.

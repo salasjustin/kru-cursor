@@ -10,7 +10,7 @@ Loaded by `lead` when the branch is live.
 
 A UI with no system yet is **not built and then designed in engineering**. The **PM attaches an approved design spec** — mockups + build spec from the designer (`${CURSOR_PLUGIN_ROOT}/references/design-spec.md`). Without it, stop and tell the PM to get design first.
 
-Engineering may run **`conversion-copywriter`** for a marketing first surface — the SECTION deck goes to the PM for the designer, not straight to builders.
+Engineering may run **`kru-conversion-copywriter`** for a marketing first surface — the SECTION deck goes to the PM for the designer, not straight to builders.
 
 Then the builder's **Phase 0** transcribes the build spec into the token file **and** ships the conformance gate → first components. **`${CURSOR_PLUGIN_ROOT}/references/ui-practice.md`** carries bootstrap, steady state, system change, and team defaults.
 

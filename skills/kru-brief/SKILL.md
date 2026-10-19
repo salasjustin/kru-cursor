@@ -53,7 +53,7 @@ Once `Decisions resolved` stops being re-readable, split its long-form records (
 
 ## 4. Report
 
-On a re-run, print the drift report first, as `brief-drift.mjs` wrote it. One line in the shape "Plan saved: <what's different for users>. Next I build it." — or, when it won't fit one session, "…Next I break it into steps, then build it." When `Open questions` was written, the line names the count ("3 questions still open"). No path, no seat or step references. Which it is follows `lead` Step 2.6 (**`skills/kru-lead/SKILL.md`** builds it, or **`planner`** slices it first).
+On a re-run, print the drift report first, as `brief-drift.mjs` wrote it. One line in the shape "Plan saved: <what's different for users>. Next I build it." — or, when it won't fit one session, "…Next I break it into steps, then build it." When `Open questions` was written, the line names the count ("3 questions still open"). No path, no seat or step references. Which it is follows `lead` Step 2.6 (**`skills/kru-lead/SKILL.md`** builds it, or **`kru-planner`** slices it first).
 
 ## Cadence is yours, and it persists in the brief
 
@@ -62,6 +62,6 @@ You grill *and* you read the code — you're the only seat holding both the inte
 - **Commits are the steps.** Inside a PR, one commit per coherent step of the change. If the feature fits in one PR, the `Landing plan` is *just that commit list* — don't manufacture PRs to express sequencing.
 - **A PR is an environment boundary or a partial ship.** Open a second PR only when (a) **something must land in a deployed environment before the rest can proceed** — a migration whose CI runs against a real branch database, a preview deploy or provisioned resource the next slice needs live — or (b) **part of the feature is shippable before it's perfect**, with the remainder following in its own PR. Diff size, file count, and review load are **not** split reasons on their own: a big single-environment change is one PR with many commits.
 
-Grill for the cadence like any other load-bearing decision — the environment boundary is usually the question worth asking ("does anything here need to be deployed before the next step is even testable?"). It goes in `Landing plan` as nested checkboxes; `lead` Step 4.5 ticks each commit and PR as it lands. Don't leave it implicit in the ticket graph — a big effort's `planner` tickets *expand* the landing plan, they don't replace it.
+Grill for the cadence like any other load-bearing decision — the environment boundary is usually the question worth asking ("does anything here need to be deployed before the next step is even testable?"). It goes in `Landing plan` as nested checkboxes; `lead` Step 4.5 ticks each commit and PR as it lands. Don't leave it implicit in the ticket graph — a big effort's `kru-planner` tickets *expand* the landing plan, they don't replace it.
 
-The brief is the durable input for everything downstream: `planner` reads it instead of a spec-less prompt, builders get their scope from `Blast radius` + `Non-goals`, and `Landing plan` + `Done when` are what `lead` Step 4.5 reconciles against and what each PR description is written from.
+The brief is the durable input for everything downstream: `kru-planner` reads it instead of a spec-less prompt, builders get their scope from `Blast radius` + `Non-goals`, and `Landing plan` + `Done when` are what `lead` Step 4.5 reconciles against and what each PR description is written from.

@@ -28,7 +28,7 @@ Pull the file that matches the task.
 - `reference/ops.md` — `VACUUM INTO` vs. the backup API, WAL checkpointing and growth, integrity checks, and shipping a seed database inside a package.
 
 ## Not this skill's job
-- **The Worker around D1** — the binding, `wrangler` config, local state and deploy are `cloudflare-builder`'s, from the vendored `cloudflare` and `wrangler` skills.
+- **The Worker around D1** — the binding, `wrangler` config, local state and deploy are `kru-cloudflare-builder`'s, from the vendored `cloudflare` and `wrangler` skills.
 - **libSQL / Turso** — a remote or replica server changes the concurrency and pragma story enough that these recipes mislead.
 - **Postgres** — the `postgres` skill.
 - **Typing the query surface** (generics, inference, `.d.ts`) — the `typescript` skill, in whichever seat owns the code.

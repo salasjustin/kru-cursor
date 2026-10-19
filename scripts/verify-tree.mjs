@@ -373,6 +373,20 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
     if (new RegExp("(?<!kru-)`" + seat + "`", "i").test(gates))
       fail("dispatch", `gates.md names \`${seat}\`; the Task subagent_type is kru-${seat}`)
   }
+  const dispatchDoc = /^(skills|references|rules)\//
+  const skipDispatchDoc = new Set([
+    "rules/pstack-models.mdc",
+    "skills/kru-update/reviewed.md",
+    "skills/kru-update/claude.md",
+  ])
+  for (const f of files) {
+    if (!dispatchDoc.test(f) || skipDispatchDoc.has(f)) continue
+    const body = read(f)
+    for (const seat of seats) {
+      if (new RegExp("(?<!kru-)`" + seat.replace(/-/g, "\\-") + "`", "i").test(body))
+        fail("dispatch", `${f} names \`${seat}\`; the Task subagent_type is kru-${seat}`)
+    }
+  }
   for (const seat of seats) {
     const fm = agentFm.get(seat)
     const description = String(fm?.description ?? "")

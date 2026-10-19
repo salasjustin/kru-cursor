@@ -22,7 +22,7 @@ Always draft self-contained `.dc.html` artboards. They are the re-seed and the t
 - **Absolute paths in the return.**
 - **Inline everything.** A `<style>` block, values as literals. Every value is a literal. The token file is a builder's to write, once.
 - **One viewport per file, stated.** 1440 for desktop, 375 for mobile. A direction that only makes sense at both is two files.
-- **Real content.** Copy from the build spec (or `conversion-copywriter`'s SECTION deck on marketing pages). Placeholder text hides the decision.
+- **Real content.** Copy from the build spec (or `kru-conversion-copywriter`'s SECTION deck on marketing pages). Placeholder text hides the decision.
 - **The states the screen has**, stacked under small labels, where the brief names them.
 - **Web-safe faces, or a `<link>` to a font host.** Those are the file's outside loads. Everything else is local.
 - **Label every artboard in the file** — the direction's name and its one-line thesis.
@@ -55,7 +55,7 @@ If neither cloud **`WriteCanvas`** nor IDE `/canvas` is available, or creating t
 
 ## Canvas vs approved mockups
 
-The canvas is for **comparing directions** before the PM picks one. **Approved mockups** are still **PNG exports at 1440 and 375** (and the build spec). They attach to the **Linear issue** and are what the layout gate and `visual-reviewer` compare against at build time.
+The canvas is for **comparing directions** before the PM picks one. **Approved mockups** are still **PNG exports at 1440 and 375** (and the build spec). They attach to the **Linear issue** and are what the layout gate and `kru-visual-reviewer` compare against at build time.
 
 Put the canvas **`url`** on the Linear issue as an **extra link** for direction review. It **never replaces** the PNG mockups.
 

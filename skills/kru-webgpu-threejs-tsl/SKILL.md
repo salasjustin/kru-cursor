@@ -5,7 +5,7 @@ description: WebGPU-enabled Three.js with TSL (Three.js Shading Language) — re
 
 <!-- vendored from `dgreenheck/webgpu-claude-skill` (main, sha af2319b) → `skills/kru-webgpu-threejs-tsl`.
      Dan Greenheck (three.js WebGPU/TSL educator) — the shader/compute half of the team's 3D lane,
-     carried ambiently by the UI component builders (`react-ui-builder`/`svelte-ui-builder`).
+     carried ambiently by the UI component builders (`kru-react-ui-builder`/`kru-svelte-ui-builder`).
      MIT per the source README (no LICENSE file upstream — same precedent as the mattpocock skills);
      its code examples derive from three.js, also MIT. Tracks three.js r171+/r183+ TSL API changes.
      The rest of the 3D lane (core three, R3F, Threlte) is Context7-backed, not vendored — see SOURCES.md.

@@ -6,7 +6,7 @@ description: Name a motion effect when the task describes animation vaguely and 
 <!-- vendored from `emilkowalski/skills` (main, sha 6bf2443) → `skills/kru-animation-vocabulary`.
      Emil Kowalski (Sonner, Vaul, animations.dev) — the reference source for web-animation craft;
      no first-party animation source exists, so this authored pack is the legitimate backing.
-     Carried ambiently by the UI component builders (`react-ui-builder`/`svelte-ui-builder`) — build-side motion craft.
+     Carried ambiently by the UI component builders (`kru-react-ui-builder`/`kru-svelte-ui-builder`) — build-side motion craft.
      Kept verbatim; re-sync: re-download from https://raw.githubusercontent.com/emilkowalski/skills/main/skills/animation-vocabulary/.
      description trimmed locally — keep on re-sync. -->
 

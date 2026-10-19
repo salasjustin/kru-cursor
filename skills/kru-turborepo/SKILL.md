@@ -13,7 +13,7 @@ metadata:
 ---
 
 <!-- vendored verbatim from `vercel/turborepo` main:skills/turborepo @ 53629a0, v2.11.3 (MIT; LICENSE kept; `user-invocable: false` added to frontmatter).
-     backs the `toolchain-engineer` seat — the monorepo task-graph + caching half (turbo.json, dependsOn,
+     backs the `kru-toolchain-engineer` seat — the monorepo task-graph + caching half (turbo.json, dependsOn,
      remote cache, --filter/--affected, boundaries). the pnpm (package graph) + Biome (lint/format) halves
      are backed by their own official docs (pnpm.io, biomejs.dev llms.txt) + Context7, not vendored.
      not installed via a plugin, so vendored like react-router. kept verbatim.

@@ -1053,7 +1053,21 @@ function rewrite(text, rel) {
   // upstream spells its commands both `/kru:x` and bare `/x`; a bare one is
   // re-pointed from the skill set on disk rather than from a list that drifts
   if (md && !pathsOnly) out = out.replace(BARE_COMMAND(), (_m, p, n) => `${p}/${PREFIX}${n}`)
-  return applyEdits(out, rel)
+  out = applyEdits(out, rel)
+  if (md && !pathsOnly && DISPATCH_DOC.test(rel)) out = prefixDispatchSeatNames(out)
+  return out
+}
+
+// skills, references, and rules tell the lead what to dispatch; bare `seat`
+// names are the file stem, not the Task subagent_type (kru-<seat>).
+const DISPATCH_DOC = /^(skills|references|rules)\//
+function prefixDispatchSeatNames(text) {
+  let out = text
+  for (const seat of seatNames().sort((a, b) => b.length - a.length)) {
+    const re = new RegExp("(?<!kru-)`" + seat.replace(/-/g, "\\-") + "`", "g")
+    out = out.replace(re, `\`kru-${seat}\``)
+  }
+  return out
 }
 
 // the fork's own edits (scripts/cursor/edits.mjs), last, on the ported text.
@@ -1474,6 +1488,22 @@ if (process.argv.includes("--test-inject-credentials")) {
   if (stripped.includes("stale line")) fail("strip at EOF left stale content")
 
   console.log("inject credentials: ok")
+  process.exit(0)
+}
+
+// --test-dispatch-seats: backtick seat names in dispatch docs become kru-<seat>.
+if (process.argv.includes("--test-dispatch-seats")) {
+  const fail = (name) => {
+    console.error(`dispatch seats: ${name}`)
+    process.exit(1)
+  }
+  const sample = "Do not dispatch `visual-reviewer` or `kru-accessibility-reviewer`; route `test-writer`."
+  const out = prefixDispatchSeatNames(sample)
+  if (!out.includes("`kru-visual-reviewer`")) fail("did not prefix a bare seat")
+  if (!out.includes("`kru-test-writer`")) fail("did not prefix test-writer")
+  if (out.includes("`kru-kru-accessibility-reviewer`")) fail("double-prefixed an existing kru- seat")
+  if (prefixDispatchSeatNames(out) !== out) fail("second pass changed output")
+  console.log("dispatch seats: ok")
   process.exit(0)
 }
 

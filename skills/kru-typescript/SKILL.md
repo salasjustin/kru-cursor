@@ -41,5 +41,5 @@ State which source you used and the TypeScript major you targeted. If you inferr
 
 ## Not this skill's job
 - **Formatter/linter** (Biome/ESLint/Prettier) — a separate tooling concern; if the ask is "set up Biome" or "why is Prettier fighting", flag it to the lead.
-- **Test-runner config** (vitest/jest/playwright) is `test-writer`'s; this skill covers the shared tsconfig the runner extends, not the runner's own options.
-- **Diff correctness** is `code-reviewer`'s; **module seams/coupling** is `architecture-reviewer`'s.
+- **Test-runner config** (vitest/jest/playwright) is `kru-test-writer`'s; this skill covers the shared tsconfig the runner extends, not the runner's own options.
+- **Diff correctness** is `kru-code-reviewer`'s; **module seams/coupling** is `kru-architecture-reviewer`'s.

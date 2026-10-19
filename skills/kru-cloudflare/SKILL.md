@@ -5,7 +5,7 @@ description: Discover and choose Cloudflare products for apps, APIs, AI agents, 
 
 <!-- vendored verbatim from `cloudflare/skills` main:skills/cloudflare @ a18ffe2 (Apache-2.0; LICENSE kept; `user-invocable: false` added to frontmatter).
      the first-party Cloudflare product-discovery skill: SKILL.md maps a need to a product, `references/*`
-     route per product to developers.cloudflare.com rather than restating it. backs the `cloudflare-builder`
+     route per product to developers.cloudflare.com rather than restating it. backs the `kru-cloudflare-builder`
      seat alongside the connected Cloudflare MCP + Context7, and names its sibling skills
      (`wrangler`, `durable-objects`, `agents-sdk`, `workers-best-practices`, `nextjs-on-cloudflare`) — all vendored here.
      re-sync: re-download skills/kru-cloudflare/ (SKILL.md + references/) from the cloudflare/skills repo.

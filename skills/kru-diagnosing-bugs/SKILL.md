@@ -3,7 +3,7 @@ name: kru-diagnosing-bugs
 description: Diagnosis loop for hard bugs and performance regressions. Use when the user says "diagnose"/"debug this", or reports something broken/throwing/failing/slow.
 ---
 
-<!-- vendored from `mattpocock/skills` (v1.3.1, sha 24fe0ef) → `skills/kru-diagnosing-bugs`. Hard-bug + perf-regression diagnosis loop backing the `vercel-perf-optimizer` seat. Kept verbatim minus the Codex `agents/openai.yaml` metadata (unused here), plus `user-invocable: false` in frontmatter and the *Two fixes failed — attack the premise* subsection closing Phase 5 (adapted from `cursor/plugins` `pstack/skills/principle-attack-the-premise`), both re-applied after any re-sync; re-sync: re-download from https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/diagnosing-bugs/. -->
+<!-- vendored from `mattpocock/skills` (v1.3.1, sha 24fe0ef) → `skills/kru-diagnosing-bugs`. Hard-bug + perf-regression diagnosis loop backing the `kru-vercel-perf-optimizer` seat. Kept verbatim minus the Codex `agents/openai.yaml` metadata (unused here), plus `user-invocable: false` in frontmatter and the *Two fixes failed — attack the premise* subsection closing Phase 5 (adapted from `cursor/plugins` `pstack/skills/principle-attack-the-premise`), both re-applied after any re-sync; re-sync: re-download from https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/diagnosing-bugs/. -->
 
 # Diagnosing Bugs
 

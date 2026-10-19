@@ -59,5 +59,5 @@ The preview server serves `emails/static/` at `/static/`, so `<Img src="/static/
 ## Not this skill's job
 - **The provider**: domain verification, webhooks, suppression, rate limits. These belong to the provider's docs (`https://resend.com/docs/llms.txt` for Resend).
 - **The queue or cron that sends**: the platform seat's.
-- **App UI**: components mounted in the app are `react-ui-builder`'s, against the token file. An email template never mounts there.
+- **App UI**: components mounted in the app are `kru-react-ui-builder`'s, against the token file. An email template never mounts there.
 - **The visual editor** (`@react-email/editor`): its own package, covered by upstream's `EDITOR.md`.

@@ -11,8 +11,8 @@ prose in its seat.
 
 ## Wiring a row
 - **The owner by tool**: Biome, ESLint (brownfield), GritQL plugins, `tsconfig` flags and the
-  script rows → `toolchain-engineer`; `ruff`/`mypy` → `python-developer`; `go vet`/`golangci-lint`
-  → `go-fullstack-builder`; `sveltekit({...})` in `vite.config.ts` → `sveltekit-builder`.
+  script rows → `kru-toolchain-engineer`; `ruff`/`mypy` → `kru-python-developer`; `go vet`/`golangci-lint`
+  → `kru-go-fullstack-builder`; `sveltekit({...})` in `vite.config.ts` → `kru-sveltekit-builder`.
 - **Strongest first.** A compiler or config flag, then a built-in rule, then a GritQL plugin, then a
   script. Take the first the repo's tool can express.
 - **Scoped to where the rule is true.** A seam rule binds the components directory, not the tree —
@@ -27,11 +27,11 @@ prose in its seat.
 | rule | mechanism | backs |
 |---|---|---|
 | components import no route, loader or server hooks, and no api client | `style/noRestrictedImports`, override on the components dir | the UI builders + framework builders → *The seam*; `references/ui-handoff.md` |
-| server-only modules (db client, auth instance, secrets) never reach client code | `style/noRestrictedImports`, override on client paths; `server-only` import on Next | framework builders' defaults; `postgres-architect`, `sqlite-architect`, `better-auth-specialist` |
-| no floating promise | `nursery/noFloatingPromises` (type-aware) · `@typescript-eslint/no-floating-promises` | `code-reviewer`; `vitest`, `testing-library`, `react-email` skills |
+| server-only modules (db client, auth instance, secrets) never reach client code | `style/noRestrictedImports`, override on client paths; `server-only` import on Next | framework builders' defaults; `kru-postgres-architect`, `kru-sqlite-architect`, `kru-better-auth-specialist` |
+| no floating promise | `nursery/noFloatingPromises` (type-aware) · `@typescript-eslint/no-floating-promises` | `kru-code-reviewer`; `vitest`, `testing-library`, `react-email` skills |
 | a clickable element is a button | `a11y/noStaticElementInteractions` + `a11y/useKeyWithClickEvents` | `ark-ui`; `ux-principles` |
 | `autocomplete` values are valid | `a11y/useValidAutocomplete` | `modern-html` |
-| a stdio MCP server writes nothing to stdout | `suspicious/noConsole` allowing `error`, scoped to the server package | `extension-builder` → *MCP servers* |
+| a stdio MCP server writes nothing to stdout | `suspicious/noConsole` allowing `error`, scoped to the server package | `kru-extension-builder` → *MCP servers* |
 | no `eval` / `new Function` | `security/noGlobalEval` | `web-components` → embedding |
 | no `@ts-ignore` | `suspicious/noTsIgnore` | `typescript` → *Strict is the floor* |
 | no `.only` reaches the tree | `suspicious/noFocusedTests` | `vitest` |
@@ -39,15 +39,15 @@ prose in its seat.
 ## TypeScript / JavaScript — GritQL plugins (`biome.json` → `plugins`)
 | rule | pattern | backs |
 |---|---|---|
-| no `sql.raw` over input | `` `sql.raw($x)` `` | `postgres-architect`, `sqlite-architect`; `drizzle` → queries |
+| no `sql.raw` over input | `` `sql.raw($x)` `` | `kru-postgres-architect`, `kru-sqlite-architect`; `drizzle` → queries |
 | no truthy coercion of a string flag | `` `z.coerce.boolean($x)` ``, `` `v.toBoolean()` `` | `zod`, `valibot` |
-| source never branches on the test environment or the deployment stage | `process.env.NODE_ENV` / `VERCEL_ENV` / `import.meta.env.MODE` compared to a stage literal (`'test'`, `'production'`, `'preview'`, `'development'`), `includes` excluding test globs | `code-reviewer` → *Test accommodation in source*, *Stage branching*; `testing` → *Principles* |
+| source never branches on the test environment or the deployment stage | `process.env.NODE_ENV` / `VERCEL_ENV` / `import.meta.env.MODE` compared to a stage literal (`'test'`, `'production'`, `'preview'`, `'development'`), `includes` excluding test globs | `kru-code-reviewer` → *Test accommodation in source*, *Stage branching*; `testing` → *Principles* |
 | no `<noscript>` fallback | JSX `noscript` element | UI + framework builders → *Scope — build the real path* |
 | no placeholder text ships | string literal matching `lorem ipsum` | UI builders → *Phase 0* |
 | class names are whole literals | template literal inside `class` / `className` | `tailwind` → *The scan is text*; `panda-css` |
 | full-height sections use `dvh` | `h-screen` in a class literal | UI builders → *Quality floor* |
-| no legacy Stripe surface | `stripe.charges.create`, Card Element, Sources/Tokens | `stripe-specialist` → *Product choices* |
-| a crossing `CustomEvent` is `composed` | `new CustomEvent` without `composed: true` | `web-components-builder` → *The seam* |
+| no legacy Stripe surface | `stripe.charges.create`, Card Element, Sources/Tokens | `kru-stripe-specialist` → *Product choices* |
+| a crossing `CustomEvent` is `composed` | `new CustomEvent` without `composed: true` | `kru-web-components-builder` → *The seam* |
 | no `transition: all` | `language css;` declaration `transition: all` | UI builders → *Motion*; `design-system` |
 
 ## TypeScript — compiler
@@ -58,17 +58,17 @@ prose in its seat.
 ## Svelte — compiler
 | rule | mechanism | backs |
 |---|---|---|
-| runes only | `compilerOptions.runes: true` in `sveltekit({...})` (`vite.config.ts`) | `svelte-ui-builder`, `sveltekit-builder` → *Svelte 5 defaults* |
+| runes only | `compilerOptions.runes: true` in `sveltekit({...})` (`vite.config.ts`) | `kru-svelte-ui-builder`, `kru-sveltekit-builder` → *Svelte 5 defaults* |
 
 ## Python — ruff / mypy
 | rule | mechanism | backs |
 |---|---|---|
-| no broad `except` swallowing into a plausible value | `BLE001`, `S110` | `python-developer` → *Exceptions are the control flow*; `python` |
+| no broad `except` swallowing into a plausible value | `BLE001`, `S110` | `kru-python-developer` → *Exceptions are the control flow*; `python` |
 | no `shell=True` | `S602`, `S604` | `python` → *Async, threads* |
 | no SQL built by string | `S608` | `sql` → queries |
 | a stdio MCP server never `print`s | `T201`, scoped to the server package | `python` → mcp-servers |
 | no commented-out code | `ERA001` | Block I |
-| no bare `dict`/`Any` crossing a boundary | mypy `disallow_any_generics`, `warn_return_any` | `python-developer` |
+| no bare `dict`/`Any` crossing a boundary | mypy `disallow_any_generics`, `warn_return_any` | `kru-python-developer` |
 
 ## Go — `golangci-lint` v2
 The gate order and the baseline set are `go` → `reference/testing.md`; these rows extend it.
@@ -77,11 +77,11 @@ The gate order and the baseline set are `go` → `reference/testing.md`; these r
 | bodies and rows closed, `rows.Err` checked, calls take a context | `bodyclose`, `sqlclosecheck`, `rowserrcheck`, `noctx` | `go` → *Both ends of the wire*, `reference/database.md` |
 | errors compared with `errors.Is`/`As` | `errorlint` | `go` → *Errors* |
 | no SQL built by string, tokens from `crypto/rand` | `gosec` `G201`, `G202`, `G404` | `go` → `reference/security.md` |
-| no `DefaultServeMux`, no `net/http/pprof` in the binary | `forbidigo` (`http.Handle`, `http.HandleFunc`), `depguard` | `go-fullstack-builder`; `go` → *What the binary exposes* |
-| `os.Exit` / `log.Fatal` only in `main` | `revive` `deep-exit` | `go-fullstack-builder` → *Shutdown* |
+| no `DefaultServeMux`, no `net/http/pprof` in the binary | `forbidigo` (`http.Handle`, `http.HandleFunc`), `depguard` | `kru-go-fullstack-builder`; `go` → *What the binary exposes* |
+| `os.Exit` / `log.Fatal` only in `main` | `revive` `deep-exit` | `kru-go-fullstack-builder` → *Shutdown* |
 
 ## Scripts — a task in the repo's gate
 | rule | mechanism | backs |
 |---|---|---|
-| an applied migration is never edited | `git diff --diff-filter=M <base> -- <migrations dir>` fails the task | `postgres-architect`, `sqlite-architect`; `drizzle` → migrations |
+| an applied migration is never edited | `git diff --diff-filter=M <base> -- <migrations dir>` fails the task | `kru-postgres-architect`, `kru-sqlite-architect`; `drizzle` → migrations |
 | every SQLite `CREATE TABLE` is `STRICT` | grep over the migrations dir | `sqlite` → *Types* |

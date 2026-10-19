@@ -105,7 +105,7 @@ Pull the one the task needs, not both.
 
 ## Not this skill's job
 - **The Zod schema itself** — `.default()` vs `.prefault()`, transform output, error customization: the **`zod`** skill. This one starts where the resolver hands the result over.
-- **Route structure and the component seam** — the framework builder seats own actions, routes and server functions; `react-ui-builder` owns the component boundary. This skill marks only where a field's wiring dictates the props.
+- **Route structure and the component seam** — the framework builder seats own actions, routes and server functions; `kru-react-ui-builder` owns the component boundary. This skill marks only where a field's wiring dictates the props.
 - **Other resolvers** — Yup, ArkType and the rest ship their own adapters with their own coercion. Valibot's has the one row above, because its failure reads as a `criteriaMode` bug.
 - **Other form libraries** — Conform and TanStack Form are different stacks; a repo on one of them has that skill's row instead.
 - **Authorization** — a form that validates says nothing about who may submit it.

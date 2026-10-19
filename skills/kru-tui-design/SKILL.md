@@ -72,6 +72,6 @@ Framework APIs here move faster than this file: Bubble Tea and Lip Gloss both ha
 - `reference/visual.md` — hierarchy without color, the emphasis ladder, what earns a border, box-drawing fallback, and component treatments.
 
 ## Owned elsewhere
-- **Browser UI** — `react-ui-builder` / `svelte-ui-builder` / `web-components-builder`. Terminal constraints invert most web instincts; carrying them across is the failure this skill prevents.
+- **Browser UI** — `kru-react-ui-builder` / `kru-svelte-ui-builder` / `kru-web-components-builder`. Terminal constraints invert most web instincts; carrying them across is the failure this skill prevents.
 - **A CLI that prints and exits** — flags, streams, exit codes are the `cli` skill; what its output says to a person watching is `ui-patterns` → `reference/terminal-output.md`. That tool wants argument design, and a render loop is the wrong medium for it.
 - **The language layer** — Go craft is the `go` skill, Python the `python` skill, TypeScript the `typescript` skill (and the Node runtime the `node` skill), in whichever seat owns the code.

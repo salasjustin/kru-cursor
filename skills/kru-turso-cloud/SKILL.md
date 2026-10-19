@@ -4,7 +4,7 @@ description: Turso Cloud — managed SQLite-compatible database over the network
 ---
 
 <!-- vendored verbatim from `tursodatabase/agent-skills` main:skills/turso-cloud @ 34ced52 (MIT; LICENSE kept; `user-invocable: false` added to frontmatter).
-     Turso's own Cloud skill — remote SDKs per language, auth tokens and scoping, the Vercel Marketplace integration. backs the `turso-specialist` seat.
+     Turso's own Cloud skill — remote SDKs per language, auth tokens and scoping, the Vercel Marketplace integration. backs the `kru-turso-specialist` seat.
      re-sync: re-download skills/kru-turso-cloud/ from the tursodatabase/agent-skills repo.
      description trimmed locally — keep on re-sync. -->
 

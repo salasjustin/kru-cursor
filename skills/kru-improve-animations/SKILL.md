@@ -7,7 +7,7 @@ disable-model-invocation: true
 <!-- vendored from `emilkowalski/skills` (main, sha 6bf2443) → `skills/kru-improve-animations`.
      Emil Kowalski (Sonner, Vaul, animations.dev) — the reference source for web-animation craft;
      no first-party animation source exists, so this authored pack is the legitimate backing.
-     User-invoked motion audit; the build-side pack rides ambiently with the UI component builders (`react-ui-builder`/`svelte-ui-builder`).
+     User-invoked motion audit; the build-side pack rides ambiently with the UI component builders (`kru-react-ui-builder`/`kru-svelte-ui-builder`).
      **Local deviation:** `disable-model-invocation: true` — non-interactive default; the PM or lead `Read`s this file when the task names a motion roadmap (upstream is interactive).
      Kept verbatim; re-sync: re-download from https://raw.githubusercontent.com/emilkowalski/skills/main/skills/improve-animations/.
      description trimmed locally — keep on re-sync. -->
