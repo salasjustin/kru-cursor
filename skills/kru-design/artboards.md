@@ -1,24 +1,25 @@
 # `.dc.html` artboard file format
 
-Canonical spec for local design artboards. Every rule here is what a builder transcribes from; values stay literals in the file.
-
 ## Layout on disk
 
 ```
 .design-work/
-  index.html            plain list of links, one per artboard, with its one-line label
-  direction-a.dc.html   one direction, the whole screen, at one viewport
-  direction-b.dc.html
+  index.html
+  direction-a-1440.dc.html     bootstrap direction at one viewport
+  direction-a-375.dc.html
+  checkout-empty-1440.dc.html  settled mockup set
 ```
 
-- Put files under `.design-work/` unless the repo already has a design-work path.
-- **`.dc.html` for an artboard**, plain `.html` for the index.
-- **Gitignored** — build inputs, not the system. Mark paths **uncommitted** in the return.
-- **Absolute paths** in the return to the PM.
+**Naming**
+
+- Bootstrap directions: `direction-<slug>-<viewport>.dc.html` (for example `direction-a-1440.dc.html`, `direction-a-375.dc.html`).
+- Settled mockup set: `<screen>-<state>-<viewport>.dc.html` (for example `checkout-empty-1440.dc.html`, `checkout-error-375.dc.html`).
+
+Put files under `.design-work/` unless the repo already has a design-work path. Add `.design-work/` to `.gitignore` if it is not ignored already, and mark paths **uncommitted** in the return. Use `.dc.html` for an artboard and plain `.html` for the index. Return **absolute paths** to the PM.
 
 ## Document skeleton (every `.dc.html`)
 
-Each artboard is one valid HTML5 document, self-contained except for optional font hosts.
+Each artboard is one valid HTML5 document.
 
 ```html
 <!DOCTYPE html>
@@ -29,7 +30,8 @@ Each artboard is one valid HTML5 document, self-contained except for optional fo
   <title>Direction name — one-line thesis</title>
   <!-- optional: <link rel="stylesheet" href="https://fonts.googleapis.com/..."> -->
   <style>
-    /* every rule here; literal values only — no var(), no @import */
+    .dc-artboard[data-viewport="1440"] { width: 1440px; }
+    /* every other rule: literal values only */
   </style>
 </head>
 <body>
@@ -37,30 +39,35 @@ Each artboard is one valid HTML5 document, self-contained except for optional fo
   <div class="dc-artboard" data-viewport="1440">
     <!-- the screen at this viewport -->
   </div>
-  <!-- optional: more .dc-artboard blocks for named states, each preceded by a small state label -->
 </body>
 </html>
 ```
 
-- **`data-viewport`** on `.dc-artboard` matches the stated width: `1440` for desktop, `375` for mobile. One viewport per file; a direction that needs both is two files.
-- **`<meta name="viewport">`** uses `width=<N>` for that same number (not `device-width`).
-- **`.dc-label`** is visible in the file: the direction name and its one-line thesis (same text as the `<title>`).
-- **No scripts.** No build step, no framework runtime, no external CSS except a font `<link>`.
+- Set `data-viewport` on `.dc-artboard` to `1440` for desktop or `375` for mobile. One viewport per file; a direction that needs both is two files.
+- Set `<meta name="viewport" content="width=<N>">` to the same `N` as `data-viewport`.
+- Give `.dc-artboard` an explicit `width` in CSS that matches `data-viewport`.
+- Put the direction or screen name and one-line thesis in `.dc-label` and in `<title>`.
 
-## Styling rules
+## Styling and loads
 
-- **Inline everything** in a single `<style>` block (or minimal extra blocks in the same file). Every color, spacing, type size, and radius is a literal.
-- **No design-system token file** in the artboard — the token file is the builder's job after approval.
-- **Web-safe faces, or one `<link>` to a font host** — those are the only outside loads. Icons are inline SVG or a data URL unless the repo's approved spec names a hosted set.
-- **Match the repo first** — token file, stylesheets, closest screen, icon set — and say in one line what you matched in the handoff.
+Values in the file are literals.
 
-## Content rules
+- Write every value as a literal in the one `<style>` block in `<head>`.
+- Use web-safe faces, or add a single font `<link>` in `<head>`.
+- Reference repo images with relative paths from the artboard file.
+- After the PM approves a direction, a builder transcribes literals into the repo token file once.
 
-- **Real content** from the build spec (or `kru-conversion-copywriter`'s SECTION deck on marketing pages). Placeholder lorem hides the decision.
-- **The states the screen has**, stacked under small labels, where the brief names them (each state can be its own `.dc-artboard` block in the same file).
-- **Directions differ.** 2–4 at bootstrap. Three palettes of the same layout is one direction. State each thesis in one line.
-- **Re-draft from the files that are there.** The PM's pick is the base. Two rounds is normal. A third means the brief is what's wrong.
+## Content in each artboard
+
+- Use copy from the build spec (or `kru-conversion-copywriter`'s SECTION deck on marketing pages). Include a plausible long string in the field that will overflow.
+- Where the brief names screen states, stack them under small labels in the file (separate `.dc-artboard` blocks or clearly labelled sections): **empty**, **one row**, **many**, **error**, **loading**, **disabled**.
+- Keep interaction **static** by default. Show **hover** and **focus** as a labelled second copy of the element beside the default state.
+- Each file renders at its one width. Breakpoint behaviour is the builder's job.
+
+## PNG exports
+
+Capture each `.dc-artboard` at its `data-viewport` width as a full-height PNG named after its `.dc.html` file (for example `direction-a-1440.png` beside `direction-a-1440.dc.html`). These are the **1440** and **375** approved-mockup exports that *Canvas vs approved mockups* in `skills/kru-design/SKILL.md` requires.
 
 ## `index.html`
 
-A plain HTML page listing every `.dc.html` in the folder: one link per artboard, link text = direction name + one-line label. No canvas, no publish step — navigation only.
+A plain HTML page with one link per `.dc.html`. Link text is the direction or screen name plus its one-line label. Navigation only.
