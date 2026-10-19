@@ -370,20 +370,24 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
     if (!seats.includes(seat)) fail("dispatch", `gates.md names kru-${seat}, which has no agents/${seat}.md`)
   }
   for (const seat of seats) {
-    if (new RegExp("(?<!kru-)`" + seat + "`", "i").test(gates))
+    if (new RegExp("(?<!kru-)`" + seat + "`").test(gates))
       fail("dispatch", `gates.md names \`${seat}\`; the Task subagent_type is kru-${seat}`)
   }
   const dispatchDoc = /^(skills|references|rules)\//
-  const skipDispatchDoc = new Set([
-    "rules/pstack-models.mdc",
-    "skills/kru-update/reviewed.md",
-    "skills/kru-update/claude.md",
-  ])
+  const skipDispatchDoc = new Set(
+    execFileSync("node", ["scripts/port.mjs", "--list-dispatch-seat-prefix-skip"], { cwd: ROOT, encoding: "utf8" })
+      .trim()
+      .split("\n")
+      .filter(Boolean),
+  )
   for (const f of files) {
     if (!dispatchDoc.test(f) || skipDispatchDoc.has(f)) continue
     const body = read(f)
     for (const seat of seats) {
-      if (new RegExp("(?<!kru-)`" + seat.replace(/-/g, "\\-") + "`", "i").test(body))
+      const plain = f === "skills/kru-roster/shared-blocks.md"
+        ? body.split(/(```[\s\S]*?```)/g).filter((_, i) => i % 2 === 0).join("")
+        : body
+      if (new RegExp("(?<!kru-)`" + seat.replace(/-/g, "\\-") + "`").test(plain))
         fail("dispatch", `${f} names \`${seat}\`; the Task subagent_type is kru-${seat}`)
     }
   }

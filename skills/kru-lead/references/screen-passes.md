@@ -4,7 +4,7 @@ Detail for **PM-named** screen passes and Step 5 acceptance checks. The lead **d
 
 ## The two passes have seats — PM or task invokes them
 
-`kru-visual-reviewer` and `kru-accessibility-reviewer` are review-only agents whose entire body is the corresponding skill file — same rules, same output, same boundaries, read from the one copy. **Two callers, one body:** the lead or agent loads `skills/kru-visual-review/SKILL.md` or `skills/kru-accessibility-review/SKILL.md` (`Read`, or `/kru-visual-review` / `/kru-accessibility-review` when invoked) for an inline sweep, or dispatches `kru-visual-reviewer` / `kru-accessibility-reviewer` when the task names the seat — not an automatic Step 4 batch.
+`kru-visual-reviewer` and `kru-accessibility-reviewer` are review-only agents whose entire body is the corresponding skill file — same rules, same output, same boundaries, read from the one copy. **Two callers, one body:** the lead loads `skills/kru-visual-review/SKILL.md` or `skills/kru-accessibility-review/SKILL.md` for an inline sweep (the `/kru-visual-review` and `/kru-accessibility-review` commands load the same file), or dispatches `kru-visual-reviewer` / `kru-accessibility-reviewer` when the task names the seat, not as an automatic Step 4 batch.
 
 **Conformance is the repo's own gate**, written in Phase 0 and run at every commit (`${CURSOR_PLUGIN_ROOT}/references/ui-handoff.md` → *Conformance is prevented, not detected*) — so an off-token value is already a failing test by the time a pass could look, and neither seat here is briefed for one.
 
