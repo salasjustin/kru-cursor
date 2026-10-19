@@ -51,7 +51,7 @@ this tree byte for byte — so no ported file carries a hand edit the next merge
 | agent `tools:` allowlist | dropped; the 9 seats with no `Edit`/`Write` become `readonly: true` + `permissionMode: readonly` (7) or are refused the Write/Delete tools by `hooks/seat-guard.sh` (`planner`, `dispatch-auditor`) | `readonly` is Cursor's documented read-only field ("no file edits, no state-changing shell commands") — the strongest control Cursor offers. The installed CLI strips `tools` from a plugin's agents and reads read-only from `permissionMode`, so both keys are written. The planner and the auditor write the store through the shell, which `readonly` would refuse, so their line is the hook — the same line upstream's allowlist drew (no edit tool, shell kept) |
 | agent `model:` | the fork's pick from `SEAT_MODELS` in `scripts/port.mjs` (every seat; no Anthropic ids in `agents/`); every id must be in `CONFIRMED_MODELS` | upstream still pins Claude tiers; the port maps them to non-Anthropic Cursor ids. the map, fallbacks and sources are `MODELS.md` |
 | agent `effort:` | folded into the model id's parameter, e.g. `gpt-5.6-sol[effort=high]` | Cursor's documented syntax for reasoning effort on a subagent's model |
-| agent `memory: local` | a line in the seat's Block Q naming `.claude/agent-memory-local/<seat>/MEMORY.md`, read and kept by the seat | Cursor has no agent memory; the path stays claude's so both forks of the team share it and `store-sync`/`/kru-setup` cover it (same as kru-opencode) |
+| agent `memory: local` | a line in the seat's Block Q naming `.claude/agent-memory-local/<seat>/MEMORY.md`, read and kept by the seat | Cursor has no agent memory; the path stays claude's so upstream kru and this fork share it and `store-sync`/`/kru-setup` cover it (the same path upstream kru uses) |
 | agent `experimental.cacheTtl` | dropped | no Cursor equivalent |
 | skill `user-invocable: false` | dropped | every Cursor skill is in the `/` menu; there is no hide flag |
 | skill `allowed-tools` | dropped | Cursor skills carry no tool allowlist |
@@ -141,7 +141,7 @@ one is overwritten by the next port, and `scripts/verify.sh`'s fresh-port check 
 | `scripts/cursor/sources-harness-row.md` | `SOURCES.md` → *Orchestration / harness mechanics* |
 | `scripts/cursor/ui-design-cursor.md` | `references/ui-practice.md` after *Engineering never runs a mockup or canvas step*, pulled in by a port rule |
 | `scripts/cursor/update-sweep.md` | `skills/kru-update/claude.md`, the Cursor changelog sweep, pulled in by a port rule (the file keeps the name `claude.md`) |
-| `skills/kru-design/SKILL.md` | the design skill: `.dc.html` artboards plus Cursor's `/canvas`. Listed in `FORK_OWNED` so a new file inside `skills/` survives the port |
+| `skills/kru-design/SKILL.md`, `skills/kru-design/artboards.md` | the design skill: `.dc.html` artboards plus Cursor's `/canvas`; `artboards.md` is the self-contained file-format spec. Listed in `FORK_OWNED` so new files inside `skills/` survive the port |
 | `skills/kru-update/claude.md`, `reviewed.md` | `claude.md` is the Cursor changelog sweep (the block above); `reviewed.md` keeps the closed Claude Code ledger and a Cursor mark. Layout rules only, plus that one edit |
 | `skills/kru-eval-review/SKILL.md` | grades an upstream suite already in the tree. Layout rules, plus fork edits: no default `evals/` directory, no `/claude-api` checklist |
 

@@ -8,27 +8,17 @@ The artboard and publish mechanics for a **designer bot** session. Load this fil
 
 ## Draft the files first
 
-Always draft self-contained `.dc.html` artboards. They are the re-seed and the transcription spec, and they are the whole return when `/canvas` is not available. The file format follows kru-opencode's kru-artboards skill for the local files only.
+Always draft self-contained `.dc.html` artboards. They are the re-seed and the transcription spec, and they are the whole return when `/canvas` is not available. The file format is `${CURSOR_PLUGIN_ROOT}/skills/kru-design/artboards.md` — follow it for every local artboard and the index.
 
-```
-.design-work/
-  index.html            a plain list of links, one per artboard, with its one-line label
-  direction-a.dc.html   one direction, the whole screen, at one viewport
-  direction-b.dc.html
-```
+## Directions and re-drafts
 
-- **Gitignored.** Build inputs, not the system. Put them under `.design-work/` unless the repo already has a design-work path, and say **uncommitted** in the return.
-- **`.dc.html` for an artboard**, plain `.html` for the index.
-- **Absolute paths in the return.**
-- **Inline everything.** A `<style>` block, values as literals. Every value is a literal. The token file is a builder's to write, once.
-- **One viewport per file, stated.** 1440 for desktop, 375 for mobile. A direction that only makes sense at both is two files.
-- **Real content.** Copy from the build spec (or `kru-conversion-copywriter`'s SECTION deck on marketing pages). Placeholder text hides the decision.
-- **The states the screen has**, stacked under small labels, where the brief names them.
-- **Web-safe faces, or a `<link>` to a font host.** Those are the file's outside loads. Everything else is local.
-- **Label every artboard in the file** — the direction's name and its one-line thesis.
-- **Match the repo first** and say in one line what you matched: the token file, the stylesheets, the closest screen, the icon set.
-- **Directions differ.** 2–4 at bootstrap. Three palettes of the same layout is one direction. State each thesis in one line.
-- **Re-draft from the files that are there.** The PM's pick is the base. Two rounds is normal. A third means the brief is what's wrong.
+**Match before you invent.** Read the repo first and say in one line what you matched: the token file, the stylesheets, the closest screen, the icon set. At bootstrap there is nothing to match but the conventions corpus and whatever the brief names; that is the one turn where the look is yours to propose.
+
+At bootstrap, draft **2–4 directions**. A reader should be able to say what each one *is* in a phrase. Vary what carries the look: **density**, **type scale and face pairing**, **how much chrome** a surface gets, whether **depth** comes from shadow or from line, **how colour is spent** (one accent or a family), and **shape language**. Three palettes of the same layout is one direction. State each direction's thesis in one line in your return. A direction you cannot name in a phrase is the one to cut.
+
+**Re-draft from the files that are there.** The PM's pick is the base; what they wanted different is the next brief. Keep rejected directions until the pick is transcribed into the token file. Two rounds is normal. On a **third** re-draft round, say the **brief** is the problem and hand the question back to the PM.
+
+**Ask the PM before building working controls.** Static mockups are the default.
 
 ## Publish with `/canvas`
 
@@ -51,13 +41,13 @@ When `/canvas` is available in the IDE, invoke it ([skills](https://cursor.com/d
 
 ### Fallback
 
-If neither cloud **`WriteCanvas`** nor IDE `/canvas` is available, or creating the canvas fails, do not invent a publish. Return the absolute `.dc.html` paths and say the canvas was not available.
+If neither cloud **`WriteCanvas`** nor IDE `/canvas` is available, or creating the canvas fails, return the absolute `.dc.html` paths and say the canvas was not available.
 
 ## Canvas vs approved mockups
 
-The canvas is for **comparing directions** before the PM picks one. **Approved mockups** are still **PNG exports at 1440 and 375** (and the build spec). They attach to the **Linear issue** and are what the layout gate and `kru-visual-reviewer` compare against at build time.
+The canvas is for **comparing directions** before the PM picks one. **Approved mockups** are still **PNG exports at 1440 and 375** (and the build spec). They attach to the **Linear issue** and are what the layout gate and PM screen acceptance compare against at build time. **`kru-visual-reviewer` runs only when the PM names that pass** (`skills/kru-visual-review/SKILL.md`).
 
-Put the canvas **`url`** on the Linear issue as an **extra link** for direction review. It **never replaces** the PNG mockups.
+Put the canvas **`url`** on the Linear issue as an **extra link** for direction review. Keep the PNG mockups on the issue; the canvas link is for comparing directions only.
 
 ## The handoff
 

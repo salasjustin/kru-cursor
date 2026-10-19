@@ -207,6 +207,7 @@ const FORK_OWNED = new Set([
   "scripts/cursor/hooks.repo.mcp-guard.json",
   ".cursor/hooks.json",
   "skills/kru-design/SKILL.md",
+  "skills/kru-design/artboards.md",
 ])
 const FORK_OWNED_DIRS = /^(scripts\/cursor\/|\.cursor-plugin\/|rules\/|commands\/|\.github\/)/
 
@@ -681,6 +682,7 @@ const FORBIDDEN = [
   /\/plugin (install|marketplace)/,
   /\bTaskCreate\b|\bTaskUpdate\b/,
   /CLAUDE_PLUGIN_DATA/,
+  /\bkru-opencode\b/,
 ]
 // files a FORBIDDEN token may stay in: the claude release ledger the update
 // skill keeps reads claude's names by design (PORTING.md → Known gaps)
