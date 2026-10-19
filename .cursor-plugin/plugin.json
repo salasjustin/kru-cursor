@@ -1,7 +1,7 @@
 {
   "name": "kru-cursor",
   "displayName": "kru for Cursor",
-  "version": "0.1.1+kru0.159.0",
+  "version": "0.1.2+kru0.159.0",
   "description": "kru, ported to Cursor: an engineering lead plus 37 specialist subagents, the skills they load, and the hooks that keep handoffs honest. A port of github.com/ap-justin/kru.",
   "author": {
     "name": "ap-justin"

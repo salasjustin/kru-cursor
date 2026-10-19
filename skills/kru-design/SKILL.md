@@ -8,7 +8,7 @@ The artboard and publish mechanics for a **designer bot** session. Load this fil
 
 ## Draft the files first
 
-Always draft self-contained `.dc.html` artboards. They are the re-seed and the transcription spec, and they are the whole return when `/canvas` is not available. The file format follows kru-opencode's kru-artboards skill for the local files only.
+Always draft self-contained `.dc.html` artboards. They are the re-seed and the transcription spec, and they are the whole return when `/canvas` is not available. The file format is `${CURSOR_PLUGIN_ROOT}/skills/kru-design/artboards.md` — follow it for every local artboard and the index.
 
 ```
 .design-work/
