@@ -8,7 +8,7 @@ The artboard and publish mechanics for a **designer bot** session. Load this fil
 
 ## Model
 
-When the PM or Dara launches a mockup agent, pick the session model here. Engineering pins are unchanged: builds stay on `composer-2.5`, probes on `grok-4.7`.
+When the PM or the designer bot launches a mockup agent, pick the session model here.
 
 - **Mockups and design drafts:** `claude-sonnet-5-5`. Priced the same as `gemini-4-argon` on Cursor; leads `gemini-4-argon` on the Design Arena UI board at that tier.
 - **High-stakes screens** (hero, landing page, brand-defining direction): `claude-opus-5-5`. Priced the same as `muse-wonder-1.0` on Cursor; leads `muse-wonder-1.0` on the Design Arena UI board at that tier.
