@@ -6,6 +6,14 @@ disable-model-invocation: true
 
 The artboard and publish mechanics for a **designer bot** session. Load this file (`skills/kru-design/SKILL.md`); engineering does not invoke it as a slash command. The look is decided on the canvas. The verdict is the PM's. Practice: `${CURSOR_PLUGIN_ROOT}/references/ui-practice.md` and `${CURSOR_PLUGIN_ROOT}/references/designer-handoff.md`.
 
+## Model
+
+When the PM or Dara launches a mockup agent, pick the session model here. Engineering pins are unchanged: builds stay on `composer-2.5`, probes on `grok-4.7`.
+
+- **Mockups and design drafts:** `claude-sonnet-5-5`. Priced the same as `gemini-4-argon` on Cursor; leads `gemini-4-argon` on the Design Arena UI board at that tier.
+- **High-stakes screens** (hero, landing page, brand-defining direction): `claude-opus-5-5`. Priced the same as `muse-wonder-1.0` on Cursor; leads `muse-wonder-1.0` on the Design Arena UI board at that tier.
+- **Anthropic models unavailable:** `kimi-k3`, then `gemini-4-argon`.
+
 ## Draft the files first
 
 Always draft self-contained `.dc.html` artboards. They are the re-seed and the transcription spec, and they are the whole return when `/canvas` is not available. The file format is `${CURSOR_PLUGIN_ROOT}/skills/kru-design/artboards.md` — follow it for every local artboard and the index.
