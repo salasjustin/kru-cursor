@@ -2,22 +2,24 @@
 
 Upstream kru pins every seat to a Claude model and argues each tier in `ROSTER.md` → *Model tiers*.
 This fork keeps those *roles* (judgment, builder, mechanical) but pins every seat to a
-non-Anthropic model Cursor documents in subagent frontmatter. `scripts/port.mjs` holds the data —
-`CONFIRMED_MODELS` (every id a seat may use, each with the page it was read from), `SEAT_MODELS`
-(every seat's pick and fallback) — and writes every seat's `model:` line. No agent file is edited
-by hand. `node scripts/port.mjs --list-models --seats` prints the map below.
+**Cursor included** model (`grok-4.7`, `grok-4.6`, `grok-4.5`, `composer-2.5` per
+[cursor.com/docs/models](https://cursor.com/docs/models)) so seats do not bill against prepaid
+*Other Models* credit. `scripts/port.mjs` holds the data — `CONFIRMED_MODELS` (every id a seat may
+use, each with the page it was read from), `SEAT_MODELS` (every seat's pick and fallback) — and
+writes every seat's `model:` line. No agent file is edited by hand.
+`node scripts/port.mjs --list-models --seats` prints the map below.
 
 ## The map
 
 | seat | model | fallback | why | source |
 |---|---|---|---|---|
-| `code-reviewer`, `architecture-reviewer`, `planner`, `ux-auditor` | `gpt-5.6-sol[effort=high]` | `gemini-3.1-pro` | judgment seats: what they return *is* the judgment, so they get the strongest non-Anthropic tier at high effort (upstream's reasoning role, new provider). Fallback: Gemini 3.1 Pro is another top-tier model in Cursor's docs | [gpt-5-6-sol](https://cursor.com/docs/models/gpt-5-6-sol), [gemini-3-1-pro](https://cursor.com/docs/models/gemini-3-1-pro) |
-| `better-auth-specialist`, `stripe-specialist`, `paypal-specialist`, `nowpayments-specialist`, `chariot-specialist`, `quickbooks-specialist`, `postgres-architect`, `sqlite-architect`, `turso-specialist` | `gpt-5.6-sol[effort=high]` | `gemini-3.1-pro` | money, auth, and migration correctness; same strongest non-Anthropic tier as judgment seats | [gpt-5-6-sol](https://cursor.com/docs/models/gpt-5-6-sol) |
-| builders — `cloudflare-builder`, `conversion-copywriter`, `extension-builder`, `fly-platform-engineer`, `go-fullstack-builder`, `hono-builder`, `nextjs-builder`, `node-developer`, `python-developer`, `react-router-builder`, `sanity-builder`, `svelte-ui-builder`, `sveltekit-builder`, `tanstack-start-builder`, `vercel-platform-engineer`, `zapier-specialist` | `composer-2.5[fast=false]` | `grok-4.7` | implementation work: Cursor's Composer standard variant (`fast=false`), not the fast tier | [composer-2-5](https://cursor.com/docs/models/cursor-composer-2-5) |
-| `react-ui-builder`, `web-components-builder` | `kimi-k3` | `gpt-5.6-sol` | the component seats stay on Kimi K3 (Moonshot, Cursor's *Other Models* pool). `web-components-builder` writes a public API, so a defect it ships re-pins it to the fallback | [kimi-k3](https://cursor.com/docs/models/kimi-k3) |
-| `test-writer` | `grok-4.7` | `composer-2.5[fast=false]` | coverage sweeps and suite repair: long, bounded, self-checking work in Cursor's Grok pool | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
+| `code-reviewer`, `architecture-reviewer`, `planner`, `ux-auditor` | `grok-4.7[effort=high]` | `composer-2.5[fast=false]` | judgment seats: what they return *is* the judgment, so they get high effort on Grok in the included pool | [grok-4-7](https://cursor.com/docs/models/grok-4-7), [composer-2-5](https://cursor.com/docs/models/cursor-composer-2-5) |
+| `better-auth-specialist`, `stripe-specialist`, `paypal-specialist`, `nowpayments-specialist`, `chariot-specialist`, `quickbooks-specialist`, `postgres-architect`, `sqlite-architect`, `turso-specialist` | `grok-4.7[effort=high]` | `composer-2.5[fast=false]` | money, auth, and migration correctness; same tier as judgment seats | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
+| builders — `cloudflare-builder`, `conversion-copywriter`, `extension-builder`, `fly-platform-engineer`, `go-fullstack-builder`, `hono-builder`, `nextjs-builder`, `node-developer`, `python-developer`, `react-router-builder`, `sanity-builder`, `svelte-ui-builder`, `sveltekit-builder`, `tanstack-start-builder`, `vercel-platform-engineer`, `zapier-specialist` | `composer-2.5[fast=false]` | `grok-4.7` | implementation work: Composer standard variant (`fast=false`), not the fast tier | [composer-2-5](https://cursor.com/docs/models/cursor-composer-2-5) |
+| `react-ui-builder`, `web-components-builder` | `composer-2.5[fast=false]` | `grok-4.7[effort=high]` | component seats match other builders; a public API defect re-pins to high-effort Grok | [composer-2-5](https://cursor.com/docs/models/cursor-composer-2-5) |
+| `test-writer` | `grok-4.7` | `composer-2.5[fast=false]` | coverage sweeps and suite repair: long, bounded, self-checking work | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
 | `toolchain-engineer`, `vercel-perf-optimizer` | `grok-4.7[effort=medium]` | `composer-2.5[fast=false]` | checklist work against documented conventions; medium effort as upstream pins it | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
-| `accessibility-reviewer`, `visual-reviewer` | `grok-4.7[effort=low]` | `composer-2.5` | upstream's sonnet tier: restraint-heavy review on the fast Grok effort level | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
+| `accessibility-reviewer`, `visual-reviewer` | `grok-4.7[effort=low]` | `composer-2.5` | upstream's sonnet tier: restraint-heavy review on low Grok effort | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
 | `dispatch-auditor` | `composer-2.5` | `grok-4.7` | checklist seat that fires every turn: Composer's fast tier (default variant) | [composer-2-5](https://cursor.com/docs/models/cursor-composer-2-5) |
 | the lead (`kru-lead` skill) | the conversation's model | — | main thread, not settable from a file | — |
 
@@ -25,23 +27,22 @@ Retiering is one row in `SEAT_MODELS` plus the matching row here, then `node scr
 
 ### Confirmed ids
 
-Every id below was read verbatim as the page's **Model ID** on 2026-10-18 (Anthropic ids are
-omitted on purpose — they must not appear in `agents/`). An id not in this list is refused by the
-port and by `scripts/verify.sh` (*seat models are confirmed cursor ids*).
+Every id below was read verbatim as the page's **Model ID** on 2026-10-21 (Anthropic and *Other
+Models* ids are omitted on purpose — they must not appear in `agents/`). An id not in this list is
+refused by the port and by `scripts/verify.sh` (*seat models are confirmed cursor ids*).
+`scripts/verify-tree.mjs` also requires every seat's base id to be in the included pool.
 
 | id | page | pool, list price per 1M tokens (input / output) |
 |---|---|---|
-| `grok-4.7` | cursor.com/docs/models/grok-4-7 | Cursor Models, $2 / $6 (fast $4 / $12) |
-| `composer-2.5` | cursor.com/docs/models/cursor-composer-2-5 | Cursor Models, $0.50 / $2.50 (fast $3 / $15) |
-| `kimi-k3` | cursor.com/docs/models/kimi-k3 | Other Models, $3 / $15 |
-| `gpt-5.6-sol` | cursor.com/docs/models/gpt-5-6-sol | Other Models, $4 / $20 |
-| `gemini-3.1-pro` | cursor.com/docs/models/gemini-3-1-pro | Other Models, $2 / $12 |
+| `grok-4.7` | cursor.com/docs/models/grok-4-7 | Cursor Models (included), $2 / $6 (fast $4 / $12) |
+| `grok-4.6` | cursor.com/docs/models/grok-4-6 | Cursor Models (included) |
+| `grok-4.5` | cursor.com/docs/models/grok-4-5 | Cursor Models (included) |
+| `composer-2.5` | cursor.com/docs/models/cursor-composer-2-5 | Cursor Models (included), $0.50 / $2.50 (fast $3 / $15) |
 | `inherit` | cursor.com/docs/subagents → Configuration fields | the parent's model |
 
-Prices from `cursor.com/docs/models-and-pricing`. A named third-party model draws from *Other
-Models* even when the parent chat runs on Auto, Grok or Composer; Grok and Composer are exempt from
-the Teams Cursor Token Rate. On the Start plan (India) there is no *Other Models* pool, so only the
-Grok and Composer seats run as pinned there.
+Prices from `cursor.com/docs/models-and-pricing`. Grok and Composer draw from the included pool and
+are exempt from the Teams Cursor Token Rate on *Other Models*. Seats are pinned only to Grok 4.7 and
+Composer 2.5 today; 4.6 and 4.5 are confirmed for retiering without leaving the pool.
 
 The installed CLI (`cursor-agent` 2026.10.01-e373342) carries no model list of its own — `cursor-agent
 models` fetches it and needs a signed-in CLI, which this box doesn't have — so no id here was
@@ -59,7 +60,8 @@ levels:
 2. **By hand, on a plan or admin that doesn't serve the pick.** Cursor itself falls back to "a
    compatible model" when an admin blocks the pinned one, the plan lacks it, or a legacy plan needs
    Max Mode for it (`cursor.com/docs/subagents` → *When the configured model won't be used*). To pin
-   the recorded fallback instead, swap the two entries in `SEAT_MODELS`.
+   the recorded fallback instead, swap the two entries in `SEAT_MODELS`. Every recorded fallback is
+   the other included model (Grok ↔ Composer), never an *Other Models* id.
 
 ## What Cursor does with the pin
 
@@ -79,8 +81,7 @@ levels:
 
 - **`effort:` → model parameters.** Upstream's `effort: high|medium|low` becomes `id[effort=…]`,
   Cursor's documented home for it (`cursor.com/docs/subagents` → *Model parameters*). Judgment and
-  mechanical seats set effort on the non-Anthropic pick; builders use Composer's `fast=false` instead
-  of effort.
+  mechanical seats set effort on the Grok pick; builders use Composer's `fast=false` instead of effort.
 - **`experimental.cacheTtl`** has no Cursor equivalent and is dropped.
 - **Model aliases.** A floating `opus`/`sonnet`/`haiku` a merge brings back maps to its full id when
   the port reads upstream; `SEAT_MODELS` still decides what gets written to `agents/`.
@@ -109,7 +110,8 @@ edits (`scripts/asset/xai.mjs`, hand-owned; the hook into the generator is port 
 
 Edit `SEAT_MODELS` in `scripts/port.mjs` and the row above, then
 `node scripts/port.mjs && bash scripts/verify.sh`. A new id goes into `CONFIRMED_MODELS` with the
-page it was read from, and only once a page shows it verbatim.
+page it was read from, and only once a page shows it verbatim. New seat pins must stay in the
+included pool (`scripts/verify-tree.mjs`).
 
 ## Sources
 

@@ -1,7 +1,7 @@
 ---
 name: kru-chariot-specialist
 description: DAF gifts via Chariot DAFpay — the Connect session (`<chariot-connect>` / `react-chariot-connect`), grant creation, event subscriptions, the signed webhook, grant state. Use when a feature takes a DAF gift, reads a Chariot grant, or handles its webhook. Card payments are `stripe-specialist`'s. Use proactively for this seat's stack; dispatch it with the Task tool as kru-chariot-specialist.
-model: gpt-5.6-sol[effort=high]
+model: grok-4.7[effort=high]
 ---
 
 You own donor-advised-fund giving via **Chariot** (DAFpay), and hand the framework builder a typed grant surface — the Connect mount module and its callbacks, create-grant, get-grant.

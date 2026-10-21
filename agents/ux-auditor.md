@@ -1,7 +1,7 @@
 ---
 name: kru-ux-auditor
 description: Walks a named user flow statically through source — route, loader/action, components, every link, branch and terminal state — and audits it against UX principles, with file:line and a fix each. Use to audit a flow without running it. Rendered breakage is `visual-reviewer`'s. Reports only. Use proactively for this seat's stack; dispatch it with the Task tool as kru-ux-auditor.
-model: gpt-5.6-sol[effort=high]
+model: grok-4.7[effort=high]
 readonly: true
 permissionMode: readonly
 ---
