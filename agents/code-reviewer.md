@@ -1,7 +1,7 @@
 ---
 name: kru-code-reviewer
 description: Adversarial correctness review of a diff or files — logic bugs, edge cases, security, error handling, concurrency, fit with the codebase's own conventions. Use for an independent pass (often parallel) after code is written. Structure is `architecture-reviewer`'s. Reports; does not edit. Use proactively for this seat's stack; dispatch it with the Task tool as kru-code-reviewer.
-model: gpt-5.6-sol[effort=high]
+model: grok-4.7[effort=high]
 readonly: true
 permissionMode: readonly
 ---

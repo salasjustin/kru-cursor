@@ -49,10 +49,9 @@ const PREFIX = "kru-"
 // ---------------------------------------------------------------------------
 const CONFIRMED_MODELS = {
   "grok-4.7": "https://cursor.com/docs/models/grok-4-7",
+  "grok-4.6": "https://cursor.com/docs/models/grok-4-6",
+  "grok-4.5": "https://cursor.com/docs/models/grok-4-5",
   "composer-2.5": "https://cursor.com/docs/models/cursor-composer-2-5",
-  "kimi-k3": "https://cursor.com/docs/models/kimi-k3",
-  "gpt-5.6-sol": "https://cursor.com/docs/models/gpt-5-6-sol",
-  "gemini-3.1-pro": "https://cursor.com/docs/models/gemini-3-1-pro",
   inherit: "https://cursor.com/docs/subagents",
 }
 const CURSOR_MODELS = new Set(Object.keys(CONFIRMED_MODELS))
@@ -62,7 +61,7 @@ const baseModel = (m) => m.replace(/\[.*\]$/, "")
 // every seat's cursor pin and fallback — [pick, fallback]. the why is MODELS.md's.
 // no Anthropic model id is written to agents/; upstream's Claude tiers are read only
 // when choosing effort on judgment seats.
-const JUDGMENT = ["gpt-5.6-sol[effort=high]", "gemini-3.1-pro"]
+const JUDGMENT = ["grok-4.7[effort=high]", "composer-2.5[fast=false]"]
 const BUILDER = ["composer-2.5[fast=false]", "grok-4.7"]
 const FAST = ["composer-2.5", "grok-4.7"]
 const SEAT_MODELS = {
@@ -98,9 +97,9 @@ const SEAT_MODELS = {
   "tanstack-start-builder": BUILDER,
   "vercel-platform-engineer": BUILDER,
   "zapier-specialist": BUILDER,
-  // component seats (non-Anthropic; Kimi K3)
-  "react-ui-builder": ["kimi-k3", "gpt-5.6-sol"],
-  "web-components-builder": ["kimi-k3", "gpt-5.6-sol"],
+  // component seats (included pool; same builder pin as other implementation seats)
+  "react-ui-builder": ["composer-2.5[fast=false]", "grok-4.7[effort=high]"],
+  "web-components-builder": ["composer-2.5[fast=false]", "grok-4.7[effort=high]"],
   // long, checklist, or suite work in Cursor's Grok pool
   "test-writer": ["grok-4.7", "composer-2.5[fast=false]"],
   "toolchain-engineer": ["grok-4.7[effort=medium]", "composer-2.5[fast=false]"],
@@ -111,10 +110,8 @@ const SEAT_MODELS = {
   "dispatch-auditor": FAST,
 }
 const TIER_FALLBACK = {
-  "gpt-5.6-sol": "gemini-3.1-pro",
-  "composer-2.5": "grok-4.7",
+  "composer-2.5": "grok-4.7[effort=high]",
   "grok-4.7": "composer-2.5[fast=false]",
-  "kimi-k3": "gpt-5.6-sol",
 }
 const EFFORTS = new Set(["low", "medium", "high", "xhigh", "max"])
 
@@ -581,6 +578,16 @@ const RULES = [
   // upstream's tiers stand as written; MODELS.md's map overrides them here
   R(/^## Model tiers\n(?:In kru-cursor[^\n]*\n\n)?/m, () => "## Model tiers\nIn kru-cursor `MODELS.md` is the map, and it overrides this section where they differ: every seat's pin lives in `scripts/port.mjs` → `SEAT_MODELS` (no Anthropic model ids in `agents/`), every pick has a fallback, `effort` becomes the model id's `[effort=…]` parameter, `experimental.cacheTtl` has no Cursor equivalent, and `scripts/port.mjs` writes every seat's `model:` line.\n\n",
     { md: true, files: /^ROSTER\.md$/, required: /^In kru-cursor `MODELS\.md` is the map/m }),
+  R(/^Every non-lead seat[\s\S]*?(?=^## Reused, not owned)/m, () =>
+      "Every non-lead seat is pinned to an explicit `model:` in its frontmatter — no seat inherits the session model. **Included pool only:** every pin and fallback is a Cursor *included* model (`grok-4.7`, `grok-4.6`, `grok-4.5`, or `composer-2.5` per [cursor.com/docs/models](https://cursor.com/docs/models)) so seats do not bill against prepaid *Other Models* credit.\n\n" +
+      "| Role | Typical `model:` | Fallback | Seats (summary) |\n|---|---|---|---|\n" +
+      "| Judgment, money, auth, data | `grok-4.7[effort=high]` | `composer-2.5[fast=false]` | `planner`, reviewers, `ux-auditor`, payment/auth/data specialists |\n" +
+      "| Implementation builders | `composer-2.5[fast=false]` | `grok-4.7` | framework/platform builders, `conversion-copywriter` |\n" +
+      "| Component UI | `composer-2.5[fast=false]` | `grok-4.7[effort=high]` | `react-ui-builder`, `web-components-builder` |\n" +
+      "| Long or checklist work | `grok-4.7` (+ effort when pinned) | `composer-2.5` | `test-writer`, `toolchain-engineer`, `vercel-perf-optimizer`, screen passes, `dispatch-auditor` |\n" +
+      "| Lead | conversation model | — | `skills/kru-lead/SKILL.md` |\n\n" +
+      "Seat-by-seat pins: `MODELS.md` and `node scripts/port.mjs --list-models --seats`. Retiering is one row in `SEAT_MODELS` plus the matching `MODELS.md` row, then `node scripts/port.mjs && bash scripts/verify.sh`.\n\n",
+    { md: true, files: /^ROSTER\.md$/, required: /Included pool only/ }),
   // the store's cloud surface
   R(/cloud session \(`CLAUDE_CODE_REMOTE=true`\)/g, "cloud agent (`CURSOR_AGENT_SOCKET` set, or `KRU_CLOUD=1`)", { md: true }),
   // the asset key: an xai key is the alternative for stills and edits

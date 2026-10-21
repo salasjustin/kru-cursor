@@ -50,6 +50,9 @@ const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/
 // parameters. which ids are allowed is verify.sh's seat-models check
 // (scripts/port.mjs → CONFIRMED_MODELS)
 const MODEL = /^[a-z0-9][a-z0-9.-]*(\[(effort=(low|medium|high|xhigh|max)|fast=(true|false)|context=\d+k)(,(effort=(low|medium|high|xhigh|max)|fast=(true|false)|context=\d+k))*\])?$/
+// seats bill only against Cursor's included usage pool (cursor.com/docs/models)
+const INCLUDED_POOL = new Set(["grok-4.7", "grok-4.6", "grok-4.5", "composer-2.5"])
+const baseModelId = (m) => m.replace(/\[.*\]$/, "")
 
 // --- yaml, via python ------------------------------------------------------------
 function pyYaml(paths) {
@@ -296,6 +299,8 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
   for (const [s, fm] of agentFm) {
     const m = String(fm.model ?? "")
     if (anthropic.test(m)) fail("seats", `agents/${s}.md: model '${m}' must not name an Anthropic id (scripts/port.mjs → SEAT_MODELS)`)
+    const base = baseModelId(m)
+    if (!INCLUDED_POOL.has(base)) fail("seats", `agents/${s}.md: model '${m}' must be in Cursor's included pool (${[...INCLUDED_POOL].join(", ")})`)
   }
 }
 
