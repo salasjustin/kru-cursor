@@ -6,14 +6,6 @@ disable-model-invocation: true
 
 The artboard and publish mechanics for a **designer bot** session. Load this file (`skills/kru-design/SKILL.md`); engineering does not invoke it as a slash command. The look is decided on the canvas. The verdict is the PM's. Practice: `${CURSOR_PLUGIN_ROOT}/references/ui-practice.md` and `${CURSOR_PLUGIN_ROOT}/references/designer-handoff.md`.
 
-## Model
-
-When the PM or the designer bot launches a mockup agent, pick a Cursor **included** model ([cursor.com/docs/models](https://cursor.com/docs/models)) so design sessions do not bill against prepaid *Other Models* credit.
-
-- **Mockups and design drafts:** `grok-4.7` with `[effort=high]`.
-- **High-stakes screens** (hero, landing page, brand-defining direction): same pick — `grok-4.7[effort=high]`.
-- **Fallback:** `composer-2.5` with `[fast=false]`.
-
 ## Draft the files first
 
 Always draft self-contained `.dc.html` artboards. They are the re-seed and the transcription spec, and they are the whole return when `/canvas` is not available. The file format is `${CURSOR_PLUGIN_ROOT}/skills/kru-design/artboards.md` — follow it for every local artboard and the index.
