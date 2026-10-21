@@ -49,7 +49,8 @@ const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/
 // the shape of a model line: an id plus cursor's optional `[key=value,…]`
 // parameters. which ids are allowed is verify.sh's seat-models check
 // (scripts/port.mjs → CONFIRMED_MODELS)
-const MODEL = /^[a-z0-9][a-z0-9.-]*(\[(effort=(low|medium|high|xhigh|max)|fast=(true|false)|context=\d+k)(,(effort=(low|medium|high|xhigh|max)|fast=(true|false)|context=\d+k))*\])?$/
+const PARAM = "effort=(low|medium|high|xhigh|max)|reasoning=(none|low|medium|high|xhigh|max)|fast=(true|false)|context=\\d+k"
+const MODEL = new RegExp(`^[a-z0-9][a-z0-9.-]*(\\[(${PARAM})(,(${PARAM}))*\\])?$`)
 
 // --- yaml, via python ------------------------------------------------------------
 function pyYaml(paths) {
@@ -292,10 +293,14 @@ for (const [event, list] of Object.entries(hooks.hooks ?? {})) {
   const gate = read("hooks/check-handoff.sh")
   if (!gate.includes(`grep -q '^readonly: true' "$plugin_root/agents/$seat.md"`)) fail("seats", "hooks/check-handoff.sh lost the ported read-only test (scripts/port.mjs)")
   if (/\^tools:/.test(gate)) fail("seats", "hooks/check-handoff.sh still reads a tools: line, which no ported seat has")
+  // claude-sonnet-5-5 is the one anthropic id the catalog exception allows
+  // (component seats, MODELS.md). any other anthropic id still fails.
   const anthropic = /claude|opus|sonnet|haiku/i
+  const allowedAnthropic = new Set(["claude-sonnet-5-5"])
   for (const [s, fm] of agentFm) {
     const m = String(fm.model ?? "")
-    if (anthropic.test(m)) fail("seats", `agents/${s}.md: model '${m}' must not name an Anthropic id (scripts/port.mjs → SEAT_MODELS)`)
+    const base = m.replace(/\[.*\]$/, "")
+    if (anthropic.test(m) && !allowedAnthropic.has(base)) fail("seats", `agents/${s}.md: model '${m}' is an Anthropic id this fork does not pin (scripts/port.mjs → SEAT_MODELS)`)
   }
 }
 

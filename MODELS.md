@@ -1,20 +1,20 @@
 # Models — what each seat runs on in Cursor
 
 Upstream kru pins every seat to a Claude model and argues each tier in `ROSTER.md` → *Model tiers*.
-This fork keeps those *roles* (judgment, builder, mechanical) but pins every seat to a
-non-Anthropic model Cursor documents in subagent frontmatter. `scripts/port.mjs` holds the data —
-`CONFIRMED_MODELS` (every id a seat may use, each with the page it was read from), `SEAT_MODELS`
-(every seat's pick and fallback) — and writes every seat's `model:` line. No agent file is edited
+This fork keeps those *roles* (judgment, builder, mechanical) and pins every seat to a model
+Cursor documents in subagent frontmatter. `scripts/port.mjs` holds the data:
+`CONFIRMED_MODELS` (every id a seat may use, each with the page it was read from) and `SEAT_MODELS`
+(every seat's pick and fallback). The port writes every seat's `model:` line. No agent file is edited
 by hand. `node scripts/port.mjs --list-models --seats` prints the map below.
 
 ## The map
 
 | seat | model | fallback | why | source |
 |---|---|---|---|---|
-| `code-reviewer`, `architecture-reviewer`, `planner`, `ux-auditor` | `gpt-5.6-sol[effort=high]` | `gemini-3.1-pro` | judgment seats: what they return *is* the judgment, so they get the strongest non-Anthropic tier at high effort (upstream's reasoning role, new provider). Fallback: Gemini 3.1 Pro is another top-tier model in Cursor's docs | [gpt-5-6-sol](https://cursor.com/docs/models/gpt-5-6-sol), [gemini-3-1-pro](https://cursor.com/docs/models/gemini-3-1-pro) |
-| `better-auth-specialist`, `stripe-specialist`, `paypal-specialist`, `nowpayments-specialist`, `chariot-specialist`, `quickbooks-specialist`, `postgres-architect`, `sqlite-architect`, `turso-specialist` | `gpt-5.6-sol[effort=high]` | `gemini-3.1-pro` | money, auth, and migration correctness; same strongest non-Anthropic tier as judgment seats | [gpt-5-6-sol](https://cursor.com/docs/models/gpt-5-6-sol) |
+| `code-reviewer`, `architecture-reviewer`, `planner`, `ux-auditor` | `gpt-5.6-terra[reasoning=high]` | `gemini-3.1-pro` | judgment seats: what they return is the judgment. GPT-5.6 Terra at `reasoning=high` (Cursor's catalog parameter for this id: `none`, `low`, `medium`, `high`, `xhigh`, `max`) scores 95.4% on Vals SWE-bench Verified against Sol's 96.2%, at about a third of Sol's cost per task on that board ($0.40 vs $1.15). Sol's Cursor list price is a promo through 2026-11-21. Fallback: Gemini 3.1 Pro | [gpt-5-6-terra](https://cursor.com/docs/models/gpt-5-6-terra), [gemini-3-1-pro](https://cursor.com/docs/models/gemini-3-1-pro) |
+| `better-auth-specialist`, `stripe-specialist`, `paypal-specialist`, `nowpayments-specialist`, `chariot-specialist`, `quickbooks-specialist`, `postgres-architect`, `sqlite-architect`, `turso-specialist` | `gpt-5.6-terra[reasoning=high]` | `gemini-3.1-pro` | money, auth, and migration correctness; same Terra pin as the judgment seats | [gpt-5-6-terra](https://cursor.com/docs/models/gpt-5-6-terra) |
 | builders — `cloudflare-builder`, `conversion-copywriter`, `extension-builder`, `fly-platform-engineer`, `go-fullstack-builder`, `hono-builder`, `nextjs-builder`, `node-developer`, `python-developer`, `react-router-builder`, `sanity-builder`, `svelte-ui-builder`, `sveltekit-builder`, `tanstack-start-builder`, `vercel-platform-engineer`, `zapier-specialist` | `composer-2.5[fast=false]` | `grok-4.7` | implementation work: Cursor's Composer standard variant (`fast=false`), not the fast tier | [composer-2-5](https://cursor.com/docs/models/cursor-composer-2-5) |
-| `react-ui-builder`, `web-components-builder` | `kimi-k3` | `gpt-5.6-sol` | the component seats stay on Kimi K3 (Moonshot, Cursor's *Other Models* pool). `web-components-builder` writes a public API, so a defect it ships re-pins it to the fallback | [kimi-k3](https://cursor.com/docs/models/kimi-k3) |
+| `react-ui-builder`, `web-components-builder` | `claude-sonnet-5-5` | `gpt-5.6-terra[reasoning=high]` | component seats. Sonnet 5.5 lists at $2 / $10 per million tokens against Kimi K3 at $3 / $15, and ranks above Kimi K3 on the Design Arena UI board (1373 vs 1346). A Claude model is pinned here because it costs no more than the alternative and ranks at least as well. `web-components-builder` writes a public API, so a defect it ships re-pins it to the fallback | [claude-sonnet-5-5](https://cursor.com/docs/models/claude-sonnet-5-5) |
 | `test-writer` | `grok-4.7` | `composer-2.5[fast=false]` | coverage sweeps and suite repair: long, bounded, self-checking work in Cursor's Grok pool | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
 | `toolchain-engineer`, `vercel-perf-optimizer` | `grok-4.7[effort=medium]` | `composer-2.5[fast=false]` | checklist work against documented conventions; medium effort as upstream pins it | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
 | `accessibility-reviewer`, `visual-reviewer` | `grok-4.7[effort=low]` | `composer-2.5` | upstream's sonnet tier: restraint-heavy review on the fast Grok effort level | [grok-4-7](https://cursor.com/docs/models/grok-4-7) |
@@ -25,16 +25,15 @@ Retiering is one row in `SEAT_MODELS` plus the matching row here, then `node scr
 
 ### Confirmed ids
 
-Every id below was read verbatim as the page's **Model ID** on 2026-10-18 (Anthropic ids are
-omitted on purpose — they must not appear in `agents/`). An id not in this list is refused by the
-port and by `scripts/verify.sh` (*seat models are confirmed cursor ids*).
+Every id below was read verbatim as the page's **Model ID** (Grok, Composer, and Gemini on 2026-10-18; Terra and Sonnet 5.5 on 2026-10-21). An id not in this list is refused by the
+port and by `scripts/verify.sh` (*seat models are confirmed cursor ids*). `claude-sonnet-5-5` is the only Anthropic id, and only the two component seats use it.
 
 | id | page | pool, list price per 1M tokens (input / output) |
 |---|---|---|
 | `grok-4.7` | cursor.com/docs/models/grok-4-7 | Cursor Models, $2 / $6 (fast $4 / $12) |
 | `composer-2.5` | cursor.com/docs/models/cursor-composer-2-5 | Cursor Models, $0.50 / $2.50 (fast $3 / $15) |
-| `kimi-k3` | cursor.com/docs/models/kimi-k3 | Other Models, $3 / $15 |
-| `gpt-5.6-sol` | cursor.com/docs/models/gpt-5-6-sol | Other Models, $4 / $20 |
+| `gpt-5.6-terra` | cursor.com/docs/models/gpt-5-6-terra | Other Models, $2 / $12 |
+| `claude-sonnet-5-5` | cursor.com/docs/models/claude-sonnet-5-5 | Other Models, $2 / $10 |
 | `gemini-3.1-pro` | cursor.com/docs/models/gemini-3-1-pro | Other Models, $2 / $12 |
 | `inherit` | cursor.com/docs/subagents → Configuration fields | the parent's model |
 
@@ -77,10 +76,8 @@ levels:
 
 ## The translations
 
-- **`effort:` → model parameters.** Upstream's `effort: high|medium|low` becomes `id[effort=…]`,
-  Cursor's documented home for it (`cursor.com/docs/subagents` → *Model parameters*). Judgment and
-  mechanical seats set effort on the non-Anthropic pick; builders use Composer's `fast=false` instead
-  of effort.
+- **`effort:` → model parameters.** Upstream's `effort: high|medium|low` becomes a bracket on the model id,
+  Cursor's documented home for it (`cursor.com/docs/subagents` → *Model parameters*). The parameter name is the one Cursor's model catalog lists for that id. Terra's is `reasoning` (`none`, `low`, `medium`, `high`, `xhigh`, `max`), so judgment seats are `gpt-5.6-terra[reasoning=high]`. Grok seats keep `effort`. Builders use Composer's `fast=false` instead of a reasoning parameter.
 - **`experimental.cacheTtl`** has no Cursor equivalent and is dropped.
 - **Model aliases.** A floating `opus`/`sonnet`/`haiku` a merge brings back maps to its full id when
   the port reads upstream; `SEAT_MODELS` still decides what gets written to `agents/`.
@@ -115,7 +112,7 @@ page it was read from, and only once a page shows it verbatim.
 
 - `cursor.com/docs/models-and-pricing` — the pools, list prices, the Token Rate.
 - `cursor.com/docs/models/<model>` — each id (the pages linked in *Confirmed ids*).
-- `cursor.com/docs/subagents` — the `model` field, `inherit`, model parameters (`effort`, `fast`),
+- `cursor.com/docs/subagents`: the `model` field, `inherit`, model parameters (`reasoning`, `effort`, `fast`),
   when the configured model won't be used.
 - `cursor-agent` 2026.10.01-e373342, `index.js` — the plugin-agent loader (`stripModel`, `stripTools`,
   `permissionMode`) and the `composer-2` → `composer-2.5` mapping.

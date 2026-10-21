@@ -44,25 +44,25 @@ const PREFIX = "kru-"
 // ---------------------------------------------------------------------------
 // models. every id a seat may run on, each read verbatim off a cursor docs page
 // (MODELS.md → Sources); an id that isn't here is refused, and scripts/verify.sh
-// checks every agent against this list. effort and the other options ride as
-// cursor's model parameters (`id[effort=high]`, `id[fast=false]`).
+// checks every agent against this list. options ride as cursor's model
+// parameters (`id[reasoning=high]`, `id[effort=high]`, `id[fast=false]`).
+// the name inside the brackets is the one cursor's model catalog lists for that id.
 // ---------------------------------------------------------------------------
 const CONFIRMED_MODELS = {
   "grok-4.7": "https://cursor.com/docs/models/grok-4-7",
   "composer-2.5": "https://cursor.com/docs/models/cursor-composer-2-5",
-  "kimi-k3": "https://cursor.com/docs/models/kimi-k3",
-  "gpt-5.6-sol": "https://cursor.com/docs/models/gpt-5-6-sol",
+  "gpt-5.6-terra": "https://cursor.com/docs/models/gpt-5-6-terra",
+  "claude-sonnet-5-5": "https://cursor.com/docs/models/claude-sonnet-5-5",
   "gemini-3.1-pro": "https://cursor.com/docs/models/gemini-3-1-pro",
   inherit: "https://cursor.com/docs/subagents",
 }
 const CURSOR_MODELS = new Set(Object.keys(CONFIRMED_MODELS))
-// upstream still names opus/sonnet/haiku; the port never writes those ids to agents/
+// upstream still names opus/sonnet/haiku. those aliases are read, not written,
+// except claude-sonnet-5-5 on the two component seats (MODELS.md).
 const MODEL_ALIAS = { opus: "claude-opus-5-5", sonnet: "claude-sonnet-5-5", haiku: "claude-haiku-5-5" }
 const baseModel = (m) => m.replace(/\[.*\]$/, "")
-// every seat's cursor pin and fallback — [pick, fallback]. the why is MODELS.md's.
-// no Anthropic model id is written to agents/; upstream's Claude tiers are read only
-// when choosing effort on judgment seats.
-const JUDGMENT = ["gpt-5.6-sol[effort=high]", "gemini-3.1-pro"]
+// every seat's cursor pin and fallback: [pick, fallback]. the why is MODELS.md's.
+const JUDGMENT = ["gpt-5.6-terra[reasoning=high]", "gemini-3.1-pro"]
 const BUILDER = ["composer-2.5[fast=false]", "grok-4.7"]
 const FAST = ["composer-2.5", "grok-4.7"]
 const SEAT_MODELS = {
@@ -98,9 +98,9 @@ const SEAT_MODELS = {
   "tanstack-start-builder": BUILDER,
   "vercel-platform-engineer": BUILDER,
   "zapier-specialist": BUILDER,
-  // component seats (non-Anthropic; Kimi K3)
-  "react-ui-builder": ["kimi-k3", "gpt-5.6-sol"],
-  "web-components-builder": ["kimi-k3", "gpt-5.6-sol"],
+  // component seats (claude-sonnet-5-5; MODELS.md)
+  "react-ui-builder": ["claude-sonnet-5-5", "gpt-5.6-terra[reasoning=high]"],
+  "web-components-builder": ["claude-sonnet-5-5", "gpt-5.6-terra[reasoning=high]"],
   // long, checklist, or suite work in Cursor's Grok pool
   "test-writer": ["grok-4.7", "composer-2.5[fast=false]"],
   "toolchain-engineer": ["grok-4.7[effort=medium]", "composer-2.5[fast=false]"],
@@ -111,10 +111,10 @@ const SEAT_MODELS = {
   "dispatch-auditor": FAST,
 }
 const TIER_FALLBACK = {
-  "gpt-5.6-sol": "gemini-3.1-pro",
+  "gpt-5.6-terra": "gemini-3.1-pro",
   "composer-2.5": "grok-4.7",
   "grok-4.7": "composer-2.5[fast=false]",
-  "kimi-k3": "gpt-5.6-sol",
+  "claude-sonnet-5-5": "gpt-5.6-terra[reasoning=high]",
 }
 const EFFORTS = new Set(["low", "medium", "high", "xhigh", "max"])
 
@@ -579,7 +579,7 @@ const RULES = [
   R(/ — or a `\.claude\/cloud-setup\.md`\./g, " — or a `.cursor/environment.json` setup wrote.", { md: true, files: /^skills\/kru-propagate\/SKILL\.md$/ }),
   R(/A cloud session pushes its own `claude\/\*` branch/g, "A cloud agent pushes its own branch", { md: true }),
   // upstream's tiers stand as written; MODELS.md's map overrides them here
-  R(/^## Model tiers\n(?:In kru-cursor[^\n]*\n\n)?/m, () => "## Model tiers\nIn kru-cursor `MODELS.md` is the map, and it overrides this section where they differ: every seat's pin lives in `scripts/port.mjs` → `SEAT_MODELS` (no Anthropic model ids in `agents/`), every pick has a fallback, `effort` becomes the model id's `[effort=…]` parameter, `experimental.cacheTtl` has no Cursor equivalent, and `scripts/port.mjs` writes every seat's `model:` line.\n\n",
+  R(/^## Model tiers\n(?:In kru-cursor[^\n]*\n\n)?/m, () => "## Model tiers\nIn kru-cursor `MODELS.md` is the map, and it overrides this section where they differ: every seat's pin lives in `scripts/port.mjs` → `SEAT_MODELS`, every pick has a fallback, upstream `effort` is written as that model's catalog parameter (`[effort=…]`, or `[reasoning=…]` when the catalog names it `reasoning`), `experimental.cacheTtl` has no Cursor equivalent, and `scripts/port.mjs` writes every seat's `model:` line. The only Anthropic id in `agents/` is `claude-sonnet-5-5`, on `react-ui-builder` and `web-components-builder`.\n\n",
     { md: true, files: /^ROSTER\.md$/, required: /^In kru-cursor `MODELS\.md` is the map/m }),
   // the store's cloud surface
   R(/cloud session \(`CLAUDE_CODE_REMOTE=true`\)/g, "cloud agent (`CURSOR_AGENT_SOCKET` set, or `KRU_CLOUD=1`)", { md: true }),
