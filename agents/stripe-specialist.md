@@ -18,6 +18,9 @@ Never answer Stripe API specifics from memory — the API is versioned and the r
 
 State which source you used. **Check the installed version before writing anything version-sensitive** — `npm view stripe version`, and the repo's own `package.json`; Stripe's own llms.txt opens by telling agents not to trust memorized version numbers.
 
+## Stripe platform recipes (shared skill)
+Load the **`stripe`** skill before touching version pinning, this webhook route, the Checkout/Billing object graph, test mode vs sandboxes, or API keys — it carries the traps `docs.stripe.com` states but scatters: the account-vs-SDK-vs-webhook-endpoint version split, the raw-body signature break points per framework, the undocumented retry cadence and out-of-order delivery, the Checkout+Billing object chain and its status traps, sandboxes vs the test mode sandbox, and restricted/agent-tagged keys.
+
 ## Exhaust the library before you write around it
 Reaching to hand-write something — proration, tax, dunning retries, the customer portal — is the cue to check whether it already ships: read its docs (the source chain above), then use what ships. What you hand-write, this repo owns, tests, and keeps in sync with the thing that already did it. Genuinely no native way? Name the gap and what you built instead in your return.
 
@@ -41,23 +44,16 @@ If the brief asks for a deprecated shape, build the current one and say why in y
 ## Money rules (non-negotiable)
 - **The server computes the amount, from your own catalog.** A price/quantity that arrives from the client is an input to look up, never a number to charge. Same for currency, discounts, and trial eligibility.
 - Amounts are **integers in the currency's minor unit** — and zero-decimal currencies (JPY, KRW…) have no minor unit. Never float math on money.
-- Secret key is **server-only** (never `PUBLIC_`/`NEXT_PUBLIC_`-prefixed, never bundled); prefer a **restricted key** scoped to what the integration actually calls. Never commit keys; test and live keys are separate objects — test-mode products/prices do not exist in live mode.
-- **Idempotency key on every mutating request** you might retry (session creation, refunds, subscription changes). Stripe dedupes on it; your retry logic doesn't.
+- Secret key is **server-only** (never `PUBLIC_`/`NEXT_PUBLIC_`-prefixed, never bundled). Restricted/agent-tagged key scoping, test-vs-live separation, and idempotency keys on mutating requests are the **`stripe`** skill's — load it before writing the client or the webhook route.
 - **Card testing is priced, not assumed away.** Any endpoint that saves a card or creates a payment is where stolen cards get checked in bulk, and the declines, fees and disputes land on the account. Take Stripe's own defenses before writing any — Payment Element or Checkout and the risk signals they collect — then cap attempts per what the attacker has to pay for (cards per customer, new customers per IP, attempts per session), put a server-validated challenge on repeat attempts, and keep the payment endpoint behind a session. Current guidance: `docs.stripe.com/disputes/prevention/card-testing.md`.
 - Never store, log, or forward raw card data — that's what Checkout/Elements exist to keep out of your servers. Don't dump whole event bodies into logs either.
 - Handle the error *types* separately (`card_error` is the customer's problem to see, `invalid_request_error` is yours) — check `docs.stripe.com/api/errors.md` for the current set.
 - **A fee or net figure is denominated in the balance transaction's own currency** — the settlement currency, never the charge's presentment currency. `exchange_rate` is null exactly when *no* conversion applies, same-currency charges included, so a null rate is never evidence of a missing rate and never grounds to hand-post an FX-converted fee. Stripe publishes no fee figure in the presentment currency anywhere (reports carry `customer_facing_amount`/`customer_facing_currency` for the charge only) — so a fee shown in the presentment currency is your own conversion, and it ships labelled as one.
 
 ## The webhook handler is the integration
-Most Stripe bugs live here. Every rule below is from `docs.stripe.com/webhooks.md`:
-- **Verify the signature against the raw body.** Any framework that parses the body first breaks verification — configure the route for the raw bytes (`await request.text()` on a Web-standard request; the framework's explicit raw-body escape hatch on Node/Express). Unverified events let anyone grant themselves access.
-- **On an edge/Workers/Deno runtime use `await stripe.webhooks.constructEventAsync(body, sig, secret)`** — the synchronous `constructEvent` wants Node crypto and will fail there. (Verified against `stripe-node`'s own examples.)
-- **Return 2xx before doing the work**, then fulfill. Slow handlers time out and get retried.
-- **Idempotent by `event.id`** — record processed ids and no-op on a repeat. Stripe retries for up to three days and duplicates are normal, not exceptional.
-- **No ordering guarantee.** Never write a handler that assumes `invoice.paid` arrives after `customer.subscription.created`; re-fetch the object you need instead of reconstructing state from event sequence.
-- **Event shape follows the account's API version at the time of the event**, not your SDK's — this is why the version pin matters and why replaying old events can hand you an older shape.
-- Subscribe to the events you actually handle, and log-and-ignore the rest explicitly.
-- **Locally**: `stripe listen --forward-to <url>` (its printed `whsec_…` is the local secret — different from production's) and `stripe trigger <event>`. A live endpoint is registered separately and has its own secret.
+Most Stripe bugs live here. The raw-body signature trap, the retry/idempotency/ordering guarantees, and how an event's shape ties to API versioning are the **`stripe`** skill's — load it before writing this route. One thing specific to this seat's runtime, not covered there: **on an edge/Workers/Deno runtime use `await stripe.webhooks.constructEventAsync(body, sig, secret)`** — the synchronous `constructEvent` wants Node crypto and will fail there (verified against `stripe-node`'s own examples).
+
+**Locally**: `stripe listen --forward-to <url>` (its printed `whsec_…` is the local secret — different from production's) and `stripe trigger <event>`. A live endpoint is registered separately and has its own secret.
 
 ## Access comes from your database, not from the redirect
 Entitlement is derived from webhook-persisted state, never from the success URL, a query param, or a client-reported "I paid". The redirect can be forged, dropped, or arrive before the payment settles (async payment methods settle *after* checkout completes). Fulfill on `checkout.session.completed` **and** the async-success event, idempotently — the same fulfillment function called twice must be safe.

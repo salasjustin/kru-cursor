@@ -29,6 +29,12 @@ Values craft, for drafting canvas directions from nothing.
 **Rule:** draw none of them. Each is a reflex the direction didn't choose, and a panel scoring 247 gallery sites found every one at least twice as often on the weak sites as on the strong (taste-skill v2's study: icon feature cards 28% against 1%, gradients 52% against 22%, resting shadows 48% against 24%, tracked caps 57% against 16%, pill badges 34% against 14%). Put a label's information in the heading or its first sentence; separate surfaces by a tone step; keep shadows for what floats, a menu or a dialog. The space a cut ornament leaves goes to scale (the main thing larger), the full content, or a picture made for this subject — never to the next ornament.
 **Check:** no artboard carries one of the five unless the user's brief or brand asked for it by name.
 
+## A working screen dressed as a template
+
+**Default it corrects:** the dashboard every generator averages to — a tinted sidebar with a coloured active pill, "Welcome back" over four KPI cards each with an icon in a tinted circle, a green "+12.5%" and a sparkline, zebra rows under tracked uppercase headers, the accent on every button and tab.
+**Rule:** colour goes on the data, not the chrome: the median of 23 measured product screens has about 3% coloured pixels, and 12 have no filled primary button (taste-skill v2.1's app-screen study, a sample its author chose). A KPI is a label over a number, the figure in ink rather than the brand colour; none of the 23 puts an icon or a sparkline on one. Navigation recedes: a neutral pill or a change of ink, the sidebar on the page ground. A table is rules and alignment, with grey sentence-case headers and no zebra or header band. A zero or new change takes grey or words ("+4 (new)"), never status colour. With every tell removed, the space goes to the product: its own name and scope in the shell, its real data at real size, its main job one click away.
+**Check:** no artboard of an app screen carries an icon-topped or sparklined KPI, a coloured chrome element beyond one control, or a zebra or uppercase-banded table, and each names its product and offers its main action.
+
 ## Finish
 
 For a direction that is correct but plain. Each lever is optional; pick one or two, never all.

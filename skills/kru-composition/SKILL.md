@@ -16,7 +16,7 @@ Two kinds of file, and the kind decides who loads it:
 |---|---|
 | lay out any screen, section or card — draft a mockup, build one, check one | `reference/layout.md` · `reference/hierarchy.md` · `reference/text.md` |
 | place a photo, an icon at a new size, a screenshot, a user upload, text over an image | `reference/media.md` |
-| draft visual directions from nothing — where to start, personality, what to leave undrawn (designer) | `reference/directions.md` |
+| draft visual directions from nothing — where to start, personality, what to leave undrawn on a page or an app screen (designer) | `reference/directions.md` |
 | choose colours: a palette, a ramp, greys, colour on colour | `reference/color.md` |
 | choose depth: shadows, raised and inset surfaces, layering | `reference/depth.md` |
 | choose type: faces, a scale, line-height, tracking | `reference/text.md` → *Choosing type* |

@@ -45,3 +45,15 @@
 **Default it corrects:** a floor or band authored against a tall region and spent in a short one — a `min-height` on a flex child in a sheet capped at `80svh`, an edge fade whose depth is a fixed token.
 **Rule:** state each fixed length against what it must not swallow, and say what happens when the room isn't there. A floor on a flex child beats `flex: 1`, so the column overflows its cap and the child paints outside the clip, under whatever follows it: gate the floor behind a `min-height` query, or let the child shrink. A fade sized as a constant can cover the whole first row past the fold in a short scrollport, so the row reads unreachable while one drag away: size it against the row, narrow it where a media query already admits the cap, and buy room back before dropping the fade — it's the only cue that more lies past the edge.
 **Check:** phone landscape and 200% zoom, where the cap is shortest — 200% zoom makes this a reflow failure, not a landscape edge case.
+
+## The side margins are one pair, and the nav sits on them
+
+**Default it corrects:** a header on one inset and the page on another (40px against 20px), a section nudged to one side, a bleed that drags the margin with it.
+**Rule:** the left and right margins match at every width, and the navigation shares them with the content. On 97 recent Awwwards Sites of the Day the two sides agree to a few pixels, and no strong page sits off-centre (taste-skill v2.1's study). A bleed is deliberate and starts from a margin: a row running off the right edge begins on the left one. Asymmetry lives inside the frame: an off-centre anchor line on symmetric margins.
+**Check:** at every artboard width, the left and right content edges of the nav and of every section measure equal.
+
+## Empty space is closed by something, or it is a hole
+
+**Default it corrects:** the blank stretches readers name first when a page looks wrong — text in one half of a section and plain ground in the other, a gap between sections stretched to most of a screen, a footer or a lone heading padded to `100vh`, a row of pictures of different heights top-aligned over a hole, a screen of bare ground while a reveal waits to fire.
+**Rule:** every large empty area names what closes it: a picture with the type docked at its edge, a picture at the far side of the band, type large enough to span it, a step in ground tone. If nothing does, move the section's picture into it, make the main element larger, or take the space out. When text takes one half, the other holds the section's picture, a second column, a list or a figure; in the same study about one text section in a hundred leaves half the width empty. A section is sized to its content, and full-screen height belongs only to one that fills the screen. Content is in place on the first paint; an entrance moves what is already there.
+**Check:** no stretch taller than about half a screen holds nothing, no section leaves half its width to plain ground, and the first frame of every screen shows its words.

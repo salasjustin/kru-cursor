@@ -1,5 +1,11 @@
 # kru plugin update log
 
+## 0.160.0
+
+**Composition** takes the measured half of taste-skill v2.1. `layout`: the side margins are one pair with the nav on them; empty space is closed by something or it is a hole (half-width voids, `100vh` footers, blank first paints). `directions`: *A working screen dressed as a template* — colour on data not chrome, KPIs as a label over a number with no icon or sparkline, quiet nav, ruled tables, grey for a zero change, the product named and its main job one click away.
+
+**Release.** `scripts/sync-bot-skills.sh` runs on macOS: no GNU-only `mv -T` or `find -printf`.
+
 ## 0.159.0
 
 **Handoff gate, grouping.** Stays a **shadow** hint (logged to the refusal log, dispatch still allowed). Reasons quote the file path; a bare directory name logs as `grouping-mention` (low confidence). Briefs that only reference another lane's path (`mounted by` / `leave it`) are not flagged.
